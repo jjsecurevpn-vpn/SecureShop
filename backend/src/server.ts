@@ -8,11 +8,12 @@ import { MercadoPagoService } from './services/mercadopago.service';
 import { TiendaService } from './services/tienda.service';
 import { TiendaRevendedoresService } from './services/tienda-revendedores.service';
 import { RenovacionService } from './services/renovacion.service';
+import { WebSocketService } from './services/websocket.service';
 import { crearRutasTienda } from './routes/tienda.routes';
 import { crearRutasRevendedores } from './routes/tienda-revendedores.routes';
 import { crearRutasRenovacion } from './routes/renovacion.routes';
 import { crearRutasStats } from './routes/stats.routes';
-import { WebSocketService } from './services/websocket.service';
+import { crearRutasClientes } from './routes/clientes.routes';
 import { corsMiddleware, loggerMiddleware, errorHandler, validarJSON } from './middleware';
 
 class Server {
@@ -21,6 +22,7 @@ class Server {
   private tiendaRevendedoresService!: TiendaRevendedoresService;
   private renovacionService!: RenovacionService;
   private wsService!: WebSocketService;
+  private servexService!: ServexService;
 
   constructor() {
     this.app = express();
@@ -39,6 +41,7 @@ class Server {
 
     // Inicializar servicio de Servex
     const servex = new ServexService(config.servex);
+    this.servexService = servex;
     console.log('[Server] ✅ Servicio Servex inicializado');
 
     // Inicializar servicio de MercadoPago
@@ -77,13 +80,21 @@ class Server {
     // Seguridad
     this.app.use(helmet());
 
-    // Rate limiting
+    // Rate limiting con configuración correcta para proxy
     const limiter = rateLimit({
       windowMs: config.rateLimit.windowMs,
       max: config.rateLimit.max,
       message: {
         success: false,
         error: 'Demasiadas solicitudes, por favor intente más tarde',
+      },
+      keyGenerator: (req) => {
+        // Obtener IP real del cliente detrás del proxy
+        return req.ip || req.connection.remoteAddress || 'unknown';
+      },
+      skip: (req) => {
+        // No aplicar rate limit a health check
+        return req.path === '/health';
       },
     });
     this.app.use(limiter);
@@ -151,6 +162,9 @@ class Server {
 
     // Rutas de la API - Estadísticas
     this.app.use('/api/stats', crearRutasStats(this.wsService));
+
+    // Rutas de la API - Clientes
+    this.app.use('/api', crearRutasClientes(this.servexService));
 
     // 404 handler
     this.app.use('*', (req, res) => {

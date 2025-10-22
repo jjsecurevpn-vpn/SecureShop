@@ -527,4 +527,32 @@ export class ServexService {
       throw new Error(`Error actualizando revendedor en Servex: ${mensaje}`);
     }
   }
+
+  /**
+   * Obtiene la lista de clientes con filtros opcionales
+   */
+  async obtenerClientes(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    scope?: string;
+    resellerId?: number;
+  }): Promise<any[]> {
+    try {
+      console.log('[Servex] Obteniendo lista de clientes con parámetros:', params);
+      
+      const response = await this.client.get('/clients', { params });
+      
+      console.log('[Servex] Respuesta de clientes:', JSON.stringify(response.data, null, 2));
+      const clientes = response.data?.clients || [];
+      
+      console.log(`[Servex] ✅ Obtenidos ${clientes.length} clientes`);
+      return clientes;
+    } catch (error: any) {
+      const mensaje = error.response?.data?.message || error.response?.data?.error || error.message;
+      console.error('[Servex] Error obteniendo clientes:', mensaje);
+      throw new Error(`Error obteniendo clientes de Servex: ${mensaje}`);
+    }
+  }
 }

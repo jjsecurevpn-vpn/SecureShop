@@ -66,3 +66,18 @@ export interface CompraResponse {
   pago: Pago;
   linkPago: string;
 }
+
+export interface Usuario {
+  id: number;
+  username: string;
+  category_id: number;
+  connection_limit: number;
+  duration: number;
+  type: 'user' | 'test';
+  observation?: string;
+  v2ray_uuid?: string;
+  owner_id?: number;
+  created_at: string;
+  expires_at: string;
+  status: 'active' | 'expired' | 'suspended';
+}

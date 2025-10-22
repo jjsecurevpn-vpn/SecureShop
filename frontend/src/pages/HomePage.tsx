@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { apiService } from '../services/api.service';
 import HeroSection from '../sections/HeroSection';
 import ServerStatsSection from '../sections/ServerStatsSection';
+import LatestUsersSection from '../sections/LatestUsersSection';
 import TestimonialsSection from '../sections/TestimonialsSection';
 import AboutSection from '../sections/AboutSection';
 
@@ -41,6 +42,9 @@ const HomePage = () => {
 
       {/* Server Stats - Real Time */}
       <ServerStatsSection />
+
+      {/* Latest Users */}
+      <LatestUsersSection />
 
       {/* Testimonials & Community */}
       <TestimonialsSection />

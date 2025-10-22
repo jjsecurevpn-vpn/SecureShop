@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import { Plan, PlanRevendedor, Pago, CompraRequest, CompraRevendedorRequest, CompraResponse, ApiResponse } from '../types';
+import { Plan, PlanRevendedor, Pago, CompraRequest, CompraRevendedorRequest, CompraResponse, ApiResponse, Usuario } from '../types';
 
 class ApiService {
   private client: AxiosInstance;
@@ -89,6 +89,17 @@ class ApiService {
       throw new Error(response.data.error || 'Error obteniendo pago de revendedor');
     }
     return response.data.data!;
+  }
+
+  /**
+   * Obtiene los últimos usuarios creados
+   */
+  async obtenerUltimosUsuarios(limit: number = 10): Promise<Usuario[]> {
+    const response = await this.client.get<ApiResponse<Usuario[]>>(`/clients?limit=${limit}`);
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Error obteniendo últimos usuarios');
+    }
+    return response.data.data || [];
   }
 }
 
