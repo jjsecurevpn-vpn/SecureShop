@@ -238,23 +238,64 @@ const SuccessPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Panel de Gestión - Solo para Revendedores */}
+        {searchParams.get('tipo') === 'revendedor' && (
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mb-4">
+            <div className="text-xs font-medium text-blue-300 uppercase tracking-wider mb-3">Panel de Gestión</div>
+            <p className="text-xs text-gray-300 mb-3">Accede a tu panel de administración para gestionar tus cuentas y consultas:</p>
+            <a
+              href="https://servex.ws"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium transition-all duration-200 shadow-lg shadow-blue-500/30"
+            >
+              <span>Ir al Panel de Gestión</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+            <p className="text-xs text-gray-400 mt-3">
+              <span className="text-blue-300 font-semibold">URL:</span> https://servex.ws
+            </p>
+          </div>
+        )}
+
         {/* Instructions Card */}
         <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4 mb-4">
-          <div className="text-xs font-medium text-purple-300 uppercase tracking-wider mb-2">Cómo conectarte</div>
-          <ol className="space-y-1.5 text-xs text-gray-300">
-            <li className="flex gap-2">
-              <span className="text-purple-400 font-semibold">1.</span>
-              <span>Descarga <span className="text-purple-300 font-semibold">JJSecure VP-N</span> desde Play Store o App Store</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-purple-400 font-semibold">2.</span>
-              <span>Ingresa tu usuario y contraseña (arriba)</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-purple-400 font-semibold">3.</span>
-              <span>Elige cualquier servidor disponible y ¡conéctate!</span>
-            </li>
-          </ol>
+          <div className="text-xs font-medium text-purple-300 uppercase tracking-wider mb-2">
+            {searchParams.get('tipo') === 'revendedor' ? 'Próximos Pasos' : 'Cómo conectarte'}
+          </div>
+          {searchParams.get('tipo') === 'revendedor' ? (
+            <ol className="space-y-1.5 text-xs text-gray-300">
+              <li className="flex gap-2">
+                <span className="text-purple-400 font-semibold">1.</span>
+                <span>Accede a tu panel en <span className="text-purple-300 font-semibold">https://servex.ws</span></span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-purple-400 font-semibold">2.</span>
+                <span>Consulta tus credenciales y configura tus cuentas</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-purple-400 font-semibold">3.</span>
+                <span>Distribuye accesos a tus clientes finales</span>
+              </li>
+            </ol>
+          ) : (
+            <ol className="space-y-1.5 text-xs text-gray-300">
+              <li className="flex gap-2">
+                <span className="text-purple-400 font-semibold">1.</span>
+                <span>Descarga <span className="text-purple-300 font-semibold">JJSecure VP-N</span> desde Play Store o App Store</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-purple-400 font-semibold">2.</span>
+                <span>Ingresa tu usuario y contraseña (arriba)</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-purple-400 font-semibold">3.</span>
+                <span>Elige cualquier servidor disponible y ¡conéctate!</span>
+              </li>
+            </ol>
+          )}
         </div>
 
         {/* Warning */}
