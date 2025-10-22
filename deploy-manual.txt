@@ -1,0 +1,143 @@
+=====================================================
+GUÍA DE DESPLIEGUE MANUAL - PASO A PASO
+=====================================================
+
+PASO 1: Conectar al VPS
+------------------------
+ssh root@149.50.148.6
+
+PASO 2: Instalar Node.js (si no está instalado)
+------------------------------------------------
+curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+apt-get install -y nodejs
+node --version
+
+PASO 3: Instalar herramientas necesarias
+-----------------------------------------
+apt install -y git nginx
+npm install -g pm2
+pm2 --version
+
+PASO 4: Crear usuario de aplicación
+------------------------------------
+adduser --disabled-password --gecos "" secureshop || echo "Usuario ya existe"
+su - secureshop
+mkdir -p secureshop-vpn
+exit
+
+PASO 5: En tu máquina local, subir archivos
+--------------------------------------------
+# Ejecuta esto desde Git Bash en tu máquina local:
+cd /c/Users/JHServices/Documents/SecureShop/secureshop-vpn
+rsync -avz --exclude 'node_modules' --exclude 'dist' --exclude '.git' --exclude 'database/*.db' --exclude '.env' ./ root@149.50.148.6:/home/secureshop/secureshop-vpn/
+
+PASO 6: En el VPS, configurar permisos
+---------------------------------------
+chown -R secureshop:secureshop /home/secureshop/secureshop-vpn
+
+PASO 7: Configurar variables de entorno
+----------------------------------------
+su - secureshop
+cd secureshop-vpn/backend
+cat > .env << 'ENVEOF'
+PORT=4000
+NODE_ENV=production
+SERVEX_API_KEY=sx_9c57423352279d267f4e93f3b14663c510c1c150fd788ceef393ece76a5f521c
+SERVEX_BASE_URL=https://servex.ws/api
+SERVEX_TIMEOUT=30000
+MP_ACCESS_TOKEN=APP_USR-8757932973898001-081011-11b3d5038392a44bcbb684a733b5539d-222490274
+MP_PUBLIC_KEY=APP_USR-59bd1954-749b-43c7-9bfc-1c1a5e26a22d
+MP_WEBHOOK_URL=http://149.50.148.6/api/webhook
+DATABASE_PATH=./database/secureshop.db
+CORS_ORIGIN=http://149.50.148.6
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+ENVEOF
+
+PASO 8: Instalar dependencias del backend
+------------------------------------------
+npm install --production
+npm run build
+
+PASO 9: Configurar frontend
+----------------------------
+cd ../frontend
+cat > .env << 'ENVEOF'
+VITE_API_URL=http://149.50.148.6/api
+ENVEOF
+npm install
+npm run build
+
+PASO 10: Iniciar backend con PM2
+---------------------------------
+cd ../backend
+pm2 start npm --name "secureshop-api" -- start
+pm2 save
+pm2 list
+
+PASO 11: Configurar PM2 para inicio automático
+-----------------------------------------------
+exit  # Salir del usuario secureshop
+env PATH=$PATH:/usr/bin pm2 startup systemd -u secureshop --hp /home/secureshop
+
+PASO 12: Configurar Nginx
+--------------------------
+cat > /etc/nginx/sites-available/secureshop << 'NGINXEOF'
+server {
+    listen 80;
+    server_name 149.50.148.6;
+
+    root /home/secureshop/secureshop-vpn/frontend/dist;
+    index index.html;
+
+    access_log /var/log/nginx/secureshop_access.log;
+    error_log /var/log/nginx/secureshop_error.log;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api {
+        proxy_pass http://localhost:4000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        proxy_read_timeout 30s;
+    }
+
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+}
+NGINXEOF
+
+ln -sf /etc/nginx/sites-available/secureshop /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+nginx -t
+systemctl restart nginx
+systemctl enable nginx
+
+PASO 13: Configurar firewall
+-----------------------------
+ufw allow 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+echo "y" | ufw enable
+
+PASO 14: Verificar
+------------------
+curl http://149.50.148.6/api/health
+curl http://149.50.148.6/api/planes
+
+=====================================================
+¡LISTO! Abre http://149.50.148.6 en tu navegador
+=====================================================
+
+Para ver logs:
+su - secureshop
+pm2 logs secureshop-api
