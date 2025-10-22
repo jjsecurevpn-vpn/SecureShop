@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Shield, Zap, Crown, Star, Timer, Check, MessageCircle, ArrowRight, Signal, Phone, RefreshCw } from 'lucide-react';
+import { Users, Shield, Zap, Crown, Star, Timer, Check, MessageCircle, ArrowRight, Signal, Phone, RefreshCw, ChevronDown, Wifi, Smartphone, Gauge } from 'lucide-react';
 import CheckoutModal from '../components/CheckoutModal';
 import RenovacionModal from '../components/RenovacionModal';
 import Loading from '../components/Loading';
@@ -9,6 +9,7 @@ import { useServerStats } from '../hooks/useServerStats';
 
 export default function PlanesPage() {
   const [planSeleccionado, setPlanSeleccionado] = useState<Plan | null>(null);
+  const [expandedPlanId, setExpandedPlanId] = useState<number | null>(null);
   const [comprando, setComprando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [planes, setPlanes] = useState<Plan[]>([]);
@@ -43,6 +44,8 @@ export default function PlanesPage() {
       accent: 'from-emerald-400 to-emerald-600',
       chipBg: 'bg-emerald-50 text-emerald-700',
       icon: <Timer className="w-5 h-5" />,
+      description: 'Perfecto si quieres probar nuestro servicio sin compromiso. Acceso completo a todos los servidores y máxima velocidad.',
+      bestFor: 'Usuarios nuevos que quieren experimentar',
       items: planes.filter(p => p.dias === 7),
     },
     {
@@ -51,6 +54,8 @@ export default function PlanesPage() {
       accent: 'from-purple-400 to-purple-600',
       chipBg: 'bg-purple-50 text-purple-700',
       icon: <Zap className="w-5 h-5" />,
+      description: 'La opción más versátil. Dos semanas de acceso completo a precio muy competitivo. Popular entre usuarios ocasionales.',
+      bestFor: 'Usuarios que necesitan flexibilidad',
       items: planes.filter(p => p.dias === 15),
     },
     {
@@ -60,6 +65,8 @@ export default function PlanesPage() {
       chipBg: 'bg-amber-50 text-amber-700',
       icon: <Star className="w-5 h-5" />,
       recommended: true,
+      description: 'Un mes completo de acceso premium. El mejor precio por día. Ideal para quienes necesitan VPN regularmente.',
+      bestFor: 'Usuarios que usan VPN diariamente',
       items: planes.filter(p => p.dias === 30),
     },
   ];
@@ -70,6 +77,10 @@ export default function PlanesPage() {
 
   const handleCerrarModal = () => {
     setPlanSeleccionado(null);
+  };
+
+  const togglePlan = (planId: number) => {
+    setExpandedPlanId(expandedPlanId === planId ? null : planId);
   };
 
   const handleConfirmarCompra = async (datos: CompraRequest) => {
@@ -101,7 +112,7 @@ export default function PlanesPage() {
   return (
     <div className="min-h-screen bg-gray-950">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-950 via-gray-900 to-purple-950 pt-32 pb-16 md:pt-40 md:pb-20">
+      <section className="relative bg-gradient-to-br from-gray-950 via-gray-900 to-purple-950 pt-24 pb-16 md:pt-32 md:pb-20">
         <div className="container mx-auto px-6">
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-purple-500/15 text-purple-300 rounded-full px-4 py-2 mb-6 border border-purple-500/30">
@@ -148,7 +159,7 @@ export default function PlanesPage() {
               Lista de Planes y Precios
             </h2>
             <p className="text-gray-300 max-w-2xl mx-auto mb-6">
-              Elige la duración que mejor se adapte a ti. Precios claros y sin sorpresas.
+              Elige la duración que mejor se adapte a ti. Precios claros y sin sorpresas. Haz clic en cada plan para ver todos los detalles.
             </p>
             
             {/* Botón de Renovación */}
@@ -190,14 +201,14 @@ export default function PlanesPage() {
           </div>
 
           {/* Grupos de planes */}
-          <div className="grid gap-14 max-w-5xl mx-auto">
+          <div className="grid gap-16 max-w-5xl mx-auto">
             {groupedPlans.map((group) => (
               <section key={group.title}>
                 {/* Header del grupo */}
-                <div className="mb-6 relative">
-                  <div className={`pointer-events-none absolute -inset-x-6 -top-4 h-28 bg-gradient-to-r ${group.accent} opacity-10 rounded-3xl blur-xl`} />
-                  <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div className="flex items-center gap-4">
+                <div className="mb-8 relative">
+                  <div className={`pointer-events-none absolute -inset-x-6 -top-4 h-32 bg-gradient-to-r ${group.accent} opacity-10 rounded-3xl blur-xl`} />
+                  <div className="relative">
+                    <div className="flex items-center gap-4 mb-4">
                       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${group.accent} text-white flex items-center justify-center shadow-lg`}>
                         {group.icon}
                       </div>
@@ -215,59 +226,146 @@ export default function PlanesPage() {
                         </p>
                       </div>
                     </div>
+
+                    {/* Descripción general del grupo */}
+                    <div className="mt-4 p-4 bg-white/5 rounded-lg border border-white/10">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-gray-400 uppercase font-semibold mb-1">Descripción</p>
+                          <p className="text-sm text-gray-200 leading-relaxed">
+                            {group.description}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400 uppercase font-semibold mb-1">Ideal Para</p>
+                          <p className="text-sm text-gray-200 leading-relaxed">
+                            {group.bestFor}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Lista de planes */}
+                {/* Lista de planes colapsables */}
                 <div className="space-y-3">
                   {group.items.map((plan) => (
                     <div
                       key={plan.id}
-                      className={`group relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-br from-gray-900 to-gray-950 border rounded-lg px-5 py-4 transition-all duration-200 ${
+                      className={`group relative bg-gradient-to-br from-gray-900 to-gray-950 border rounded-lg transition-all duration-200 overflow-hidden ${
                         plan.popular
                           ? 'border-purple-500/50 shadow-lg shadow-purple-500/10'
-                          : 'border-gray-800/60 hover:border-purple-500/30'
+                          : 'border-gray-800/60 hover:border-gray-700/80'
                       }`}
                     >
                       <div className={`absolute inset-y-0 left-0 w-1 bg-gradient-to-b ${group.accent}`} />
-                      
-                      <div className="flex items-center gap-4 pl-1">
-                        {plan.popular && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-purple-500/15 text-purple-300 px-2 py-1 rounded-full border border-purple-500/30">
-                            <Crown className="w-3 h-3" /> Popular
-                          </span>
-                        )}
-                        <span className="text-gray-100 text-sm font-semibold min-w-[140px]">
-                          {plan.connection_limit} {plan.connection_limit === 1 ? 'Login' : 'Logins'}
-                        </span>
-                      </div>
 
-                      <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end">
-                        <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400 font-medium">
-                          <Users className="w-4 h-4 text-purple-400" />
-                          <span>
-                            {plan.connection_limit} dispositivo{plan.connection_limit !== 1 ? 's' : ''}
+                      {/* Header del plan */}
+                      <button
+                        onClick={() => togglePlan(plan.id)}
+                        className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-800/30 transition-colors"
+                      >
+                        <div className="flex items-center gap-4 flex-1 text-left pl-1">
+                          <div className="flex items-center gap-2">
+                            {plan.popular && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-purple-500/15 text-purple-300 px-2 py-1 rounded-full border border-purple-500/30">
+                                <Crown className="w-3 h-3" /> Popular
+                              </span>
+                            )}
+                            <span className="text-gray-100 text-sm font-semibold min-w-[140px]">
+                              {plan.connection_limit} {plan.connection_limit === 1 ? 'Login' : 'Logins'}
+                            </span>
+                          </div>
+                          <span className="text-xs text-gray-500">
+                            {plan.connection_limit} dispositivo{plan.connection_limit !== 1 ? 's' : ''} simultáneamente
                           </span>
                         </div>
-                        
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-purple-400 tracking-tight">
-                            ${plan.precio.toLocaleString()}
+
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-purple-400 tracking-tight">
+                              ${plan.precio.toLocaleString()}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              ${(plan.precio / plan.dias).toFixed(0)}/día
+                            </div>
+                          </div>
+                          <ChevronDown 
+                            className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${expandedPlanId === plan.id ? 'rotate-180' : ''}`}
+                          />
+                        </div>
+                      </button>
+
+                      {/* Contenido expandible */}
+                      {expandedPlanId === plan.id && (
+                        <div className="border-t border-gray-800/60 px-5 py-4 bg-gray-900/50">
+                          <div className="space-y-6">
+                            {/* Lo que incluye */}
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-200 mb-3">¿Qué incluye este plan?</h4>
+                              <div className="space-y-2 text-sm text-gray-300">
+                                <div className="flex gap-2">
+                                  <Timer className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                  <span><strong>{plan.dias} días</strong> de acceso completo</span>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Smartphone className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                  <span>Conecta <strong>{plan.connection_limit} dispositivo{plan.connection_limit !== 1 ? 's' : ''}</strong> simultáneamente</span>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Wifi className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                  <span><strong>Velocidad ilimitada</strong> sin restricciones</span>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Gauge className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                  <span><strong>Acceso a todos los servidores</strong> disponibles</span>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Shield className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                  <span><strong>Cifrado militar</strong> para máxima seguridad</span>
+                                </div>
+                                <div className="flex gap-2">
+                                  <MessageCircle className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                  <span><strong>Soporte prioritario</strong> 24/7</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Comparación de valor */}
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-200 mb-3">Valor por día</h4>
+                              <div className="bg-white/5 p-3 rounded-lg">
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-xs text-gray-400">Costo diario:</span>
+                                  <span className="text-xl font-bold text-emerald-400">
+                                    ${(plan.precio / plan.dias).toFixed(2)}
+                                  </span>
+                                  <span className="text-xs text-gray-400">por día</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Por qué elegir este plan */}
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-200 mb-3">Por qué elegir este plan:</h4>
+                              <p className="text-sm text-gray-400 bg-white/5 p-3 rounded">
+                                {plan.dias === 7 && "Perfecto para probar sin riesgo. Acceso completo a todas las funciones. Ideal si quieres experimentar antes de un compromiso mayor."}
+                                {plan.dias === 15 && "El equilibrio perfecto entre duración y precio. Dos semanas es suficiente para muchas necesidades. Excelente relación calidad-precio."}
+                                {plan.dias === 30 && "El mejor valor del mercado. Un mes completo es ideal para usuarios regulares. Disfruta de acceso sin límites por más tiempo."}
+                              </p>
+                            </div>
+
+                            {/* Botón de compra */}
+                            <button
+                              onClick={() => handleSeleccionarPlan(plan)}
+                              disabled={comprando}
+                              className="w-full px-4 py-3 rounded-lg text-sm font-semibold bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                            >
+                              Comprar ahora
+                            </button>
                           </div>
                         </div>
-
-                        <button
-                          onClick={() => handleSeleccionarPlan(plan)}
-                          disabled={comprando}
-                          className={`px-4 py-2 rounded-md text-xs font-semibold transition-all duration-200 ${
-                            plan.popular
-                              ? 'bg-purple-600 text-white hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-500/30'
-                              : 'bg-white/5 text-gray-300 hover:bg-purple-600 hover:text-white border border-gray-700/50 hover:border-purple-500/50'
-                          }`}
-                        >
-                          Elegir
-                        </button>
-                      </div>
+                      )}
                     </div>
                   ))}
                 </div>

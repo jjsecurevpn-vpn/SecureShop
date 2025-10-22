@@ -11,8 +11,10 @@ export class RenovacionService {
 
   /**
    * Busca un cliente o revendedor por username en Servex
+   * @param busqueda - Email o username a buscar
+   * @param soloClientes - Si es true, solo busca clientes, no revendedores
    */
-  async buscarCliente(busqueda: string): Promise<{
+  async buscarCliente(busqueda: string, soloClientes: boolean = false): Promise<{
     encontrado: boolean;
     tipo?: 'cliente' | 'revendedor';
     datos?: any;
@@ -33,20 +35,24 @@ export class RenovacionService {
       };
     }
 
-    const revendedorDB = this.db.buscarRevendedorPorEmailOUsername(busqueda);
-    if (revendedorDB) {
-      return {
-        encontrado: true,
-        tipo: 'revendedor',
-        datos: {
-          servex_revendedor_id: revendedorDB.servex_revendedor_id,
-          servex_username: revendedorDB.servex_username,
-          servex_account_type: revendedorDB.servex_account_type,
-          cliente_nombre: revendedorDB.cliente_nombre,
-          cliente_email: revendedorDB.cliente_email,
-          plan_nombre: revendedorDB.plan_nombre
-        }
-      };
+    if (!soloClientes) {
+      const revendedorDB = this.db.buscarRevendedorPorEmailOUsername(busqueda);
+      if (revendedorDB) {
+        return {
+          encontrado: true,
+          tipo: 'revendedor',
+          datos: {
+            servex_revendedor_id: revendedorDB.servex_revendedor_id,
+            servex_username: revendedorDB.servex_username,
+            servex_account_type: revendedorDB.servex_account_type,
+            max_users: revendedorDB.max_users || 0,
+            expiration_date: revendedorDB.expiration_date,
+            cliente_nombre: revendedorDB.cliente_nombre,
+            cliente_email: revendedorDB.cliente_email,
+            plan_nombre: revendedorDB.plan_nombre
+          }
+        };
+      }
     }
 
     // Si no está en la DB, buscar directamente en Servex por username
@@ -66,19 +72,23 @@ export class RenovacionService {
         };
       }
 
-      const revendedorServex = await this.servex.buscarRevendedorPorUsername(busqueda);
-      if (revendedorServex) {
-        return {
-          encontrado: true,
-          tipo: 'revendedor',
-          datos: {
-            servex_revendedor_id: revendedorServex.id,
-            servex_username: revendedorServex.username,
-            servex_account_type: revendedorServex.account_type,
-            cliente_nombre: busqueda,
-            cliente_email: ''
-          }
-        };
+      if (!soloClientes) {
+        const revendedorServex = await this.servex.buscarRevendedorPorUsername(busqueda);
+        if (revendedorServex) {
+          return {
+            encontrado: true,
+            tipo: 'revendedor',
+            datos: {
+              servex_revendedor_id: revendedorServex.id,
+              servex_username: revendedorServex.username,
+              servex_account_type: revendedorServex.account_type,
+              max_users: revendedorServex.max_users || 0,
+              expiration_date: revendedorServex.expiration_date,
+              cliente_nombre: busqueda,
+              cliente_email: ''
+            }
+          };
+        }
       }
     } catch (error: any) {
       console.error('[Renovacion] Error buscando en Servex:', error.message);

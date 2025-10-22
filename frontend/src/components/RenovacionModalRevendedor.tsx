@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Search, RefreshCw, AlertCircle, CheckCircle, Loader2, Calendar, CreditCard } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface RenovacionModalRevendedorProps {
   isOpen: boolean;
@@ -31,6 +32,17 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
   const [procesando, setProcesando] = useState(false);
   const [nombreCliente, setNombreCliente] = useState('');
   const [emailCliente, setEmailCliente] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -183,10 +195,10 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-800/60">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-hidden">
+      <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] border border-gray-800/60 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-b from-gray-900 to-gray-900/80 border-b border-gray-800/60 p-6 flex items-center justify-between">
+        <div className="bg-gradient-to-b from-gray-900 to-gray-900 border-b border-gray-800/60 p-6 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-pink-500/15 border border-pink-500/30 flex items-center justify-center">
               <RefreshCw className="w-5 h-5 text-pink-400" />
@@ -208,7 +220,7 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 overflow-y-auto flex-1">
           {/* Error Message */}
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-start gap-3">
@@ -297,12 +309,16 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => setTipoRenovacion('validity')}
+                    onClick={() => revendedor?.datos.servex_account_type === 'validity' && setTipoRenovacion('validity')}
+                    disabled={revendedor?.datos.servex_account_type !== 'validity'}
                     className={`p-3 rounded-lg border-2 transition-all text-xs ${
-                      tipoRenovacion === 'validity'
-                        ? 'border-pink-500 bg-pink-500/10'
-                        : 'border-gray-700/50 bg-gray-800/40 hover:border-gray-600'
+                      revendedor?.datos.servex_account_type !== 'validity'
+                        ? 'border-gray-700/30 bg-gray-800/20 cursor-not-allowed opacity-50'
+                        : tipoRenovacion === 'validity'
+                        ? 'border-pink-500 bg-pink-500/10 hover:border-pink-400 cursor-pointer'
+                        : 'border-gray-700/50 bg-gray-800/40 hover:border-gray-600 cursor-pointer'
                     }`}
+                    title={revendedor?.datos.servex_account_type !== 'validity' ? 'Esta cuenta es de créditos' : ''}
                   >
                     <Calendar className={`w-5 h-5 mx-auto mb-1.5 ${
                       tipoRenovacion === 'validity' ? 'text-pink-400' : 'text-gray-400'
@@ -316,12 +332,16 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
                   </button>
 
                   <button
-                    onClick={() => setTipoRenovacion('credit')}
+                    onClick={() => revendedor?.datos.servex_account_type === 'credit' && setTipoRenovacion('credit')}
+                    disabled={revendedor?.datos.servex_account_type !== 'credit'}
                     className={`p-3 rounded-lg border-2 transition-all text-xs ${
-                      tipoRenovacion === 'credit'
-                        ? 'border-pink-500 bg-pink-500/10'
-                        : 'border-gray-700/50 bg-gray-800/40 hover:border-gray-600'
+                      revendedor?.datos.servex_account_type !== 'credit'
+                        ? 'border-gray-700/30 bg-gray-800/20 cursor-not-allowed opacity-50'
+                        : tipoRenovacion === 'credit'
+                        ? 'border-pink-500 bg-pink-500/10 hover:border-pink-400 cursor-pointer'
+                        : 'border-gray-700/50 bg-gray-800/40 hover:border-gray-600 cursor-pointer'
                     }`}
+                    title={revendedor?.datos.servex_account_type !== 'credit' ? 'Esta cuenta es de validez' : ''}
                   >
                     <CreditCard className={`w-5 h-5 mx-auto mb-1.5 ${
                       tipoRenovacion === 'credit' ? 'text-pink-400' : 'text-gray-400'
@@ -334,6 +354,11 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
                     <p className="text-xs text-gray-500 mt-0.5">Variable</p>
                   </button>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {revendedor?.datos.servex_account_type === 'validity' 
+                    ? 'Esta cuenta es de validez. Si necesitas créditos, adquiere otra cuenta.'
+                    : 'Esta cuenta es de créditos. Si necesitas validez, adquiere otra cuenta.'}
+                </p>
               </div>
 
               {/* Opciones según el tipo */}
@@ -342,19 +367,30 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
                   <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
                     Plan de Validez (30 días)
                   </label>
-                  <select
-                    value={creditosSeleccionados}
-                    onChange={(e) => setCreditosSeleccionados(Number(e.target.value))}
-                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/20"
-                  >
-                    <option value={5}>5 Usuarios - $10,000</option>
-                    <option value={10}>10 Usuarios - $18,000</option>
-                    <option value={20}>20 Usuarios - $32,000</option>
-                    <option value={30}>30 Usuarios - $42,000</option>
-                    <option value={50}>50 Usuarios - $60,000</option>
-                    <option value={75}>75 Usuarios - $78,000</option>
-                    <option value={100}>100 Usuarios - $90,000</option>
-                  </select>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[5, 10, 20, 30, 50, 75, 100].map((cantidad) => (
+                      <button
+                        key={cantidad}
+                        onClick={() => setCreditosSeleccionados(cantidad)}
+                        className={`p-2 rounded-lg border-2 transition-all text-xs font-medium ${
+                          creditosSeleccionados === cantidad
+                            ? 'border-pink-500 bg-pink-500/15 text-pink-300'
+                            : 'border-gray-700/50 bg-gray-800/40 text-gray-300 hover:border-gray-600 hover:bg-gray-800/60'
+                        }`}
+                      >
+                        <div className="font-semibold">{cantidad}</div>
+                        <div className="text-xs text-gray-400">
+                          {cantidad === 5 && '$10K'}
+                          {cantidad === 10 && '$18K'}
+                          {cantidad === 20 && '$32K'}
+                          {cantidad === 30 && '$42K'}
+                          {cantidad === 50 && '$60K'}
+                          {cantidad === 75 && '$78K'}
+                          {cantidad === 100 && '$90K'}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -363,23 +399,34 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
                   <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
                     Plan de Créditos
                   </label>
-                  <select
-                    value={creditosSeleccionados}
-                    onChange={(e) => setCreditosSeleccionados(Number(e.target.value))}
-                    className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white text-sm focus:outline-none focus:border-pink-500/50 focus:ring-1 focus:ring-pink-500/20"
-                  >
-                    <option value={5}>5 Créditos - $12,000 (1 mes)</option>
-                    <option value={10}>10 Créditos - $20,000 (2 meses)</option>
-                    <option value={20}>20 Créditos - $36,000 (3 meses)</option>
-                    <option value={30}>30 Créditos - $51,000 (4 meses)</option>
-                    <option value={40}>40 Créditos - $64,000 (5 meses)</option>
-                    <option value={50}>50 Créditos - $75,000 (5 meses)</option>
-                    <option value={60}>60 Créditos - $84,000 (5 meses)</option>
-                    <option value={80}>80 Créditos - $104,000 (5 meses)</option>
-                    <option value={100}>100 Créditos - $110,000 (5 meses)</option>
-                    <option value={150}>150 Créditos - $150,000 (5 meses)</option>
-                    <option value={200}>200 Créditos - $190,000 (5 meses)</option>
-                  </select>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-2">
+                    {[5, 10, 20, 30, 40, 50, 60, 80, 100, 150, 200].map((cantidad) => {
+                      const precios: Record<number, string> = {
+                        5: '$12K', 10: '$20K', 20: '$36K', 30: '$51K', 40: '$64K',
+                        50: '$75K', 60: '$84K', 80: '$104K', 100: '$110K', 150: '$150K', 200: '$190K'
+                      };
+                      const duracion: Record<number, string> = {
+                        5: '1m', 10: '2m', 20: '3m', 30: '4m', 40: '5m',
+                        50: '5m', 60: '5m', 80: '5m', 100: '5m', 150: '5m', 200: '5m'
+                      };
+                      return (
+                        <button
+                          key={cantidad}
+                          onClick={() => setCreditosSeleccionados(cantidad)}
+                          className={`p-2 rounded-lg border-2 transition-all text-xs font-medium ${
+                            creditosSeleccionados === cantidad
+                              ? 'border-pink-500 bg-pink-500/15 text-pink-300'
+                              : 'border-gray-700/50 bg-gray-800/40 text-gray-300 hover:border-gray-600 hover:bg-gray-800/60'
+                          }`}
+                        >
+                          <div className="font-semibold">{cantidad}</div>
+                          <div className="text-xs text-gray-400">
+                            {precios[cantidad]} / {duracion[cantidad]}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 

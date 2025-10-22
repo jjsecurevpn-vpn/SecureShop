@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Search, RefreshCw, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface RenovacionModalProps {
   isOpen: boolean;
@@ -35,6 +36,17 @@ export default function RenovacionModal({ isOpen, onClose }: RenovacionModalProp
   const [nombreCliente, setNombreCliente] = useState('');
   const [emailCliente, setEmailCliente] = useState('');
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const buscarCuenta = async () => {
@@ -47,7 +59,7 @@ export default function RenovacionModal({ isOpen, onClose }: RenovacionModalProp
     setError('');
 
     try {
-      const response = await fetch('/api/renovacion/buscar', {
+      const response = await fetch('/api/renovacion/buscar?tipo=cliente', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ busqueda: busqueda.trim() })
@@ -136,32 +148,42 @@ export default function RenovacionModal({ isOpen, onClose }: RenovacionModalProp
     if (!cuenta) return 0;
     
     if (cuenta.tipo === 'revendedor') {
-      // Revendedores: $200 por día
+      // Revendedores: $200 por día fijo
       return diasSeleccionados * 200;
     }
     
-    // Clientes: precio según dispositivos (usar el seleccionado o el actual)
+    // Clientes: Precio dinámico basado en días y dispositivos
     const connectionLimit = dispositivosSeleccionados || cuenta.datos.connection_limit || 1;
-    let precioPorDia: number;
     
-    switch(connectionLimit) {
-      case 1:
-        precioPorDia = 200;
-        break;
-      case 2:
-        precioPorDia = 333.33;
-        break;
-      case 3:
-        precioPorDia = 400;
-        break;
-      case 4:
-        precioPorDia = 500;
-        break;
-      default:
-        precioPorDia = 200 * connectionLimit;
+    // Precios base por día según plan de 30 días (el más barato)
+    const preciosBase30Dias: { [key: number]: number } = {
+      1: 200,    // $6,000 / 30 días
+      2: 333.33, // $10,000 / 30 días
+      3: 400,    // $12,000 / 30 días
+      4: 500     // $15,000 / 30 días
+    };
+    
+    const precioBasePorDia = preciosBase30Dias[connectionLimit] || (200 * connectionLimit);
+    
+    // Sistema de multiplicadores por cantidad de días (descuentos progresivos)
+    // Más días = menor multiplicador = mejor precio
+    let multiplicador: number;
+    
+    if (diasSeleccionados >= 30) {
+      // 30+ días: precio base (mejor valor)
+      multiplicador = 1.0;
+    } else if (diasSeleccionados >= 15) {
+      // 15-29 días: +50% sobre precio base
+      multiplicador = 1.5;
+    } else if (diasSeleccionados >= 7) {
+      // 7-14 días: +100% sobre precio base (doble)
+      multiplicador = 2.14;
+    } else {
+      // 1-6 días: +150% sobre precio base (muy caro para desincentivar)
+      multiplicador = 2.5;
     }
     
-    return Math.round(diasSeleccionados * precioPorDia);
+    return Math.round(diasSeleccionados * precioBasePorDia * multiplicador);
   };
 
   const resetear = () => {
@@ -181,10 +203,10 @@ export default function RenovacionModal({ isOpen, onClose }: RenovacionModalProp
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-800/60">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-hidden">
+      <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] border border-gray-800/60 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-b from-gray-900 to-gray-900/80 border-b border-gray-800/60 p-6 flex items-center justify-between">
+        <div className="bg-gradient-to-b from-gray-900 to-gray-900 border-b border-gray-800/60 p-6 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center">
               <RefreshCw className="w-5 h-5 text-purple-400" />
@@ -207,7 +229,7 @@ export default function RenovacionModal({ isOpen, onClose }: RenovacionModalProp
         </div>
 
         {/* Contenido */}
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 overflow-y-auto flex-1">
           {/* Error Message */}
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-start gap-3">

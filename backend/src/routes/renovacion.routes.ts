@@ -7,10 +7,12 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
   /**
    * POST /api/renovacion/buscar
    * Busca un cliente o revendedor por email o username
+   * Query param: tipo=cliente (solo busca clientes), tipo=revendedor (busca ambos)
    */
   router.post('/buscar', async (req: Request, res: Response) => {
     try {
       const { busqueda } = req.body;
+      const tipo = req.query.tipo as string | undefined;
 
       if (!busqueda || typeof busqueda !== 'string' || busqueda.trim().length === 0) {
         return res.status(400).json({
@@ -18,7 +20,9 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
         });
       }
 
-      const resultado = await renovacionService.buscarCliente(busqueda.trim());
+      // Si tipo=cliente, solo busca clientes
+      const soloClientes = tipo === 'cliente';
+      const resultado = await renovacionService.buscarCliente(busqueda.trim(), soloClientes);
 
       return res.json(resultado);
     } catch (error: any) {
