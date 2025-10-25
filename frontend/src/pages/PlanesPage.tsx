@@ -3,9 +3,11 @@ import { Users, Shield, Zap, Crown, Star, Timer, Check, MessageCircle, ArrowRigh
 import CheckoutModal from '../components/CheckoutModal';
 import RenovacionModal from '../components/RenovacionModal';
 import Loading from '../components/Loading';
+import { PromoTimer } from '../components/PromoTimer';
 import { Plan, CompraRequest } from '../types';
 import { apiService } from '../services/api.service';
 import { useServerStats } from '../hooks/useServerStats';
+import { useHeroConfig } from '../hooks/useHeroConfig';
 
 export default function PlanesPage() {
   const [planSeleccionado, setPlanSeleccionado] = useState<Plan | null>(null);
@@ -18,6 +20,9 @@ export default function PlanesPage() {
   
   // Obtener stats reales de servidores
   const { totalUsers, onlineServers } = useServerStats(10000);
+  
+  // Obtener configuración del hero
+  const { config: heroConfig } = useHeroConfig();
 
   useEffect(() => {
     cargarPlanes();
@@ -112,8 +117,20 @@ export default function PlanesPage() {
   return (
     <div className="min-h-screen bg-gray-950">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-950 via-gray-900 to-purple-950 pt-24 pb-16 md:pt-32 md:pb-20">
-        <div className="container mx-auto px-6">
+      <section className="relative bg-gradient-to-br from-gray-950 via-gray-900 to-purple-950 pt-24 pb-16 md:pt-32 md:pb-20 overflow-x-hidden">
+        {/* Banner de Promoción */}
+        {heroConfig?.promocion?.habilitada && (
+          <div className={`w-full py-3 text-center ${heroConfig.promocion.bgColor || 'bg-gradient-to-r from-red-600 to-pink-600'}`}>
+            <p className={`font-bold text-sm md:text-base ${heroConfig.promocion.textColor || 'text-white'}`}>
+              {heroConfig.promocion.texto}
+            </p>
+          </div>
+        )}
+
+        {/* Temporizador de Promoción */}
+        <PromoTimer />
+
+        <div className={`w-full mx-auto px-4 sm:px-6 lg:px-8 ${heroConfig?.promocion?.habilitada ? 'pt-8 md:pt-10' : ''}`}>
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-purple-500/15 text-purple-300 rounded-full px-4 py-2 mb-6 border border-purple-500/30">
               <Crown className="w-4 h-4" />
@@ -121,11 +138,11 @@ export default function PlanesPage() {
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-              Conecta sin Límites
+              {heroConfig?.titulo || 'Conecta sin Límites'}
             </h1>
 
             <p className="text-lg md:text-xl text-gray-300 mb-8 leading-relaxed">
-              Planes flexibles y velocidad premium para tu estilo de vida digital
+              {heroConfig?.descripcion || 'Planes flexibles y velocidad premium para tu estilo de vida digital'}
             </p>
 
             {/* Stats */}
@@ -152,9 +169,9 @@ export default function PlanesPage() {
       </section>
 
       {/* Planes Section */}
-      <section className="bg-gray-950 py-16 md:py-24">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
+      <section className="bg-gray-950 py-16 md:py-24 overflow-x-hidden">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Lista de Planes y Precios
             </h2>
@@ -175,14 +192,14 @@ export default function PlanesPage() {
           </div>
 
           {/* Banner de beneficios */}
-          <div className="relative mb-12 max-w-5xl mx-auto">
-            <div className="pointer-events-none absolute -inset-x-6 -top-4 -bottom-4 bg-gradient-to-r from-purple-600/20 via-purple-500/10 to-purple-600/20 opacity-50 rounded-3xl blur-xl" />
-            <div className="relative rounded-2xl px-6 py-5 text-sm bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800/60">
+          <div className="relative mb-12 max-w-5xl mx-auto w-full px-4 sm:px-6 md:px-0">
+            <div className="pointer-events-none absolute -inset-x-4 sm:-inset-x-6 md:inset-x-0 -top-4 -bottom-4 bg-gradient-to-r from-purple-600/20 via-purple-500/10 to-purple-600/20 opacity-50 rounded-3xl blur-xl" />
+            <div className="relative rounded-2xl px-4 sm:px-6 py-5 text-xs sm:text-sm bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800/60 overflow-hidden">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-2 font-medium text-gray-100">
-                  <Shield className="w-4 h-4 text-purple-400" /> Todos los planes incluyen:
+                  <Shield className="w-4 h-4 text-purple-400 flex-shrink-0" /> Todos los planes incluyen:
                 </div>
-                <ul className="flex flex-wrap gap-x-6 gap-y-2 text-gray-300">
+                <ul className="flex flex-wrap gap-x-4 sm:gap-x-6 gap-y-2 text-gray-300">
                   <li className="flex items-center gap-1">
                     <Check className="w-3 h-3 text-purple-400" /> Velocidad ilimitada
                   </li>
@@ -201,12 +218,12 @@ export default function PlanesPage() {
           </div>
 
           {/* Grupos de planes */}
-          <div className="grid gap-16 max-w-5xl mx-auto">
+          <div className="grid gap-16 max-w-5xl mx-auto w-full">
             {groupedPlans.map((group) => (
-              <section key={group.title}>
+              <section key={group.title} className="px-4 sm:px-6 md:px-0">
                 {/* Header del grupo */}
                 <div className="mb-8 relative">
-                  <div className={`pointer-events-none absolute -inset-x-6 -top-4 h-32 bg-gradient-to-r ${group.accent} opacity-10 rounded-3xl blur-xl`} />
+                  <div className={`pointer-events-none absolute -inset-x-4 sm:-inset-x-6 md:inset-x-0 -top-4 h-32 bg-gradient-to-r ${group.accent} opacity-10 rounded-3xl blur-xl`} />
                   <div className="relative">
                     <div className="flex items-center gap-4 mb-4">
                       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${group.accent} text-white flex items-center justify-center shadow-lg`}>
@@ -263,69 +280,69 @@ export default function PlanesPage() {
                       {/* Header del plan */}
                       <button
                         onClick={() => togglePlan(plan.id)}
-                        className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-800/30 transition-colors"
+                        className="w-full px-3 sm:px-5 py-4 flex items-center justify-between hover:bg-gray-800/30 transition-colors gap-3 sm:gap-4"
                       >
-                        <div className="flex items-center gap-4 flex-1 text-left pl-1">
-                          <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 sm:gap-4 flex-1 text-left pl-0 sm:pl-1 min-w-0">
+                          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                             {plan.popular && (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-purple-500/15 text-purple-300 px-2 py-1 rounded-full border border-purple-500/30">
-                                <Crown className="w-3 h-3" /> Popular
+                              <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-semibold bg-purple-500/15 text-purple-300 px-2 py-1 rounded-full border border-purple-500/30 whitespace-nowrap">
+                                <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Popular
                               </span>
                             )}
-                            <span className="text-gray-100 text-sm font-semibold min-w-[140px]">
+                            <span className="text-gray-100 text-xs sm:text-sm font-semibold min-w-fit">
                               {plan.connection_limit} {plan.connection_limit === 1 ? 'Login' : 'Logins'}
                             </span>
                           </div>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-500 hidden sm:inline">
                             {plan.connection_limit} dispositivo{plan.connection_limit !== 1 ? 's' : ''} simultáneamente
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                           <div className="text-right">
-                            <div className="text-lg font-bold text-purple-400 tracking-tight">
+                            <div className="text-base sm:text-lg font-bold text-purple-400 tracking-tight">
                               ${plan.precio.toLocaleString()}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-[10px] sm:text-xs text-gray-500">
                               ${(plan.precio / plan.dias).toFixed(0)}/día
                             </div>
                           </div>
                           <ChevronDown 
-                            className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${expandedPlanId === plan.id ? 'rotate-180' : ''}`}
+                            className={`w-4 sm:w-5 h-4 sm:h-5 text-gray-400 transition-transform duration-200 flex-shrink-0 ${expandedPlanId === plan.id ? 'rotate-180' : ''}`}
                           />
                         </div>
                       </button>
 
                       {/* Contenido expandible */}
                       {expandedPlanId === plan.id && (
-                        <div className="border-t border-gray-800/60 px-5 py-4 bg-gray-900/50">
-                          <div className="space-y-6">
+                        <div className="border-t border-gray-800/60 px-3 sm:px-5 py-4 bg-gray-900/50">
+                          <div className="space-y-4 sm:space-y-6">
                             {/* Lo que incluye */}
                             <div>
-                              <h4 className="text-sm font-semibold text-gray-200 mb-3">¿Qué incluye este plan?</h4>
-                              <div className="space-y-2 text-sm text-gray-300">
+                              <h4 className="text-xs sm:text-sm font-semibold text-gray-200 mb-2 sm:mb-3">¿Qué incluye este plan?</h4>
+                              <div className="space-y-2 text-xs sm:text-sm text-gray-300">
                                 <div className="flex gap-2">
-                                  <Timer className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                  <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 flex-shrink-0 mt-0.5" />
                                   <span><strong>{plan.dias} días</strong> de acceso completo</span>
                                 </div>
                                 <div className="flex gap-2">
-                                  <Smartphone className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                  <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 flex-shrink-0 mt-0.5" />
                                   <span>Conecta <strong>{plan.connection_limit} dispositivo{plan.connection_limit !== 1 ? 's' : ''}</strong> simultáneamente</span>
                                 </div>
                                 <div className="flex gap-2">
-                                  <Wifi className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                  <Wifi className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 flex-shrink-0 mt-0.5" />
                                   <span><strong>Velocidad ilimitada</strong> sin restricciones</span>
                                 </div>
                                 <div className="flex gap-2">
-                                  <Gauge className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                  <Gauge className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 flex-shrink-0 mt-0.5" />
                                   <span><strong>Acceso a todos los servidores</strong> disponibles</span>
                                 </div>
                                 <div className="flex gap-2">
-                                  <Shield className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                  <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 flex-shrink-0 mt-0.5" />
                                   <span><strong>Cifrado militar</strong> para máxima seguridad</span>
                                 </div>
                                 <div className="flex gap-2">
-                                  <MessageCircle className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                  <MessageCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-400 flex-shrink-0 mt-0.5" />
                                   <span><strong>Soporte prioritario</strong> 24/7</span>
                                 </div>
                               </div>
@@ -333,22 +350,22 @@ export default function PlanesPage() {
 
                             {/* Comparación de valor */}
                             <div>
-                              <h4 className="text-sm font-semibold text-gray-200 mb-3">Valor por día</h4>
-                              <div className="bg-white/5 p-3 rounded-lg">
+                              <h4 className="text-xs sm:text-sm font-semibold text-gray-200 mb-2 sm:mb-3">Valor por día</h4>
+                              <div className="bg-white/5 p-2 sm:p-3 rounded-lg">
                                 <div className="flex items-baseline gap-2">
-                                  <span className="text-xs text-gray-400">Costo diario:</span>
-                                  <span className="text-xl font-bold text-emerald-400">
+                                  <span className="text-[10px] sm:text-xs text-gray-400">Costo diario:</span>
+                                  <span className="text-lg sm:text-xl font-bold text-emerald-400">
                                     ${(plan.precio / plan.dias).toFixed(2)}
                                   </span>
-                                  <span className="text-xs text-gray-400">por día</span>
+                                  <span className="text-[10px] sm:text-xs text-gray-400">por día</span>
                                 </div>
                               </div>
                             </div>
 
                             {/* Por qué elegir este plan */}
                             <div>
-                              <h4 className="text-sm font-semibold text-gray-200 mb-3">Por qué elegir este plan:</h4>
-                              <p className="text-sm text-gray-400 bg-white/5 p-3 rounded">
+                              <h4 className="text-xs sm:text-sm font-semibold text-gray-200 mb-2 sm:mb-3">Por qué elegir este plan:</h4>
+                              <p className="text-xs sm:text-sm text-gray-400 bg-white/5 p-2 sm:p-3 rounded">
                                 {plan.dias === 7 && "Perfecto para probar sin riesgo. Acceso completo a todas las funciones. Ideal si quieres experimentar antes de un compromiso mayor."}
                                 {plan.dias === 15 && "El equilibrio perfecto entre duración y precio. Dos semanas es suficiente para muchas necesidades. Excelente relación calidad-precio."}
                                 {plan.dias === 30 && "El mejor valor del mercado. Un mes completo es ideal para usuarios regulares. Disfruta de acceso sin límites por más tiempo."}
@@ -359,7 +376,7 @@ export default function PlanesPage() {
                             <button
                               onClick={() => handleSeleccionarPlan(plan)}
                               disabled={comprando}
-                              className="w-full px-4 py-3 rounded-lg text-sm font-semibold bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                              className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                             >
                               Comprar ahora
                             </button>
@@ -374,7 +391,7 @@ export default function PlanesPage() {
           </div>
 
           {/* Garantía */}
-          <div className="mt-16 text-center">
+          <div className="mt-16 text-center px-4 sm:px-0">
             <div className="inline-flex items-center gap-2 text-purple-400">
               <Shield className="w-4 h-4" />
               <span className="text-gray-300 text-sm">
@@ -386,8 +403,8 @@ export default function PlanesPage() {
       </section>
 
       {/* Sección de contacto */}
-      <section className="py-16 md:py-24 bg-gray-900">
-        <div className="container mx-auto px-6">
+      <section className="py-16 md:py-24 bg-gray-900 overflow-x-hidden">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">

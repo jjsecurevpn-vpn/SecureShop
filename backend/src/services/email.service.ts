@@ -162,6 +162,98 @@ class EmailService {
   }
 
   /**
+   * Envía notificación de venta al administrador
+   */
+  async notificarVentaAdmin(tipo: 'cliente' | 'revendedor' | 'renovacion-cliente' | 'renovacion-revendedor', datos: {
+    clienteNombre: string;
+    clienteEmail: string;
+    monto: number;
+    descripcion: string;
+    username?: string;
+  }): Promise<boolean> {
+    const adminEmail = process.env.EMAIL_USER;
+    if (!adminEmail) {
+      console.error('[Email] ❌ EMAIL_USER no configurado para notificaciones al admin');
+      return false;
+    }
+
+    const tipoTexto = {
+      'cliente': 'Nueva venta - Cliente VPN',
+      'revendedor': 'Nueva venta - Revendedor',
+      'renovacion-cliente': 'Renovación - Cliente VPN',
+      'renovacion-revendedor': 'Renovación - Revendedor'
+    };
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .venta-info { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745; }
+          .info-item { margin: 10px 0; }
+          .info-label { font-weight: bold; color: #28a745; }
+          .info-value { font-family: monospace; background: #f0f0f0; padding: 5px 10px; border-radius: 4px; display: inline-block; }
+          .monto { font-size: 24px; font-weight: bold; color: #28a745; text-align: center; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>💰 ${tipoTexto[tipo]}</h1>
+            <p>¡Nueva venta registrada!</p>
+          </div>
+          <div class="content">
+            <h2>Detalles de la venta:</h2>
+            
+            <div class="venta-info">
+              <div class="info-item">
+                <span class="info-label">👤 Cliente:</span>
+                <span class="info-value">${datos.clienteNombre}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">📧 Email:</span>
+                <span class="info-value">${datos.clienteEmail}</span>
+              </div>
+              ${datos.username ? `
+              <div class="info-item">
+                <span class="info-label">🔑 Username:</span>
+                <span class="info-value">${datos.username}</span>
+              </div>
+              ` : ''}
+              <div class="info-item">
+                <span class="info-label">📝 Descripción:</span>
+                <span class="info-value">${datos.descripcion}</span>
+              </div>
+            </div>
+
+            <div class="monto">
+              💵 Monto: $${datos.monto}
+            </div>
+
+            <p><strong>✅ Esta venta ya ha sido procesada exitosamente.</strong></p>
+            <p>El cliente ya recibió sus credenciales por email.</p>
+          </div>
+          <div class="footer">
+            <p>© 2025 JJSecure VPN - Sistema de Notificaciones</p>
+            <p>Este es un correo automático del sistema.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.enviarEmail({
+      to: adminEmail,
+      subject: `🔔 ${tipoTexto[tipo]} - $${datos.monto}`,
+      html
+    });
+  }
+  /**
    * Envía credenciales de revendedor
    */
   async enviarCredencialesRevendedor(email: string, credenciales: CredencialesRevendedor): Promise<boolean> {

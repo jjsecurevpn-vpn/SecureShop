@@ -7,9 +7,11 @@ import {
   Play,
   Users,
 } from 'lucide-react';
+import { useNoticias } from '../hooks/useNoticias';
 
 export default function HeroSection() {
   const navigate = useNavigate();
+  const { config } = useNoticias();
 
   const goToPlans = () => {
     navigate('/planes');
@@ -29,10 +31,19 @@ export default function HeroSection() {
   return (
     <section
       id="hero-section"
-      className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-purple-950"
+      className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-purple-950 pt-16"
     >
-      {/* Contenido principal */}
-      <div className="relative container mx-auto px-4 pt-24 sm:pt-32 lg:pt-40 pb-16 sm:pb-20 flex flex-col lg:flex-row items-center justify-between min-h-screen">
+      {/* Aviso Global */}
+      {config?.aviso?.habilitado && (
+        <div className={`w-full py-3 text-center ${config.aviso.bgColor}`}>
+          <p className={`font-bold text-sm md:text-base ${config.aviso.textColor}`}>
+            {config.aviso.texto}
+          </p>
+        </div>
+      )}
+      
+        {/* Contenido principal */}
+        <div className="relative container mx-auto px-4 pt-8 sm:pt-16 lg:pt-24 pb-16 sm:pb-20 flex flex-col lg:flex-row items-center justify-between min-h-screen">
         {/* Lado izquierdo - Contenido textual */}
         <div className="flex-1 text-center lg:text-left lg:pr-12 mb-8 lg:mb-0">
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">

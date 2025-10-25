@@ -3,6 +3,7 @@ import { Users, Shield, Crown, Star, Check, MessageCircle, ArrowRight, Phone, Cr
 import CheckoutModalRevendedor from '../components/CheckoutModalRevendedor';
 import RenovacionModalRevendedor from '../components/RenovacionModalRevendedor';
 import Loading from '../components/Loading';
+import { PromoTimer } from '../components/PromoTimer';
 import { PlanRevendedor, CompraRevendedorRequest } from '../types';
 import { apiService } from '../services/api.service';
 
@@ -14,19 +15,24 @@ export default function RevendedoresPage() {
   const [cargando, setCargando] = useState(true);
   const [mostrarRenovacion, setMostrarRenovacion] = useState(false);
   const [expandedPlanId, setExpandedPlanId] = useState<number | null>(null);
+  const [configHero, setConfigHero] = useState<any>(null);
 
   useEffect(() => {
-    cargarPlanes();
+    cargarDatos();
   }, []);
 
-  const cargarPlanes = async () => {
+  const cargarDatos = async () => {
     try {
       setCargando(true);
-      const planesObtenidos = await apiService.obtenerPlanesRevendedores();
+      const [planesObtenidos, configHeroObtenida] = await Promise.all([
+        apiService.obtenerPlanesRevendedores(),
+        apiService.obtenerConfigHeroRevendedores()
+      ]);
       setPlanes(planesObtenidos);
+      setConfigHero(configHeroObtenida);
     } catch (err: any) {
-      console.error('Error cargando planes:', err);
-      setError('Error al cargar los planes. Por favor, recarga la página.');
+      console.error('Error cargando datos:', err);
+      setError('Error al cargar los datos. Por favor, recarga la página.');
     } finally {
       setCargando(false);
     }
@@ -111,8 +117,20 @@ export default function RevendedoresPage() {
   return (
     <div className="min-h-screen bg-gray-950">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-950 via-gray-900 to-purple-950 pt-24 pb-16 md:pt-32 md:pb-20">
-        <div className="container mx-auto px-6">
+      <section className="relative bg-gradient-to-br from-gray-950 via-gray-900 to-purple-950 pt-24 pb-16 md:pt-32 md:pb-20 overflow-x-hidden">
+        {/* Banner de Promoción */}
+        {configHero?.promocion?.habilitada && (
+          <div className={`w-full py-3 text-center ${configHero.promocion.bgColor || 'bg-gradient-to-r from-amber-500 to-orange-500'}`}>
+            <p className={`font-bold text-sm md:text-base ${configHero.promocion.textColor || 'text-amber-300'}`}>
+              {configHero.promocion.texto}
+            </p>
+          </div>
+        )}
+
+        {/* Temporizador de Promoción */}
+        <PromoTimer />
+
+        <div className={`w-full mx-auto px-4 sm:px-6 lg:px-8 ${configHero?.promocion?.habilitada ? 'pt-8 md:pt-10' : ''}`}>
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-purple-500/15 text-purple-300 rounded-full px-4 py-2 mb-6 border border-purple-500/30">
               <Crown className="w-4 h-4" />
@@ -151,9 +169,9 @@ export default function RevendedoresPage() {
       </section>
 
       {/* Planes Section */}
-      <section className="bg-gray-950 py-16 md:py-24">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
+      <section className="bg-gray-950 py-16 md:py-24 overflow-x-hidden">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Planes de Revendedor
             </h2>
@@ -174,14 +192,14 @@ export default function RevendedoresPage() {
           </div>
 
           {/* Banner de beneficios */}
-          <div className="relative mb-12 max-w-5xl mx-auto">
-            <div className="pointer-events-none absolute -inset-x-6 -top-4 -bottom-4 bg-gradient-to-r from-purple-600/20 via-purple-500/10 to-purple-600/20 opacity-50 rounded-3xl blur-xl" />
-            <div className="relative rounded-2xl px-6 py-5 text-sm bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800/60">
+          <div className="relative mb-12 max-w-5xl mx-auto w-full px-4 sm:px-6 md:px-0">
+            <div className="pointer-events-none absolute -inset-x-4 sm:-inset-x-6 md:inset-x-0 -top-4 -bottom-4 bg-gradient-to-r from-purple-600/20 via-purple-500/10 to-purple-600/20 opacity-50 rounded-3xl blur-xl" />
+            <div className="relative rounded-2xl px-4 sm:px-6 py-5 text-xs sm:text-sm bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800/60 overflow-hidden">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-2 font-medium text-gray-100">
-                  <Shield className="w-4 h-4 text-purple-400" /> Todos los planes incluyen:
+                  <Shield className="w-4 h-4 text-purple-400 flex-shrink-0" /> Todos los planes incluyen:
                 </div>
-                <ul className="flex flex-wrap gap-x-6 gap-y-2 text-gray-300">
+                <ul className="flex flex-wrap gap-x-4 sm:gap-x-6 gap-y-2 text-gray-300">
                   <li className="flex items-center gap-1">
                     <Check className="w-3 h-3 text-purple-400" /> Panel profesional
                   </li>
@@ -200,9 +218,9 @@ export default function RevendedoresPage() {
           </div>
 
           {/* Comparación rápida */}
-          <div className="max-w-5xl mx-auto mb-16">
+          <div className="max-w-5xl mx-auto mb-16 px-4 sm:px-6 md:px-0">
             <h2 className="text-2xl font-bold text-white mb-8 text-center">¿Cuál elegir?</h2>
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
               <div className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/20 border border-emerald-500/30 rounded-xl p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <Zap className="w-5 h-5 text-emerald-400" />
@@ -232,12 +250,12 @@ export default function RevendedoresPage() {
           </div>
 
           {/* Grupos de planes colapsables */}
-          <div className="grid gap-16 max-w-5xl mx-auto">
+          <div className="grid gap-16 max-w-5xl mx-auto w-full">
             {groupedPlans.map((group) => (
-              <section key={group.title}>
+              <section key={group.title} className="px-4 sm:px-6 md:px-0">
                 {/* Header del grupo */}
                 <div className="mb-8 relative">
-                  <div className={`pointer-events-none absolute -inset-x-6 -top-4 h-32 bg-gradient-to-r ${group.accent} opacity-10 rounded-3xl blur-xl`} />
+                  <div className={`pointer-events-none absolute -inset-x-4 sm:-inset-x-6 md:inset-x-0 -top-4 h-32 bg-gradient-to-r ${group.accent} opacity-10 rounded-3xl blur-xl`} />
                   <div className="relative">
                     <div className="flex items-center gap-4 mb-4">
                       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${group.accent} text-white flex items-center justify-center shadow-lg`}>
@@ -290,13 +308,13 @@ export default function RevendedoresPage() {
                         {/* Header del plan */}
                         <button
                           onClick={() => togglePlan(plan.id)}
-                          className="w-full px-5 py-4 flex items-center justify-between hover:bg-gray-800/30 transition-colors"
+                          className="w-full px-3 sm:px-5 py-4 flex items-center justify-between hover:bg-gray-800/30 transition-colors gap-3 sm:gap-4"
                         >
-                          <div className="flex items-center gap-4 flex-1 text-left pl-1">
-                            <span className="text-gray-100 text-sm font-semibold min-w-[180px]">
+                          <div className="flex items-center gap-2 sm:gap-4 flex-1 text-left pl-0 sm:pl-1 min-w-0">
+                            <span className="text-gray-100 text-xs sm:text-sm font-semibold min-w-fit">
                               {plan.nombre}
                             </span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-500 hidden sm:inline">
                               {plan.account_type === 'credit' 
                                 ? `${plan.dias ? Math.ceil(plan.dias / 30) : '1'} mes${plan.dias && Math.ceil(plan.dias / 30) > 1 ? 'es' : ''}`
                                 : `${plan.dias} días`
@@ -304,61 +322,61 @@ export default function RevendedoresPage() {
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                             <div className="text-right">
-                              <div className="text-lg font-bold text-emerald-400">
+                              <div className="text-base sm:text-lg font-bold text-emerald-400">
                                 ${plan.precio.toLocaleString('es-AR')}
                               </div>
                             </div>
                             <ChevronDown 
-                              className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${expandedPlanId === plan.id ? 'rotate-180' : ''}`}
+                              className={`w-4 sm:w-5 h-4 sm:h-5 text-gray-400 transition-transform duration-200 flex-shrink-0 ${expandedPlanId === plan.id ? 'rotate-180' : ''}`}
                             />
                           </div>
                         </button>
 
                         {/* Contenido expandible */}
                         {expandedPlanId === plan.id && (
-                          <div className="border-t border-gray-800/60 px-5 py-4 bg-gray-900/50">
-                            <div className="space-y-6">
+                          <div className="border-t border-gray-800/60 px-3 sm:px-5 py-4 bg-gray-900/50">
+                            <div className="space-y-4 sm:space-y-6">
                               {/* Detalle del plan */}
                               <div>
-                                <h4 className="text-sm font-semibold text-gray-200 mb-3">¿Qué incluye?</h4>
-                                <div className="space-y-2 text-sm text-gray-300">
+                                <h4 className="text-xs sm:text-sm font-semibold text-gray-200 mb-2 sm:mb-3">¿Qué incluye?</h4>
+                                <div className="space-y-2 text-xs sm:text-sm text-gray-300">
                                   {plan.account_type === 'credit' ? (
                                     <>
                                       <div className="flex gap-2">
-                                        <CreditCard className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                                        <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                                         <span><strong>{plan.max_users} créditos</strong> en tu panel</span>
                                       </div>
                                       <div className="flex gap-2">
-                                        <Calendar className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                                        <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                                         <span>Equivale a <strong>{plan.dias ? Math.ceil(plan.dias / 30) : '1'} {plan.dias && Math.ceil(plan.dias / 30) > 1 ? 'meses' : 'mes'}</strong> de acceso VPN</span>
                                       </div>
                                       <div className="flex gap-2">
-                                        <Zap className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                                        <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                                         <span>Crea cuentas de <strong>30 días o más</strong> para tus clientes</span>
                                       </div>
                                       <div className="flex gap-2">
-                                        <Users className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                                        <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                                         <span>Acumula créditos y úsalos cuando necesites</span>
                                       </div>
                                     </>
                                   ) : (
                                     <>
                                       <div className="flex gap-2">
-                                        <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                                        <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 flex-shrink-0 mt-0.5" />
                                         <span><strong>{plan.dias} días</strong> totales para crear cuentas</span>
                                       </div>
                                       <div className="flex gap-2">
-                                        <Gift className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                                        <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 flex-shrink-0 mt-0.5" />
                                         <span>Flexibilidad total: crea cuentas de <strong>cualquier duración</strong></span>
                                       </div>
                                       <div className="flex gap-2">
-                                        <TrendingUp className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                                        <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 flex-shrink-0 mt-0.5" />
                                         <span>Ejemplo: 1×{plan.dias} días, 2×{Math.floor(plan.dias!/2)} días, o combina como quieras</span>
                                       </div>
                                       <div className="flex gap-2">
-                                        <RefreshCw className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                                        <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400 flex-shrink-0 mt-0.5" />
                                         <span>Al expirar cada cuenta, se <strong>libera el cupo</strong> automáticamente</span>
                                       </div>
                                     </>
@@ -368,8 +386,8 @@ export default function RevendedoresPage() {
 
                               {/* Caso de uso */}
                               <div>
-                                <h4 className="text-sm font-semibold text-gray-200 mb-3">Caso de uso ideal:</h4>
-                                <p className="text-sm text-gray-400 bg-white/5 p-3 rounded">
+                                <h4 className="text-xs sm:text-sm font-semibold text-gray-200 mb-2 sm:mb-3">Caso de uso ideal:</h4>
+                                <p className="text-xs sm:text-sm text-gray-400 bg-white/5 p-2 sm:p-3 rounded">
                                   {plan.account_type === 'credit'
                                     ? `Perfecto si quieres ofrecer planes estándar mensuales. Tus clientes reciben acceso consistente cada 30 días. Ideal para construir una base de clientes leales.`
                                     : `Perfecto si necesitas flexibilidad máxima. Crea pruebas gratis de 3-7 días, o combina diferentes duraciones para optimizar tu inventario.`
@@ -381,7 +399,7 @@ export default function RevendedoresPage() {
                               <button
                                 onClick={() => handleSeleccionarPlan(plan)}
                                 disabled={comprando}
-                                className="w-full px-4 py-3 rounded-lg text-sm font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                                className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                               >
                                 Comprar ahora
                               </button>

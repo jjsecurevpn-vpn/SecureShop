@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { DatabaseService } from './database.service';
 import { ServexService } from './servex.service';
 import { MercadoPagoService } from './mercadopago.service';
+import { configService } from './config.service';
 import emailService from './email.service';
 import { Plan, Pago, CrearPagoInput, ClienteServex } from '../types';
 
@@ -67,10 +68,12 @@ export class TiendaService {
   }
 
   /**
-   * Obtiene todos los planes activos
+   * Obtiene todos los planes activos (con overrides de configuración)
    */
   obtenerPlanes(): Plan[] {
-    return this.db.obtenerPlanes();
+    const planesBase = this.db.obtenerPlanes();
+    // Aplicar overrides de configuración si existen
+    return configService.aceptarOverridesAListaPlanes(planesBase);
   }
 
   /**
@@ -81,7 +84,7 @@ export class TiendaService {
     linkPago: string;
   }> {
     // 1. Validar que el plan existe
-    const plan = this.db.obtenerPlanPorId(input.planId);
+    let plan = this.db.obtenerPlanPorId(input.planId);
     if (!plan) {
       throw new Error('Plan no encontrado');
     }
@@ -90,12 +93,16 @@ export class TiendaService {
       throw new Error('Plan no disponible');
     }
 
-    // 2. Crear registro de pago en la base de datos
+    // 2. Aplicar overrides de configuración
+    plan = configService.aceptarOverridesAlPlan(plan);
+    console.log(`[Tienda] Plan ${plan.id} - Precio final: $${plan.precio}`);
+
+    // 3. Crear registro de pago en la base de datos
     const pagoId = uuidv4();
     const pago = this.db.crearPago({
       id: pagoId,
       plan_id: plan.id,
-      monto: plan.precio,
+      monto: plan.precio, // Usar precio con override aplicado
       estado: 'pendiente',
       metodo_pago: 'mercadopago',
       cliente_email: input.clienteEmail,
@@ -104,12 +111,12 @@ export class TiendaService {
 
     console.log('[Tienda] Pago creado:', pagoId);
 
-    // 3. Crear preferencia en MercadoPago
+    // 4. Crear preferencia en MercadoPago
     try {
       const { id: preferenceId, initPoint } = await this.mercadopago.crearPreferencia(
         pagoId,
         plan.nombre,
-        plan.precio,
+        plan.precio, // MercadoPago recibe precio con override
         input.clienteEmail,
         input.clienteNombre
       );
@@ -240,6 +247,21 @@ export class TiendaService {
       } catch (emailError: any) {
         console.error('[Tienda] ⚠️ Error enviando email:', emailError.message);
         // No lanzamos error, el servicio principal ya está creado
+      }
+
+      // Notificar al administrador
+      try {
+        await emailService.notificarVentaAdmin('cliente', {
+          clienteNombre: pago.cliente_nombre,
+          clienteEmail: pago.cliente_email,
+          monto: pago.monto,
+          descripcion: `Plan: ${plan.nombre} (${plan.connection_limit} conexiones, ${plan.dias} días)`,
+          username: clienteCreado.username
+        });
+        console.log('[Tienda] ✅ Notificación enviada al administrador');
+      } catch (emailError: any) {
+        console.error('[Tienda] ⚠️ Error notificando al admin:', emailError.message);
+        // No lanzamos error, la venta ya está procesada
       }
 
     } catch (error: any) {

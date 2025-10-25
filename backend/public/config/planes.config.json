@@ -1,0 +1,69 @@
+{
+  "enabled": true,
+  "version": "2.0.0",
+  "ultima_actualizacion": "2025-10-23T22:00:00Z",
+  "moneda": "ARS",
+  "notas": "Sistema de precios normales con overrides de promoción configurable. Los overrides solo se aplican si promo_config.activa es true.",
+  "hero": {
+    "titulo": "Conecta sin Límites",
+    "descripcion": "Planes flexibles y velocidad premium para tu estilo de vida digital",
+    "promocion": {
+      "habilitada": true,
+      "texto": "🌿 PROMOCIÓN ESPECIAL - 50% OFF EN TODOS LOS PLANES",
+      "estilo": "from-emerald-500 to-teal-500",
+      "textColor": "text-white",
+      "bgColor": "bg-gradient-to-r from-emerald-600 to-teal-600",
+      "comentario": "Descuento del 50% en todos los planes - Válido por tiempo limitado"
+    }
+  },
+  "planes_disponibles": {
+    "21": "Plan Básico 7D (1 dispositivo - 7 días)",
+    "22": "Plan Doble 7D (2 dispositivos - 7 días)",
+    "23": "Plan Triple 7D (3 dispositivos - 7 días)",
+    "24": "Plan Familiar 7D (4 dispositivos - 7 días)",
+    "25": "Plan Básico 15D (1 dispositivo - 15 días)",
+    "26": "Plan Doble 15D (2 dispositivos - 15 días)",
+    "27": "Plan Triple 15D (3 dispositivos - 15 días)",
+    "28": "Plan Familiar 15D (4 dispositivos - 15 días)",
+    "29": "Plan Básico 30D (1 dispositivo - 30 días)",
+    "30": "Plan Doble 30D (2 dispositivos - 30 días)",
+    "31": "Plan Triple 30D (3 dispositivos - 30 días)",
+    "32": "Plan Familiar 30D (4 dispositivos - 30 días)"
+  },
+  "precios_normales": {
+    "21": 3000,
+    "22": 5000,
+    "23": 7000,
+    "24": 9000,
+    "25": 4500,
+    "26": 7000,
+    "27": 10000,
+    "28": 12000,
+    "29": 6000,
+    "30": 10000,
+    "31": 12000,
+    "32": 15000
+  },
+  "overrides": {
+    "_comentario": "Solo se aplican si promo_config.activa === true. Auto-se desactivan según promo_config.duracion_horas",
+    "21": { "precio": 1500 },
+    "22": { "precio": 2500 },
+    "23": { "precio": 3500 },
+    "24": { "precio": 4500 },
+    "25": { "precio": 2250 },
+    "26": { "precio": 3500 },
+    "27": { "precio": 5000 },
+    "28": { "precio": 6000 },
+    "29": { "precio": 3000 },
+    "30": { "precio": 5000 },
+    "31": { "precio": 6000 },
+    "32": { "precio": 7500 }
+  },
+  "promo_config": {
+    "activa": false,
+    "activada_en": null,
+    "duracion_horas": 12,
+    "auto_desactivar": true,
+    "_instrucciones": "POST /api/config/activar-promo { duracion_horas: number }"
+  }
+}

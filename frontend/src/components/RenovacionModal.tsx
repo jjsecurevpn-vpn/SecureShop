@@ -35,10 +35,13 @@ export default function RenovacionModal({ isOpen, onClose }: RenovacionModalProp
   const [procesando, setProcesando] = useState(false);
   const [nombreCliente, setNombreCliente] = useState('');
   const [emailCliente, setEmailCliente] = useState('');
+  const [planesConOverrides, setPlanesConOverrides] = useState<any[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      // Cargar planes con overrides cuando se abre el modal
+      cargarPlanesConOverrides();
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -46,6 +49,27 @@ export default function RenovacionModal({ isOpen, onClose }: RenovacionModalProp
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
+
+  const cargarPlanesConOverrides = async () => {
+    try {
+      console.log('[RenovacionModal] Iniciando fetch a /api/planes...');
+      const response = await fetch('/api/planes', { cache: 'no-store' });
+      console.log('[RenovacionModal] Respuesta status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        console.error('[RenovacionModal] Error HTTP:', response.status, response.statusText);
+        return;
+      }
+      
+      const resultado = await response.json();
+      // El API devuelve {success: true, data: [...]}
+      const planes = resultado.data || resultado;
+      console.log('[RenovacionModal] ✅ Planes cargados:', planes.length, 'planes', planes);
+      setPlanesConOverrides(planes);
+    } catch (err) {
+      console.error('[RenovacionModal] Error cargando planes:', err);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -104,6 +128,7 @@ export default function RenovacionModal({ isOpen, onClose }: RenovacionModalProp
       const body: any = {
         busqueda: busqueda.trim(),
         dias: diasSeleccionados,
+        precio: calcularPrecio(), // Enviar precio calculado correctamente
         clienteEmail: emailCliente.trim(),
         clienteNombre: nombreCliente.trim()
       };
@@ -152,34 +177,56 @@ export default function RenovacionModal({ isOpen, onClose }: RenovacionModalProp
       return diasSeleccionados * 200;
     }
     
-    // Clientes: Precio dinámico basado en días y dispositivos
+    // Clientes: Usar planes cargados del servidor (con overrides aplicados)
     const connectionLimit = dispositivosSeleccionados || cuenta.datos.connection_limit || 1;
     
-    // Precios base por día según plan de 30 días (el más barato)
-    const preciosBase30Dias: { [key: number]: number } = {
-      1: 200,    // $6,000 / 30 días
-      2: 333.33, // $10,000 / 30 días
-      3: 400,    // $12,000 / 30 días
-      4: 500     // $15,000 / 30 días
-    };
+    // Encontrar un plan de 30 días con los dispositivos seleccionados
+    let planBase = null;
+    if (Array.isArray(planesConOverrides) && planesConOverrides.length > 0) {
+      planBase = planesConOverrides.find(p => p.dias === 30 && p.connection_limit === connectionLimit);
+      console.log('[RenovacionModal] Plans loaded:', planesConOverrides.length, 'Plan encontrado para 30d, conexión', connectionLimit, ':', planBase);
+    } else {
+      console.log('[RenovacionModal] ⚠️ No planes cargados, usando fallback hardcodeado');
+    }
     
-    const precioBasePorDia = preciosBase30Dias[connectionLimit] || (200 * connectionLimit);
+    if (!planBase) {
+      // Fallback a precios hardcodeados si no encuentra el plan
+      const preciosBase30Dias: { [key: number]: number } = {
+        1: 200,
+        2: 333.33,
+        3: 400,
+        4: 500
+      };
+      const precioBasePorDia = preciosBase30Dias[connectionLimit] || (200 * connectionLimit);
+      let multiplicador: number;
+      
+      if (diasSeleccionados >= 30) {
+        multiplicador = 1.0;
+      } else if (diasSeleccionados >= 15) {
+        multiplicador = 1.5;
+      } else if (diasSeleccionados >= 7) {
+        multiplicador = 2.14;
+      } else {
+        multiplicador = 2.5;
+      }
+      
+      return Math.round(diasSeleccionados * precioBasePorDia * multiplicador);
+    }
     
-    // Sistema de multiplicadores por cantidad de días (descuentos progresivos)
-    // Más días = menor multiplicador = mejor precio
+    // Usar el precio del plan de 30 días como referencia
+    const precioBasePorDia = planBase.precio / 30;
+    console.log('[RenovacionModal] ✅ Usando precio del servidor:', planBase.precio, '→ precio/día:', precioBasePorDia);
+    
+    // Aplicar multiplicadores según días
     let multiplicador: number;
     
     if (diasSeleccionados >= 30) {
-      // 30+ días: precio base (mejor valor)
       multiplicador = 1.0;
     } else if (diasSeleccionados >= 15) {
-      // 15-29 días: +50% sobre precio base
       multiplicador = 1.5;
     } else if (diasSeleccionados >= 7) {
-      // 7-14 días: +100% sobre precio base (doble)
       multiplicador = 2.14;
     } else {
-      // 1-6 días: +150% sobre precio base (muy caro para desincentivar)
       multiplicador = 2.5;
     }
     
@@ -416,6 +463,12 @@ export default function RenovacionModal({ isOpen, onClose }: RenovacionModalProp
                           </p>
                           <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 leading-tight">
                             ${(() => {
+                              if (Array.isArray(planesConOverrides) && planesConOverrides.length > 0) {
+                                const planBase = planesConOverrides.find(p => p.dias === 30 && p.connection_limit === dispositivos);
+                                if (planBase) {
+                                  return Math.round(planBase.precio / 30);
+                                }
+                              }
                               switch(dispositivos) {
                                 case 1: return '200';
                                 case 2: return '333';
@@ -476,12 +529,18 @@ export default function RenovacionModal({ isOpen, onClose }: RenovacionModalProp
                     ${(() => {
                       if (cuenta.tipo === 'revendedor') return '200';
                       const connectionLimit = dispositivosSeleccionados || cuenta.datos.connection_limit || 1;
+                      if (Array.isArray(planesConOverrides) && planesConOverrides.length > 0) {
+                        const planBase = planesConOverrides.find(p => p.dias === 30 && p.connection_limit === connectionLimit);
+                        if (planBase) {
+                          return Math.round(planBase.precio / 30).toString();
+                        }
+                      }
                       switch(connectionLimit) {
                         case 1: return '200';
                         case 2: return '333';
                         case 3: return '400';
                         case 4: return '500';
-                        default: return (200 * connectionLimit).toString();
+                        default: return '200';
                       }
                     })()} ARS
                   </span>

@@ -9,11 +9,13 @@ import { TiendaService } from './services/tienda.service';
 import { TiendaRevendedoresService } from './services/tienda-revendedores.service';
 import { RenovacionService } from './services/renovacion.service';
 import { WebSocketService } from './services/websocket.service';
+import { PromoTimerService } from './services/promo-timer.service';
 import { crearRutasTienda } from './routes/tienda.routes';
 import { crearRutasRevendedores } from './routes/tienda-revendedores.routes';
 import { crearRutasRenovacion } from './routes/renovacion.routes';
 import { crearRutasStats } from './routes/stats.routes';
 import { crearRutasClientes } from './routes/clientes.routes';
+import configRoutes from './routes/config.routes';
 import { corsMiddleware, loggerMiddleware, errorHandler, validarJSON } from './middleware';
 
 class Server {
@@ -165,6 +167,15 @@ class Server {
 
     // Rutas de la API - Clientes
     this.app.use('/api', crearRutasClientes(this.servexService));
+
+    // Rutas de la API - Config (Promociones, etc)
+    this.app.use('/api/config', configRoutes);
+
+    // Inicializar PromoTimerService para verificar promos expiradas cada 5 minutos
+    const configPath = require('path').join(process.cwd(), 'public', 'config', 'planes.config.json');
+    const promoTimerService = new PromoTimerService(configPath);
+    promoTimerService.iniciar();
+    console.log('[Server] ✅ PromoTimerService inicializado');
 
     // 404 handler
     this.app.use('*', (req, res) => {

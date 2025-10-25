@@ -101,6 +101,17 @@ class ApiService {
     }
     return response.data.data || [];
   }
+
+  /**
+   * Obtiene la configuración del hero para revendedores
+   */
+  async obtenerConfigHeroRevendedores(): Promise<any> {
+    const response = await this.client.get<ApiResponse<any>>('/config/hero-revendedores');
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Error obteniendo configuración del hero');
+    }
+    return response.data.data || {};
+  }
 }
 
 export const apiService = new ApiService();

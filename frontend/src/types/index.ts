@@ -81,3 +81,15 @@ export interface Usuario {
   expires_at: string;
   status: 'active' | 'expired' | 'suspended';
 }
+
+export interface NoticiaConfig {
+  enabled: boolean;
+  version: string;
+  ultima_actualizacion: string;
+  aviso: {
+    habilitado: boolean;
+    texto: string;
+    bgColor: string;
+    textColor: string;
+  };
+}

@@ -37,7 +37,7 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
    */
   router.post('/cliente', async (req: Request, res: Response) => {
     try {
-      const { busqueda, dias, clienteEmail, clienteNombre, nuevoConnectionLimit } = req.body;
+      const { busqueda, dias, precio, clienteEmail, clienteNombre, nuevoConnectionLimit } = req.body;
 
       // Validaciones
       if (!busqueda || typeof busqueda !== 'string') {
@@ -56,6 +56,7 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
       const resultado = await renovacionService.procesarRenovacionCliente({
         busqueda: busqueda.trim(),
         dias,
+        precio: precio ? Number(precio) : undefined, // Pasar precio al servicio
         clienteEmail: clienteEmail.trim(),
         clienteNombre: clienteNombre.trim(),
         nuevoConnectionLimit: nuevoConnectionLimit ? Number(nuevoConnectionLimit) : undefined

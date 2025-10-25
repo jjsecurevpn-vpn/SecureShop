@@ -1,6 +1,8 @@
 import { DatabaseService } from './database.service';
 import { ServexService } from './servex.service';
 import { MercadoPagoService } from './mercadopago.service';
+import { configService } from './config.service';
+import emailService from './email.service';
 
 export class RenovacionService {
   constructor(
@@ -103,6 +105,7 @@ export class RenovacionService {
   async procesarRenovacionCliente(input: {
     busqueda: string;
     dias: number;
+    precio?: number; // Precio calculado desde el frontend con overrides aplicados
     clienteEmail: string;
     clienteNombre: string;
     nuevoConnectionLimit?: number;
@@ -126,31 +129,35 @@ export class RenovacionService {
     
     console.log(`[Renovacion] Límite actual: ${connectionLimitActual}, Nuevo límite: ${connectionLimitNuevo}, Hay cambio: ${hayCambioDispositivos}`);
 
-    // 3. Calcular precio según número de dispositivos (usar el nuevo si cambia)
-    // Precios basados en planes: 1 dispositivo = 6000/30 = 200, 2 = 333.33, 3 = 400, 4 = 500
-    let precioPorDia: number;
+    // 3. Usar precio enviado desde frontend (ya tiene descuentos aplicados)
+    // Si no viene precio del frontend, calcular como fallback
+    let monto = input.precio;
     
-    switch(connectionLimitNuevo) {
-      case 1:
-        precioPorDia = 200;
-        break;
-      case 2:
-        precioPorDia = 333.33;
-        break;
-      case 3:
-        precioPorDia = 400;
-        break;
-      case 4:
-        precioPorDia = 500;
-        break;
-      default:
-        precioPorDia = 200 * connectionLimitNuevo; // Escalado lineal para más dispositivos
+    if (!monto || monto <= 0) {
+      console.log(`[Renovacion] ⚠️ No se recibió precio del frontend, calculando fallback...`);
+      
+      const planesDisponibles = this.db.obtenerPlanes();
+      const planReferencia = planesDisponibles.find(
+        (p: any) => p.dias === 30 && p.connection_limit === connectionLimitNuevo
+      );
+      
+      let precioPorDia: number;
+      if (planReferencia) {
+        precioPorDia = planReferencia.precio / 30;
+      } else {
+        switch(connectionLimitNuevo) {
+          case 1: precioPorDia = 200; break;
+          case 2: precioPorDia = 333.33; break;
+          case 3: precioPorDia = 400; break;
+          case 4: precioPorDia = 500; break;
+          default: precioPorDia = 200 * connectionLimitNuevo;
+        }
+      }
+      monto = Math.round(input.dias * precioPorDia);
     }
-    
-    const monto = Math.round(input.dias * precioPorDia);
 
     console.log(`[Renovacion] ${hayCambioDispositivos ? 'Upgrade' : 'Renovación'}: ${connectionLimitActual} -> ${connectionLimitNuevo} dispositivos`);
-    console.log(`[Renovacion] Precio por día: ${precioPorDia}, Días: ${input.dias}, Monto total: ${monto}`);
+    console.log(`[Renovacion] Monto final a pagar: $${monto}`);
 
     // 4. Crear registro de renovación
     const renovacionData: any = {
@@ -223,50 +230,43 @@ export class RenovacionService {
 
     const revendedorExistente = resultado.datos;
 
-    // 2. Calcular precio según el plan seleccionado
+    // 2. Obtener planes de revendedores con overrides de configuración aplicados
+    const planesBase = this.db.obtenerPlanesRevendedores();
+    console.log(`[Renovacion] 📊 Planes base obtenidos: ${planesBase.length} planes`);
+    const planesConOverrides = configService.aceptarOverridesAListaPlanesRevendedor(planesBase);
+    console.log(`[Renovacion] 📊 Planes con overrides: ${planesConOverrides.length} planes`);
+    
+    // 3. Calcular precio según el plan seleccionado
     let monto = 0;
     const tipoRenovacion = input.tipoRenovacion || 'validity';
     const cantidad = input.cantidadSeleccionada || 5;
+    
+    console.log(`[Renovacion] 🔍 Buscando plan con: tipo=${tipoRenovacion}, cantidad=${cantidad}`);
+    console.log(`[Renovacion] 📋 Planes disponibles: ${JSON.stringify(planesConOverrides.map((p: any) => ({id: p.id, max_users: p.max_users, account_type: p.account_type, precio: p.precio})))}`);
 
     if (tipoRenovacion === 'validity') {
-      // Planes de validez (30 días)
-      const preciosValidez: Record<number, number> = {
-        5: 10000,
-        10: 18000,
-        20: 32000,
-        30: 42000,
-        50: 60000,
-        75: 78000,
-        100: 90000,
-      };
-      monto = preciosValidez[cantidad] || 10000;
+      // Buscar un plan de validez con cantidad similar
+      const plan = planesConOverrides.find((p: any) => 
+        p.account_type === 'validity' && p.max_users === cantidad
+      );
+      monto = plan?.precio || 8500; // Default si no encuentra
+      console.log(`[Renovacion] ✅ Renovación VALIDITY - Cantidad usuarios: ${cantidad}, Plan encontrado ID=${plan?.id}, Monto: ${monto}`);
     } else {
-      // Planes de créditos
-      const preciosCreditos: Record<number, number> = {
-        5: 12000,
-        10: 20000,
-        20: 36000,
-        30: 51000,
-        40: 64000,
-        50: 75000,
-        60: 84000,
-        80: 104000,
-        100: 110000,
-        150: 150000,
-        200: 190000,
-      };
-      monto = preciosCreditos[cantidad] || 12000;
+      // Buscar un plan de créditos con cantidad similar
+      const plan = planesConOverrides.find((p: any) => 
+        p.account_type === 'credit' && p.max_users === cantidad
+      );
+      monto = plan?.precio || 10200; // Default si no encuentra
+      console.log(`[Renovacion] ✅ Renovación CREDIT - Cantidad créditos: ${cantidad}, Plan encontrado ID=${plan?.id}, Monto: ${monto}`);
     }
 
-    console.log(`[Renovacion] Tipo: ${tipoRenovacion}, Cantidad: ${cantidad}, Monto: ${monto}`);
-
-    // 3. Preparar datos para almacenar
+    // 4. Preparar datos para almacenar
     const datosNuevos = {
       tipo_renovacion: tipoRenovacion,
       cantidad: cantidad,
     };
 
-    // 4. Crear registro de renovación
+    // 5. Crear registro de renovación
     const renovacion = this.db.crearRenovacion({
       tipo: 'revendedor',
       servex_id: revendedorExistente.servex_revendedor_id,
@@ -284,7 +284,7 @@ export class RenovacionService {
     const renovacionId = renovacion.id;
     console.log('[Renovacion] Renovación de revendedor creada:', renovacionId);
 
-    // 5. Crear preferencia en MercadoPago
+    // 6. Crear preferencia en MercadoPago
     const descripcion = tipoRenovacion === 'validity' 
       ? `Renovación 30 días - ${cantidad} usuarios - ${revendedorExistente.servex_username}`
       : `Recarga ${cantidad} créditos - ${revendedorExistente.servex_username}`;
@@ -427,6 +427,44 @@ export class RenovacionService {
         }
 
         console.log(`[Renovacion] ✅ ${renovacion.tipo} renovado exitosamente`);
+      }
+
+      // Notificar al administrador
+      try {
+        const tipoNotificacion = renovacion.tipo === 'cliente' ? 'renovacion-cliente' : 'renovacion-revendedor';
+        let descripcion = '';
+
+        if (renovacion.tipo === 'cliente') {
+          if (renovacion.operacion === 'upgrade') {
+            const datosNuevos = JSON.parse(renovacion.datos_nuevos || '{}');
+            descripcion = `Upgrade cliente: ${renovacion.dias_agregados} días, ${datosNuevos.connection_limit} conexiones`;
+          } else {
+            descripcion = `Renovación cliente: ${renovacion.dias_agregados} días`;
+          }
+        } else {
+          if (renovacion.datos_nuevos) {
+            const datosNuevos = JSON.parse(renovacion.datos_nuevos);
+            if (datosNuevos.tipo_renovacion === 'validity') {
+              descripcion = `Renovación revendedor: 30 días, ${datosNuevos.cantidad} usuarios`;
+            } else {
+              descripcion = `Recarga revendedor: ${renovacion.dias_agregados} días, +${datosNuevos.cantidad} créditos`;
+            }
+          } else {
+            descripcion = `Renovación revendedor: ${renovacion.dias_agregados} días`;
+          }
+        }
+
+        await emailService.notificarVentaAdmin(tipoNotificacion, {
+          clienteNombre: renovacion.cliente_nombre,
+          clienteEmail: renovacion.cliente_email,
+          monto: renovacion.monto,
+          descripcion,
+          username: renovacion.servex_username
+        });
+        console.log('[Renovacion] ✅ Notificación enviada al administrador');
+      } catch (emailError: any) {
+        console.error('[Renovacion] ⚠️ Error notificando al admin:', emailError.message);
+        // No lanzamos error, la renovación ya está procesada
       }
 
     } catch (error: any) {

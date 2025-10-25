@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { DatabaseService } from './database.service';
 import { ServexService } from './servex.service';
 import { MercadoPagoService } from './mercadopago.service';
+import { configService } from './config.service';
 import emailService from './email.service';
 import { PlanRevendedor, PagoRevendedor, CrearPagoRevendedorInput, RevendedorServex } from '../types';
 
@@ -13,10 +14,16 @@ export class TiendaRevendedoresService {
   ) {}
 
   /**
-   * Obtiene todos los planes de revendedores activos
+   * Obtiene todos los planes de revendedores activos con overrides aplicados
    */
   obtenerPlanesRevendedores(): PlanRevendedor[] {
-    return this.db.obtenerPlanesRevendedores();
+    const planesBase = this.db.obtenerPlanesRevendedores();
+    console.log('[TiendaRevendedores] 📊 Planes base obtenidos:', planesBase.length, 'planes');
+    console.log('[TiendaRevendedores] 📊 Plan 34 precio base:', planesBase.find((p: any) => p.id === 34)?.precio);
+    // Aplicar overrides de configuración si existen
+    const planesConOverrides = configService.aceptarOverridesAListaPlanesRevendedor(planesBase);
+    console.log('[TiendaRevendedores] ✨ Despúes de overrides - Plan 34 precio:', planesConOverrides.find((p: any) => p.id === 34)?.precio);
+    return planesConOverrides;
   }
 
   /**
@@ -27,7 +34,7 @@ export class TiendaRevendedoresService {
     linkPago: string;
   }> {
     // 1. Validar que el plan existe
-    const plan = this.db.obtenerPlanRevendedorPorId(input.planRevendedorId);
+    let plan = this.db.obtenerPlanRevendedorPorId(input.planRevendedorId);
     if (!plan) {
       throw new Error('Plan de revendedor no encontrado');
     }
@@ -36,12 +43,16 @@ export class TiendaRevendedoresService {
       throw new Error('Plan no disponible');
     }
 
-    // 2. Crear registro de pago en la base de datos
+    // 2. Aplicar overrides de configuración
+    plan = configService.aceptarOverridesAlPlanRevendedor(plan);
+    console.log(`[TiendaRevendedores] Plan ${plan!.id} - Precio final: $${plan!.precio}`);
+
+    // 3. Crear registro de pago en la base de datos
     const pagoId = uuidv4();
     const pago = this.db.crearPagoRevendedor({
       id: pagoId,
-      plan_revendedor_id: plan.id,
-      monto: plan.precio,
+      plan_revendedor_id: plan!.id,
+      monto: plan!.precio,
       estado: 'pendiente',
       metodo_pago: 'mercadopago',
       cliente_email: input.clienteEmail,
@@ -54,8 +65,8 @@ export class TiendaRevendedoresService {
     try {
       const { id: preferenceId, initPoint } = await this.mercadopago.crearPreferencia(
         pagoId,
-        plan.nombre,
-        plan.precio,
+        plan!.nombre,
+        plan!.precio,
         input.clienteEmail,
         input.clienteNombre,
         'revendedor'
@@ -201,6 +212,21 @@ export class TiendaRevendedoresService {
       } catch (emailError: any) {
         console.error('[TiendaRevendedores] ⚠️ Error enviando email:', emailError.message);
         // No lanzamos error, el servicio principal ya está creado
+      }
+
+      // Notificar al administrador
+      try {
+        await emailService.notificarVentaAdmin('revendedor', {
+          clienteNombre: pago.cliente_nombre,
+          clienteEmail: pago.cliente_email,
+          monto: pago.monto,
+          descripcion: `Plan Revendedor: ${plan.nombre} (${plan.account_type === 'credit' ? `${plan.max_users} créditos` : `Válido hasta ${revendedorCreado.expiration_date ? new Date(revendedorCreado.expiration_date).toLocaleDateString('es-AR') : 'N/A'}`})`,
+          username: revendedorCreado.username
+        });
+        console.log('[TiendaRevendedores] ✅ Notificación enviada al administrador');
+      } catch (emailError: any) {
+        console.error('[TiendaRevendedores] ⚠️ Error notificando al admin:', emailError.message);
+        // No lanzamos error, la venta ya está procesada
       }
 
     } catch (error: any) {

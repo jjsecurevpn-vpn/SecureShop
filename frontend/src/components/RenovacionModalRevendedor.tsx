@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Search, RefreshCw, AlertCircle, CheckCircle, Loader2, Calendar, CreditCard } from 'lucide-react';
 import { useEffect } from 'react';
+import { usePlanesRevendedores } from '../hooks/usePlanesRevendedores';
 
 interface RenovacionModalRevendedorProps {
   isOpen: boolean;
@@ -32,6 +33,18 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
   const [procesando, setProcesando] = useState(false);
   const [nombreCliente, setNombreCliente] = useState('');
   const [emailCliente, setEmailCliente] = useState('');
+
+  // Cargar planes de revendedores dinámicamente
+  const { planesValidity, planesCredit, loading: planesLoading, error: planesError } = usePlanesRevendedores();
+  
+  // Si no hay planes cargados aún, usar el primer plan como selección
+  useEffect(() => {
+    if (tipoRenovacion === 'validity' && planesValidity.length > 0) {
+      setCreditosSeleccionados(planesValidity[0].max_users);
+    } else if (tipoRenovacion === 'credit' && planesCredit.length > 0) {
+      setCreditosSeleccionados(planesCredit[0].max_users);
+    }
+  }, [tipoRenovacion, planesValidity, planesCredit]);
 
   useEffect(() => {
     if (isOpen) {
@@ -152,33 +165,13 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
 
   const calcularPrecio = () => {
     if (tipoRenovacion === 'validity') {
-      // Planes de validez (30 días)
-      const preciosValidez: Record<number, number> = {
-        5: 10000,
-        10: 18000,
-        20: 32000,
-        30: 42000,
-        50: 60000,
-        75: 78000,
-        100: 90000,
-      };
-      return preciosValidez[creditosSeleccionados] || 0;
+      // Buscar plan de validez con cantidad de usuarios seleccionada
+      const plan = planesValidity.find(p => p.max_users === creditosSeleccionados);
+      return plan?.precio || 0;
     } else {
-      // Planes de créditos
-      const preciosCreditos: Record<number, number> = {
-        5: 12000,
-        10: 20000,
-        20: 36000,
-        30: 51000,
-        40: 64000,
-        50: 75000,
-        60: 84000,
-        80: 104000,
-        100: 110000,
-        150: 150000,
-        200: 190000,
-      };
-      return preciosCreditos[creditosSeleccionados] || 0;
+      // Buscar plan de créditos con cantidad seleccionada
+      const plan = planesCredit.find(p => p.max_users === creditosSeleccionados);
+      return plan?.precio || 0;
     }
   };
 
@@ -226,6 +219,14 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-start gap-3">
               <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
               <p className="text-red-400 text-xs">{error}</p>
+            </div>
+          )}
+
+          {/* Planes Loading Error */}
+          {planesError && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-start gap-3">
+              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+              <p className="text-red-400 text-xs">Error al cargar planes: {planesError}</p>
             </div>
           )}
 
@@ -367,30 +368,33 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
                   <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
                     Plan de Validez (30 días)
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {[5, 10, 20, 30, 50, 75, 100].map((cantidad) => (
-                      <button
-                        key={cantidad}
-                        onClick={() => setCreditosSeleccionados(cantidad)}
-                        className={`p-2 rounded-lg border-2 transition-all text-xs font-medium ${
-                          creditosSeleccionados === cantidad
-                            ? 'border-pink-500 bg-pink-500/15 text-pink-300'
-                            : 'border-gray-700/50 bg-gray-800/40 text-gray-300 hover:border-gray-600 hover:bg-gray-800/60'
-                        }`}
-                      >
-                        <div className="font-semibold">{cantidad}</div>
-                        <div className="text-xs text-gray-400">
-                          {cantidad === 5 && '$10K'}
-                          {cantidad === 10 && '$18K'}
-                          {cantidad === 20 && '$32K'}
-                          {cantidad === 30 && '$42K'}
-                          {cantidad === 50 && '$60K'}
-                          {cantidad === 75 && '$78K'}
-                          {cantidad === 100 && '$90K'}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+                  {planesLoading ? (
+                    <div className="flex items-center justify-center p-4">
+                      <Loader2 className="w-4 h-4 animate-spin text-pink-400" />
+                      <span className="text-xs text-gray-400 ml-2">Cargando planes...</span>
+                    </div>
+                  ) : planesValidity.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {planesValidity.map((plan) => (
+                        <button
+                          key={plan.id}
+                          onClick={() => setCreditosSeleccionados(plan.max_users)}
+                          className={`p-2 rounded-lg border-2 transition-all text-xs font-medium ${
+                            creditosSeleccionados === plan.max_users
+                              ? 'border-pink-500 bg-pink-500/15 text-pink-300'
+                              : 'border-gray-700/50 bg-gray-800/40 text-gray-300 hover:border-gray-600 hover:bg-gray-800/60'
+                          }`}
+                        >
+                          <div className="font-semibold">{plan.max_users}</div>
+                          <div className="text-xs text-gray-400">
+                            ${(plan.precio / 1000).toFixed(1)}K
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500">No hay planes disponibles</p>
+                  )}
                 </div>
               )}
 
@@ -399,34 +403,37 @@ export default function RenovacionModalRevendedor({ isOpen, onClose }: Renovacio
                   <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
                     Plan de Créditos
                   </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-2">
-                    {[5, 10, 20, 30, 40, 50, 60, 80, 100, 150, 200].map((cantidad) => {
-                      const precios: Record<number, string> = {
-                        5: '$12K', 10: '$20K', 20: '$36K', 30: '$51K', 40: '$64K',
-                        50: '$75K', 60: '$84K', 80: '$104K', 100: '$110K', 150: '$150K', 200: '$190K'
-                      };
-                      const duracion: Record<number, string> = {
-                        5: '1m', 10: '2m', 20: '3m', 30: '4m', 40: '5m',
-                        50: '5m', 60: '5m', 80: '5m', 100: '5m', 150: '5m', 200: '5m'
-                      };
-                      return (
-                        <button
-                          key={cantidad}
-                          onClick={() => setCreditosSeleccionados(cantidad)}
-                          className={`p-2 rounded-lg border-2 transition-all text-xs font-medium ${
-                            creditosSeleccionados === cantidad
-                              ? 'border-pink-500 bg-pink-500/15 text-pink-300'
-                              : 'border-gray-700/50 bg-gray-800/40 text-gray-300 hover:border-gray-600 hover:bg-gray-800/60'
-                          }`}
-                        >
-                          <div className="font-semibold">{cantidad}</div>
-                          <div className="text-xs text-gray-400">
-                            {precios[cantidad]} / {duracion[cantidad]}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {planesLoading ? (
+                    <div className="flex items-center justify-center p-4">
+                      <Loader2 className="w-4 h-4 animate-spin text-pink-400" />
+                      <span className="text-xs text-gray-400 ml-2">Cargando planes...</span>
+                    </div>
+                  ) : planesCredit.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-2">
+                      {planesCredit.map((plan) => {
+                        // Estimar duración en meses basado en los días del plan
+                        const meses = Math.ceil(plan.dias / 30);
+                        return (
+                          <button
+                            key={plan.id}
+                            onClick={() => setCreditosSeleccionados(plan.max_users)}
+                            className={`p-2 rounded-lg border-2 transition-all text-xs font-medium ${
+                              creditosSeleccionados === plan.max_users
+                                ? 'border-pink-500 bg-pink-500/15 text-pink-300'
+                                : 'border-gray-700/50 bg-gray-800/40 text-gray-300 hover:border-gray-600 hover:bg-gray-800/60'
+                            }`}
+                          >
+                            <div className="font-semibold">{plan.max_users}</div>
+                            <div className="text-xs text-gray-400">
+                              ${(plan.precio / 1000).toFixed(1)}K / {meses}m
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500">No hay planes disponibles</p>
+                  )}
                 </div>
               )}
 
