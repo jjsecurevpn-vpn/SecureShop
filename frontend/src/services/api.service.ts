@@ -1,0 +1,209 @@
+import axios, { AxiosInstance } from "axios";
+import {
+  Plan,
+  PlanRevendedor,
+  Pago,
+  CompraRequest,
+  CompraRevendedorRequest,
+  CompraResponse,
+  ApiResponse,
+  Usuario,
+} from "../types";
+
+class ApiService {
+  private client: AxiosInstance;
+
+  constructor() {
+    const baseURL = import.meta.env.VITE_API_URL || "/api";
+
+    this.client = axios.create({
+      baseURL,
+      timeout: 30000,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Interceptor para logging y manejo de errores
+    this.client.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response) {
+          // El servidor respondió con un código de error
+          const status = error.response.status;
+          const data = error.response.data;
+
+          // Mensajes amigables para el usuario
+          const mensajesAmigables: { [key: number]: string } = {
+            429: "Demasiadas solicitudes. Por favor espera antes de intentar nuevamente.",
+            500: "Error en el servidor. Por favor intenta más tarde.",
+            400:
+              data?.error ||
+              "Solicitud inválida. Por favor verifica los datos.",
+            404: "El recurso solicitado no existe.",
+            401: "No autorizado. Por favor inicia sesión.",
+            403: "Acceso denegado.",
+          };
+
+          const mensajeError =
+            mensajesAmigables[status] || data?.error || error.message;
+          console.error(`[API Error ${status}]`, mensajeError);
+          error.mensaje = mensajeError;
+        } else if (error.request) {
+          console.error(
+            "[API Error] No hay respuesta del servidor:",
+            error.message
+          );
+          error.mensaje =
+            "No hay conexión con el servidor. Verifica tu conexión a internet.";
+        } else {
+          console.error("[API Error]", error.message);
+          error.mensaje = error.message;
+        }
+        throw error;
+      }
+    );
+  }
+
+  /**
+   * Obtiene la lista de planes disponibles
+   */
+  async obtenerPlanes(): Promise<Plan[]> {
+    const response = await this.client.get<ApiResponse<Plan[]>>("/planes");
+    if (!response.data.success) {
+      throw new Error(response.data.error || "Error obteniendo planes");
+    }
+    return response.data.data || [];
+  }
+
+  /**
+   * Inicia el proceso de compra
+   */
+  async comprarPlan(data: CompraRequest): Promise<CompraResponse> {
+    const response = await this.client.post<ApiResponse<CompraResponse>>(
+      "/comprar",
+      data
+    );
+    if (!response.data.success) {
+      throw new Error(response.data.error || "Error procesando compra");
+    }
+    return response.data.data!;
+  }
+
+  /**
+   * Obtiene información de un pago
+   */
+  async obtenerPago(pagoId: string): Promise<Pago> {
+    const response = await this.client.get<ApiResponse<Pago>>(
+      `/pago/${pagoId}`
+    );
+    if (!response.data.success) {
+      throw new Error(response.data.error || "Error obteniendo pago");
+    }
+    return response.data.data!;
+  }
+
+  /**
+   * Obtiene la lista de planes de revendedores disponibles
+   */
+  async obtenerPlanesRevendedores(): Promise<PlanRevendedor[]> {
+    const response = await this.client.get<ApiResponse<PlanRevendedor[]>>(
+      "/planes-revendedores"
+    );
+    if (!response.data.success) {
+      throw new Error(
+        response.data.error || "Error obteniendo planes de revendedores"
+      );
+    }
+    return response.data.data || [];
+  }
+
+  /**
+   * Inicia el proceso de compra de plan de revendedor
+   */
+  async comprarPlanRevendedor(
+    data: CompraRevendedorRequest
+  ): Promise<CompraResponse> {
+    const response = await this.client.post<ApiResponse<CompraResponse>>(
+      "/comprar-revendedor",
+      data
+    );
+    if (!response.data.success) {
+      throw new Error(
+        response.data.error || "Error procesando compra de revendedor"
+      );
+    }
+    return response.data.data!;
+  }
+
+  /**
+   * Obtiene información de un pago de revendedor
+   */
+  async obtenerPagoRevendedor(pagoId: string): Promise<Pago> {
+    const response = await this.client.get<ApiResponse<Pago>>(
+      `/pago-revendedor/${pagoId}`
+    );
+    if (!response.data.success) {
+      throw new Error(
+        response.data.error || "Error obteniendo pago de revendedor"
+      );
+    }
+    return response.data.data!;
+  }
+
+  /**
+   * Obtiene los últimos usuarios creados
+   */
+  async obtenerUltimosUsuarios(limit: number = 10): Promise<Usuario[]> {
+    const response = await this.client.get<ApiResponse<Usuario[]>>(
+      `/clients?limit=${limit}`
+    );
+    if (!response.data.success) {
+      throw new Error(
+        response.data.error || "Error obteniendo últimos usuarios"
+      );
+    }
+    return response.data.data || [];
+  }
+
+  /**
+   * Obtiene la configuración del hero para revendedores
+   */
+  async obtenerConfigHeroRevendedores(): Promise<any> {
+    const response = await this.client.get<ApiResponse<any>>(
+      "/config/hero-revendedores"
+    );
+    if (!response.data.success) {
+      throw new Error(
+        response.data.error || "Error obteniendo configuración del hero"
+      );
+    }
+    return response.data.data || {};
+  }
+
+  /**
+   * Solicita una demostración gratuita
+   */
+  async solicitarDemo(nombre: string, email: string): Promise<any> {
+    try {
+      const response = await this.client.post<ApiResponse<any>>("/demo", {
+        nombre,
+        email,
+      });
+      return response.data;
+    } catch (error: any) {
+      // Capturar respuesta 429 (bloqueado) con datos
+      if (error.response?.status === 429 && error.response?.data) {
+        return error.response.data; // Retornar la respuesta del servidor tal cual
+      }
+
+      // Para otros errores, retornar con mensaje amigable
+      return {
+        success: false,
+        error: error.mensaje || error.message || "Error al solicitar demo",
+      };
+    }
+  }
+}
+
+export const apiService = new ApiService();
