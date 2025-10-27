@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "version": "2.0.0",
-  "ultima_actualizacion": "2025-10-23T22:00:00Z",
+  "ultima_actualizacion": "2025-10-27T19:30:00Z",
   "moneda": "ARS",
   "notas": "Sistema de precios normales con overrides de promoción configurable. Los overrides solo se aplican si promo_config.activa es true.",
   "hero": {
@@ -28,7 +28,19 @@
     "29": "Plan Básico 30D (1 dispositivo - 30 días)",
     "30": "Plan Doble 30D (2 dispositivos - 30 días)",
     "31": "Plan Triple 30D (3 dispositivos - 30 días)",
-    "32": "Plan Familiar 30D (4 dispositivos - 30 días)"
+    "32": "Plan Familiar 30D (4 dispositivos - 30 días)",
+    "33": "Plan Básico 3D (1 dispositivo - 3 días)",
+    "34": "Plan Doble 3D (2 dispositivos - 3 días)",
+    "35": "Plan Triple 3D (3 dispositivos - 3 días)",
+    "36": "Plan Familiar 3D (4 dispositivos - 3 días)",
+    "37": "Plan Básico 20D (1 dispositivo - 20 días)",
+    "38": "Plan Doble 20D (2 dispositivos - 20 días)",
+    "39": "Plan Triple 20D (3 dispositivos - 20 días)",
+    "40": "Plan Familiar 20D (4 dispositivos - 20 días)",
+    "41": "Plan Básico 25D (1 dispositivo - 25 días)",
+    "42": "Plan Doble 25D (2 dispositivos - 25 días)",
+    "43": "Plan Triple 25D (3 dispositivos - 25 días)",
+    "44": "Plan Familiar 25D (4 dispositivos - 25 días)"
   },
   "precios_normales": {
     "21": 3000,
@@ -42,7 +54,19 @@
     "29": 6000,
     "30": 10000,
     "31": 12000,
-    "32": 15000
+    "32": 15000,
+    "33": 1500,
+    "34": 2500,
+    "35": 3500,
+    "36": 4500,
+    "37": 5000,
+    "38": 8000,
+    "39": 10500,
+    "40": 13000,
+    "41": 5500,
+    "42": 9000,
+    "43": 11000,
+    "44": 13500
   },
   "overrides": {
     "_comentario": "Solo se aplican si promo_config.activa === true. Auto-se desactivan según promo_config.duracion_horas",
@@ -57,7 +81,19 @@
     "29": { "precio": 3000 },
     "30": { "precio": 5000 },
     "31": { "precio": 6000 },
-    "32": { "precio": 7500 }
+    "32": { "precio": 7500 },
+    "33": { "precio": 1500 },
+    "34": { "precio": 2500 },
+    "35": { "precio": 3500 },
+    "36": { "precio": 4500 },
+    "37": { "precio": 5000 },
+    "38": { "precio": 8000 },
+    "39": { "precio": 10500 },
+    "40": { "precio": 13000 },
+    "41": { "precio": 5500 },
+    "42": { "precio": 9000 },
+    "43": { "precio": 11000 },
+    "44": { "precio": 13500 }
   },
   "promo_config": {
     "activa": false,
