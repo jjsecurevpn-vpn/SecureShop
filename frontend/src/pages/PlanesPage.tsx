@@ -63,6 +63,17 @@ export default function PlanesPage() {
   // Agrupar planes por duración (usar planes cargados de la API)
   const groupedPlans = [
     {
+      title: "Planes de 3 días",
+      tagline: "Ideal para test o uso corto",
+      accent: "from-blue-400 to-blue-600",
+      chipBg: "bg-blue-50 text-blue-700",
+      icon: <Timer className="w-5 h-5" />,
+      description:
+        "Perfecto para pruebas rápidas o uso temporal. Costo diario algo mayor que el de 7 días.",
+      bestFor: "Usuarios que necesitan acceso breve",
+      items: planes.filter((p) => p.dias === 3),
+    },
+    {
       title: "Planes de 7 días",
       tagline: "Ideal para probar el servicio",
       accent: "from-emerald-400 to-emerald-600",
@@ -83,6 +94,28 @@ export default function PlanesPage() {
         "La opción más versátil. Dos semanas de acceso completo a precio muy competitivo. Popular entre usuarios ocasionales.",
       bestFor: "Usuarios que necesitan flexibilidad",
       items: planes.filter((p) => p.dias === 15),
+    },
+    {
+      title: "Planes de 20 días",
+      tagline: "Duración media, entre 15 y 30 días",
+      accent: "from-cyan-400 to-cyan-600",
+      chipBg: "bg-cyan-50 text-cyan-700",
+      icon: <Zap className="w-5 h-5" />,
+      description:
+        "Promedio entre $300/día (15d) y $200/día (30d). Opción equilibrada para uso prolongado.",
+      bestFor: "Usuarios que buscan buen valor medio",
+      items: planes.filter((p) => p.dias === 20),
+    },
+    {
+      title: "Planes de 25 días",
+      tagline: "Casi mensual, pero más económico que el de 30 días",
+      accent: "from-indigo-400 to-indigo-600",
+      chipBg: "bg-indigo-50 text-indigo-700",
+      icon: <Star className="w-5 h-5" />,
+      description:
+        "Veinticinco días de acceso premium a precio competitivo. Mejor relación calidad-precio para uso extendido.",
+      bestFor: "Usuarios que quieren casi un mes completo",
+      items: planes.filter((p) => p.dias === 25),
     },
     {
       title: "Planes de 30 días",
@@ -251,7 +284,7 @@ export default function PlanesPage() {
                 className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-emerald-500/50 transition-all"
               >
                 <span>🎁</span>
-                Prueba 24h Gratis
+                Prueba gratis (2 horas)
               </button>
             </div>
           </div>
@@ -279,6 +312,97 @@ export default function PlanesPage() {
                   <li className="flex items-center gap-1">
                     <Check className="w-3 h-3 text-purple-400" /> Activación
                     instantánea
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Nuevos planes destacados */}
+          <div className="mb-12 max-w-5xl mx-auto px-4 sm:px-6 md:px-0">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* 3 días */}
+              <div className="bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800/60 rounded-xl p-6 text-center">
+                <h4 className="text-lg font-bold text-white mb-2">
+                  📆 Planes de 3 días
+                </h4>
+                <p className="text-xs text-gray-400 mb-4">
+                  (Ideal para test o uso corto) Costo diario algo mayor que el
+                  de 7 días ($429–$1000).
+                </p>
+                <ul className="text-sm text-gray-300 space-y-2 mb-4">
+                  <li>
+                    1 Login → <span className="font-semibold">$1.500</span> (
+                    <span className="text-gray-400">$500/día</span>)
+                  </li>
+                  <li>
+                    2 Logins → <span className="font-semibold">$2.500</span> (
+                    <span className="text-gray-400">$833/día</span>)
+                  </li>
+                  <li>
+                    3 Logins → <span className="font-semibold">$3.500</span> (
+                    <span className="text-gray-400">$1.166/día</span>)
+                  </li>
+                  <li>
+                    4 Logins → <span className="font-semibold">$4.500</span> (
+                    <span className="text-gray-400">$1.500/día</span>)
+                  </li>
+                </ul>
+              </div>
+
+              {/* 20 días */}
+              <div className="bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800/60 rounded-xl p-6 text-center">
+                <h4 className="text-lg font-bold text-white mb-2">
+                  📆 Planes de 20 días
+                </h4>
+                <p className="text-xs text-gray-400 mb-4">
+                  (Duración media, entre 15 y 30 días) Promedio entre $300/día
+                  (15d) y $200/día (30d).
+                </p>
+                <ul className="text-sm text-gray-300 space-y-2 mb-4">
+                  <li>
+                    1 Login → <span className="font-semibold">$5.000</span> (
+                    <span className="text-gray-400">$250/día</span>)
+                  </li>
+                  <li>
+                    2 Logins → <span className="font-semibold">$8.000</span> (
+                    <span className="text-gray-400">$400/día</span>)
+                  </li>
+                  <li>
+                    3 Logins → <span className="font-semibold">$10.500</span> (
+                    <span className="text-gray-400">$525/día</span>)
+                  </li>
+                  <li>
+                    4 Logins → <span className="font-semibold">$13.000</span> (
+                    <span className="text-gray-400">$650/día</span>)
+                  </li>
+                </ul>
+              </div>
+
+              {/* 25 días */}
+              <div className="bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800/60 rounded-xl p-6 text-center">
+                <h4 className="text-lg font-bold text-white mb-2">
+                  📆 Planes de 25 días
+                </h4>
+                <p className="text-xs text-gray-400 mb-4">
+                  (Casi mensual, pero más económico que el de 30 días)
+                </p>
+                <ul className="text-sm text-gray-300 space-y-2 mb-4">
+                  <li>
+                    1 Login → <span className="font-semibold">$5.500</span> (
+                    <span className="text-gray-400">$220/día</span>)
+                  </li>
+                  <li>
+                    2 Logins → <span className="font-semibold">$9.000</span> (
+                    <span className="text-gray-400">$360/día</span>)
+                  </li>
+                  <li>
+                    3 Logins → <span className="font-semibold">$11.000</span> (
+                    <span className="text-gray-400">$440/día</span>)
+                  </li>
+                  <li>
+                    4 Logins → <span className="font-semibold">$13.500</span> (
+                    <span className="text-gray-400">$540/día</span>)
                   </li>
                 </ul>
               </div>
