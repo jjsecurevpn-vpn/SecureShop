@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { Plan } from '../types';
+import fs from "fs";
+import path from "path";
+import { Plan } from "../types";
 
 interface PlanOverride {
   precio?: number;
@@ -62,75 +62,109 @@ export class ConfigService {
   constructor() {
     // Buscar config.json de planes en diferentes ubicaciones posibles
     const posiblesPaths = [
-      path.join(process.cwd(), 'public', 'config', 'planes.config.json'),
-      path.join(process.cwd(), 'config', 'planes.config.json'),
-      path.join(process.cwd(), 'planes.config.json'),
-      path.join(__dirname, '..', '..', 'config', 'planes.config.json'),
-      path.join(__dirname, '..', '..', 'public', 'config', 'planes.config.json'),
+      path.join(process.cwd(), "public", "config", "planes.config.json"),
+      path.join(process.cwd(), "config", "planes.config.json"),
+      path.join(process.cwd(), "planes.config.json"),
+      path.join(__dirname, "..", "..", "config", "planes.config.json"),
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "public",
+        "config",
+        "planes.config.json"
+      ),
     ];
 
     this.configPath = posiblesPaths[0];
 
     // Buscar revendedores.config.json
     const posiblesRevendedoresPaths = [
-      path.join(process.cwd(), 'public', 'config', 'revendedores.config.json'),
-      path.join(process.cwd(), 'config', 'revendedores.config.json'),
-      path.join(process.cwd(), 'revendedores.config.json'),
-      path.join(__dirname, '..', '..', 'config', 'revendedores.config.json'),
-      path.join(__dirname, '..', '..', 'public', 'config', 'revendedores.config.json'),
+      path.join(process.cwd(), "public", "config", "revendedores.config.json"),
+      path.join(process.cwd(), "config", "revendedores.config.json"),
+      path.join(process.cwd(), "revendedores.config.json"),
+      path.join(__dirname, "..", "..", "config", "revendedores.config.json"),
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "public",
+        "config",
+        "revendedores.config.json"
+      ),
     ];
 
     this.revendedoresConfigPath = posiblesRevendedoresPaths[0];
 
     // Buscar noticias.config.json
     const posiblesNoticiasPaths = [
-      path.join(process.cwd(), 'public', 'config', 'noticias.config.json'),
-      path.join(process.cwd(), 'config', 'noticias.config.json'),
-      path.join(process.cwd(), 'noticias.config.json'),
-      path.join(__dirname, '..', '..', 'config', 'noticias.config.json'),
-      path.join(__dirname, '..', '..', 'public', 'config', 'noticias.config.json'),
+      path.join(process.cwd(), "public", "config", "noticias.config.json"),
+      path.join(process.cwd(), "config", "noticias.config.json"),
+      path.join(process.cwd(), "noticias.config.json"),
+      path.join(__dirname, "..", "..", "config", "noticias.config.json"),
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "public",
+        "config",
+        "noticias.config.json"
+      ),
     ];
 
     this.noticiasConfigPath = posiblesNoticiasPaths[0];
 
-    console.log('[ConfigService] 🔍 Buscando configuración de planes...');
+    console.log("[ConfigService] 🔍 Buscando configuración de planes...");
     for (const p of posiblesPaths) {
       if (fs.existsSync(p)) {
         this.configPath = p;
-        console.log('[ConfigService] ✅ Configuración de planes encontrada en:', p);
+        console.log(
+          "[ConfigService] ✅ Configuración de planes encontrada en:",
+          p
+        );
         break;
       }
     }
 
     if (!fs.existsSync(this.configPath)) {
-      console.log('[ConfigService] ⚠️ No se encontró planes.config.json');
-      console.log('[ConfigService] 📁 Se espera en:', this.configPath);
+      console.log("[ConfigService] ⚠️ No se encontró planes.config.json");
+      console.log("[ConfigService] 📁 Se espera en:", this.configPath);
     }
 
-    console.log('[ConfigService] 🔍 Buscando configuración de revendedores...');
+    console.log("[ConfigService] 🔍 Buscando configuración de revendedores...");
     for (const p of posiblesRevendedoresPaths) {
       if (fs.existsSync(p)) {
         this.revendedoresConfigPath = p;
-        console.log('[ConfigService] ✅ Configuración de revendedores encontrada en:', p);
+        console.log(
+          "[ConfigService] ✅ Configuración de revendedores encontrada en:",
+          p
+        );
         break;
       }
     }
 
     if (!fs.existsSync(this.revendedoresConfigPath)) {
-      console.log('[ConfigService] ℹ️ No se encontró revendedores.config.json (opcional)');
+      console.log(
+        "[ConfigService] ℹ️ No se encontró revendedores.config.json (opcional)"
+      );
     }
 
-    console.log('[ConfigService] 🔍 Buscando configuración de noticias...');
+    console.log("[ConfigService] 🔍 Buscando configuración de noticias...");
     for (const p of posiblesNoticiasPaths) {
       if (fs.existsSync(p)) {
         this.noticiasConfigPath = p;
-        console.log('[ConfigService] ✅ Configuración de noticias encontrada en:', p);
+        console.log(
+          "[ConfigService] ✅ Configuración de noticias encontrada en:",
+          p
+        );
         break;
       }
     }
 
     if (!fs.existsSync(this.noticiasConfigPath)) {
-      console.log('[ConfigService] ℹ️ No se encontró noticias.config.json (opcional)');
+      console.log(
+        "[ConfigService] ℹ️ No se encontró noticias.config.json (opcional)"
+      );
     }
   }
 
@@ -141,17 +175,19 @@ export class ConfigService {
     const ahora = Date.now();
 
     // Si el caché no ha expirado, devolverlo
-    if (this.cache && (ahora - this.cacheTime) < this.cacheExpire) {
+    if (this.cache && ahora - this.cacheTime < this.cacheExpire) {
       return this.cache;
     }
 
     try {
       if (!fs.existsSync(this.configPath)) {
-        console.log('[ConfigService] ℹ️ Archivo de config no existe, usando valores por defecto');
+        console.log(
+          "[ConfigService] ℹ️ Archivo de config no existe, usando valores por defecto"
+        );
         return { enabled: false };
       }
 
-      const contenido = fs.readFileSync(this.configPath, 'utf-8');
+      const contenido = fs.readFileSync(this.configPath, "utf-8");
       const config: ConfigPlanes = JSON.parse(contenido);
 
       // Actualizar caché
@@ -160,7 +196,7 @@ export class ConfigService {
 
       return config;
     } catch (error: any) {
-      console.error('[ConfigService] ❌ Error leyendo config:', error.message);
+      console.error("[ConfigService] ❌ Error leyendo config:", error.message);
       return { enabled: false };
     }
   }
@@ -220,13 +256,60 @@ export class ConfigService {
    * Aplica overrides a una lista de planes
    */
   aceptarOverridesAListaPlanes(planes: Plan[]): Plan[] {
-    const config = this.leerConfig();
+    // Limpiar caché para forzar lectura del archivo actualizado
+    this.cache = null;
+    this.cacheTime = 0;
+
+    const config = this.leerConfigPlanes();
 
     if (!config.enabled) {
+      console.log("[DEBUG] Config not enabled, returning original planes");
       return planes;
     }
 
-    return planes.map((plan) => this.aceptarOverridesAlPlan(plan));
+    // Verificar si la promoción está activa
+    if (!config.promo_config?.activa) {
+      console.log("[DEBUG] Promo not active, using normal prices");
+      // Si la promo no está activa, usar precios normales si existen
+      if (config.precios_normales) {
+        return planes.map((plan) => {
+          const precioNormal = config.precios_normales![plan.id.toString()];
+          if (precioNormal !== undefined) {
+            return { ...plan, precio: precioNormal };
+          }
+          return plan;
+        });
+      }
+      return planes;
+    }
+
+    // La promo está activa, aplicar overrides
+    return planes.map((plan) => {
+      const override = config.overrides?.[plan.id.toString()];
+      if (!override) {
+        return plan;
+      }
+
+      // Aplicar overrides
+      const planActualizado = { ...plan };
+      if (override.precio !== undefined) {
+        planActualizado.precio = override.precio;
+      }
+      if (override.descripcion !== undefined) {
+        planActualizado.descripcion = override.descripcion;
+      }
+      if (override.activo !== undefined) {
+        planActualizado.activo = override.activo;
+      }
+      if (override.dias !== undefined) {
+        planActualizado.dias = override.dias;
+      }
+      if (override.connection_limit !== undefined) {
+        planActualizado.connection_limit = override.connection_limit;
+      }
+
+      return planActualizado;
+    });
   }
 
   /**
@@ -260,7 +343,7 @@ export class ConfigService {
     this.cacheTime = 0;
     this.revendedoresCache = null;
     this.revendedoresCacheTime = 0;
-    console.log('[ConfigService] 🔄 Caché limpiado (planes y revendedores)');
+    console.log("[ConfigService] 🔄 Caché limpiado (planes y revendedores)");
   }
 
   /**
@@ -272,12 +355,12 @@ export class ConfigService {
     // Crear directorio si no existe
     if (!fs.existsSync(directorio)) {
       fs.mkdirSync(directorio, { recursive: true });
-      console.log('[ConfigService] 📁 Directorio creado:', directorio);
+      console.log("[ConfigService] 📁 Directorio creado:", directorio);
     }
 
     const configDefault: ConfigPlanes = {
       enabled: false,
-      version: '1.0.0',
+      version: "1.0.0",
       ultima_actualizacion: new Date().toISOString(),
       overrides: {
         // Ejemplo - cambiar precio del plan ID 1 a $4.99
@@ -291,11 +374,14 @@ export class ConfigService {
       fs.writeFileSync(
         this.configPath,
         JSON.stringify(configDefault, null, 2),
-        'utf-8'
+        "utf-8"
       );
-      console.log('[ConfigService] ✅ Configuración por defecto creada en:', this.configPath);
+      console.log(
+        "[ConfigService] ✅ Configuración por defecto creada en:",
+        this.configPath
+      );
     } catch (error: any) {
-      console.error('[ConfigService] ❌ Error creando config:', error.message);
+      console.error("[ConfigService] ❌ Error creando config:", error.message);
     }
   }
   /**
@@ -305,14 +391,16 @@ export class ConfigService {
     const config = this.leerConfig();
 
     return {
-      titulo: config.hero?.titulo || 'Conecta sin Límites',
-      descripcion: config.hero?.descripcion || 'Planes flexibles y velocidad premium para tu estilo de vida digital',
+      titulo: config.hero?.titulo || "Conecta sin Límites",
+      descripcion:
+        config.hero?.descripcion ||
+        "Planes flexibles y velocidad premium para tu estilo de vida digital",
       promocion: config.hero?.promocion || {
         habilitada: false,
-        texto: '',
-        estilo: 'from-red-500 to-pink-500',
-        textColor: 'text-white',
-        bgColor: 'bg-gradient-to-r from-red-600 to-pink-600',
+        texto: "",
+        estilo: "from-red-500 to-pink-500",
+        textColor: "text-white",
+        bgColor: "bg-gradient-to-r from-red-600 to-pink-600",
       },
     };
   }
@@ -328,17 +416,22 @@ export class ConfigService {
     const ahora = Date.now();
 
     // Si el caché no ha expirado, devolverlo
-    if (this.revendedoresCache && (ahora - this.revendedoresCacheTime) < this.cacheExpire) {
+    if (
+      this.revendedoresCache &&
+      ahora - this.revendedoresCacheTime < this.cacheExpire
+    ) {
       return this.revendedoresCache;
     }
 
     try {
       if (!fs.existsSync(this.revendedoresConfigPath)) {
-        console.log('[ConfigService] ℹ️ Archivo de config revendedores no existe');
+        console.log(
+          "[ConfigService] ℹ️ Archivo de config revendedores no existe"
+        );
         return { enabled: false };
       }
 
-      const contenido = fs.readFileSync(this.revendedoresConfigPath, 'utf-8');
+      const contenido = fs.readFileSync(this.revendedoresConfigPath, "utf-8");
       const config: any = JSON.parse(contenido);
 
       // Actualizar caché
@@ -347,7 +440,10 @@ export class ConfigService {
 
       return config;
     } catch (error: any) {
-      console.error('[ConfigService] ❌ Error leyendo config revendedores:', error.message);
+      console.error(
+        "[ConfigService] ❌ Error leyendo config revendedores:",
+        error.message
+      );
       return { enabled: false };
     }
   }
@@ -358,14 +454,20 @@ export class ConfigService {
   guardarConfigRevendedores(config: any): void {
     try {
       const contenido = JSON.stringify(config, null, 2);
-      fs.writeFileSync(this.revendedoresConfigPath, contenido, 'utf-8');
-      console.log('[ConfigService] ✅ Config revendedores guardada en:', this.revendedoresConfigPath);
+      fs.writeFileSync(this.revendedoresConfigPath, contenido, "utf-8");
+      console.log(
+        "[ConfigService] ✅ Config revendedores guardada en:",
+        this.revendedoresConfigPath
+      );
 
       // Invalidar caché para que se relean los datos
       this.revendedoresCache = null;
       this.revendedoresCacheTime = 0;
     } catch (error: any) {
-      console.error('[ConfigService] ❌ Error guardando config revendedores:', error.message);
+      console.error(
+        "[ConfigService] ❌ Error guardando config revendedores:",
+        error.message
+      );
       throw error;
     }
   }
@@ -424,7 +526,7 @@ export class ConfigService {
       return planes;
     }
 
-    return planes.map(plan => this.aceptarOverridesAlPlanRevendedor(plan));
+    return planes.map((plan) => this.aceptarOverridesAlPlanRevendedor(plan));
   }
 
   /**
@@ -434,14 +536,16 @@ export class ConfigService {
     const config = this.leerConfigRevendedores();
 
     return {
-      titulo: config.hero?.titulo || 'Sé Revendedor VPN',
-      descripcion: config.hero?.descripcion || 'Gana dinero vendiendo acceso VPN premium a tus clientes',
+      titulo: config.hero?.titulo || "Sé Revendedor VPN",
+      descripcion:
+        config.hero?.descripcion ||
+        "Gana dinero vendiendo acceso VPN premium a tus clientes",
       promocion: config.hero?.promocion || {
         habilitada: false,
-        texto: '',
-        estilo: 'from-purple-500 to-pink-500',
-        textColor: 'text-white',
-        bgColor: 'bg-gradient-to-r from-purple-600 to-pink-600',
+        texto: "",
+        estilo: "from-purple-500 to-pink-500",
+        textColor: "text-white",
+        bgColor: "bg-gradient-to-r from-purple-600 to-pink-600",
       },
     };
   }
@@ -461,14 +565,17 @@ export class ConfigService {
       fs.writeFileSync(
         this.configPath,
         JSON.stringify(config, null, 2),
-        'utf-8'
+        "utf-8"
       );
-      console.log('[ConfigService] ✅ Configuración de planes guardada');
+      console.log("[ConfigService] ✅ Configuración de planes guardada");
       // Limpiar caché para forzar lectura del archivo actualizado
       this.cache = null;
       this.cacheTime = 0;
     } catch (error: any) {
-      console.error('[ConfigService] ❌ Error guardando config planes:', error.message);
+      console.error(
+        "[ConfigService] ❌ Error guardando config planes:",
+        error.message
+      );
       throw error;
     }
   }
@@ -481,17 +588,20 @@ export class ConfigService {
     const ahora = Date.now();
 
     // Si el caché no ha expirado, devolverlo
-    if (this.noticiasCache && (ahora - this.noticiasCacheTime) < this.cacheExpire) {
+    if (
+      this.noticiasCache &&
+      ahora - this.noticiasCacheTime < this.cacheExpire
+    ) {
       return this.noticiasCache;
     }
 
     try {
       if (!fs.existsSync(this.noticiasConfigPath)) {
-        console.log('[ConfigService] ℹ️ Archivo de config noticias no existe');
+        console.log("[ConfigService] ℹ️ Archivo de config noticias no existe");
         return { enabled: false, noticias: [] };
       }
 
-      const contenido = fs.readFileSync(this.noticiasConfigPath, 'utf-8');
+      const contenido = fs.readFileSync(this.noticiasConfigPath, "utf-8");
       const config: any = JSON.parse(contenido);
 
       // Actualizar caché
@@ -500,7 +610,10 @@ export class ConfigService {
 
       return config;
     } catch (error: any) {
-      console.error('[ConfigService] ❌ Error leyendo config noticias:', error.message);
+      console.error(
+        "[ConfigService] ❌ Error leyendo config noticias:",
+        error.message
+      );
       return { enabled: false, noticias: [] };
     }
   }
@@ -511,14 +624,20 @@ export class ConfigService {
   guardarConfigNoticias(config: any): void {
     try {
       const contenido = JSON.stringify(config, null, 2);
-      fs.writeFileSync(this.noticiasConfigPath, contenido, 'utf-8');
-      console.log('[ConfigService] ✅ Config noticias guardada en:', this.noticiasConfigPath);
+      fs.writeFileSync(this.noticiasConfigPath, contenido, "utf-8");
+      console.log(
+        "[ConfigService] ✅ Config noticias guardada en:",
+        this.noticiasConfigPath
+      );
 
       // Invalidar caché para que se relean los datos
       this.noticiasCache = null;
       this.noticiasCacheTime = 0;
     } catch (error: any) {
-      console.error('[ConfigService] ❌ Error guardando config noticias:', error.message);
+      console.error(
+        "[ConfigService] ❌ Error guardando config noticias:",
+        error.message
+      );
       throw error;
     }
   }
