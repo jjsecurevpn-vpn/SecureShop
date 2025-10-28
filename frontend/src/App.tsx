@@ -1,13 +1,13 @@
-import { Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import PlanesPage from './pages/PlanesPage.tsx';
-import RevendedoresPage from './pages/RevendedoresPage.tsx';
-import SuccessPage from './pages/SuccessPage';
-import TermsPage from './pages/TermsPage';
-import PrivacyPage from './pages/PrivacyPage';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import ScrollToTop from './components/ScrollToTop';
+import { Routes, Route } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import PlanesPage from "./pages/PlanesPage.tsx";
+import RevendedoresPage from "./pages/RevendedoresPage.tsx";
+import SuccessPage from "./pages/SuccessPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import ScrollToTop from "./components/ScrollToTop";
 
 const App = () => {
   return (

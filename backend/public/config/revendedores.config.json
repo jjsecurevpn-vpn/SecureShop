@@ -8,7 +8,7 @@
     "titulo": "Sé Revendedor VPN",
     "descripcion": "Gana dinero vendiendo acceso VPN premium a tus clientes",
     "promocion": {
-      "habilitada": true,
+      "habilitada": false,
       "texto": "💼 PROMOCIÓN ESPECIAL - 20% OFF EN TODOS LOS PLANES DE REVENTA",
       "estilo": "from-blue-500 to-cyan-500",
       "textColor": "text-white",

@@ -1,4 +1,4 @@
-import { Clock } from 'lucide-react';
+import { Clock, Zap, Flame } from 'lucide-react';
 import { memo } from 'react';
 import { usePromoTimer } from '../hooks/usePromoTimer';
 
@@ -23,42 +23,61 @@ function PromoTimerComponent() {
   const porcentaje = porcentaje_restante ?? 0;
   const tiempo = tiempo_restante_formateado ?? 'Cargando...';
 
-  // Calcular color basado en tiempo restante
-  const getColorClass = () => {
-    if (porcentaje > 50) return 'text-green-400';
-    if (porcentaje > 20) return 'text-yellow-400';
-    return 'text-red-500';
+  // Calcular configuración de colores basado en tiempo restante
+  const getColorConfig = () => {
+    if (porcentaje > 50) {
+      return {
+        text: 'text-emerald-400',
+        glow: 'shadow-emerald-500/30',
+        border: 'border-emerald-500/40',
+        progress: 'bg-emerald-500',
+        icon: <Zap className="w-4 h-4" />
+      };
+    }
+    if (porcentaje > 20) {
+      return {
+        text: 'text-amber-400',
+        glow: 'shadow-amber-500/30',
+        border: 'border-amber-500/40',
+        progress: 'bg-amber-500',
+        icon: <Flame className="w-4 h-4" />
+      };
+    }
+    return {
+      text: 'text-rose-400',
+      glow: 'shadow-rose-500/30',
+      border: 'border-rose-500/40',
+      progress: 'bg-rose-500',
+      icon: <Clock className="w-4 h-4" />
+    };
   };
 
-  // Calcular color de borde basado en tiempo restante
-  const getBorderColorClass = () => {
-    if (porcentaje > 50) return 'border-green-400 bg-green-50 dark:bg-green-950';
-    if (porcentaje > 20) return 'border-yellow-400 bg-yellow-50 dark:bg-yellow-950';
-    return 'border-red-500 bg-red-50 dark:bg-red-950';
-  };
-
-  // Calcular color de la barra de progreso
-  const getProgressBarColor = () => {
-    if (porcentaje > 50) return 'bg-green-500';
-    if (porcentaje > 20) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
+  const colorConfig = getColorConfig();
 
   return (
-    <div className={`w-full px-4 sm:px-6 lg:px-8 py-3 border-b-2 ${getBorderColorClass()} transition-colors duration-300`}>
-      <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 md:gap-4">
-        <Clock className={`w-5 h-5 ${getColorClass()} animate-pulse flex-shrink-0`} />
-        <div className="text-center flex-grow">
-          <p className={`text-sm md:text-base font-bold ${getColorClass()} transition-colors duration-300`}>
-            ⏱️ Promoción vence en: <span className="font-mono whitespace-nowrap">{tiempo}</span>
-          </p>
-          {/* Barra de progreso */}
-          <div className="w-full max-w-xs mx-auto mt-2 h-1.5 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden shadow-sm">
-            <div
-              className={`h-full transition-all duration-300 ${getProgressBarColor()}`}
-              style={{ width: `${Math.max(0, Math.min(100, porcentaje))}%` }}
-            />
-          </div>
+    <div className="w-full flex justify-center px-4 py-3">
+      <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-full border ${colorConfig.border} bg-slate-900/60 backdrop-blur-md ${colorConfig.glow} shadow-lg transition-all duration-300 hover:scale-105`}>
+        {/* Icono animado */}
+        <div className={`${colorConfig.text} animate-pulse`}>
+          {colorConfig.icon}
+        </div>
+        
+        {/* Tiempo */}
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-medium ${colorConfig.text}`}>
+            Oferta termina en
+          </span>
+          <span className="text-sm font-mono font-bold text-white bg-slate-800/80 px-2.5 py-0.5 rounded-md">
+            {tiempo}
+          </span>
+        </div>
+
+        {/* Mini barra de progreso */}
+        <div className="w-16 h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+          <div
+            className={`h-full ${colorConfig.progress} transition-all duration-500`}
+            style={{ width: `${Math.max(0, Math.min(100, porcentaje))}%` }}
+          />
         </div>
       </div>
     </div>

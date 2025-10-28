@@ -8,6 +8,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { useEffect } from "react";
+import { apiService } from "../services/api.service";
+import { Plan } from "../types";
 
 interface RenovacionModalProps {
   isOpen: boolean;
@@ -47,6 +49,7 @@ export default function RenovacionModal({
   const [procesando, setProcesando] = useState(false);
   const [nombreCliente, setNombreCliente] = useState("");
   const [emailCliente, setEmailCliente] = useState("");
+  const [planes, setPlanes] = useState<Plan[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -58,6 +61,22 @@ export default function RenovacionModal({
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      cargarPlanes();
+    }
+  }, [isOpen]);
+
+  const cargarPlanes = async () => {
+    try {
+      const planesObtenidos = await apiService.obtenerPlanes();
+      setPlanes(planesObtenidos);
+    } catch (err: any) {
+      console.error("Error cargando planes:", err);
+      // En caso de error, usar precios por defecto
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -176,42 +195,22 @@ export default function RenovacionModal({
     const connectionLimit =
       dispositivosSeleccionados || cuenta.datos.connection_limit || 1;
 
-    // Precios fijos para renovación (basados en planes de compra)
-    const preciosFijos: { [key: string]: number } = {
-      // 3 días
-      "3-1": 1500,
-      "3-2": 2500,
-      "3-3": 3500,
-      "3-4": 4500,
-      // 7 días (aproximado, no especificado - usar proporcional)
-      "7-1": 3000,
-      "7-2": 5000,
-      "7-3": 7000,
-      "7-4": 9000,
-      // 15 días (aproximado, no especificado - usar proporcional)
-      "15-1": 6000,
-      "15-2": 10000,
-      "15-3": 14000,
-      "15-4": 18000,
-      // 20 días
-      "20-1": 5000,
-      "20-2": 8000,
-      "20-3": 10500,
-      "20-4": 13000,
-      // 25 días
-      "25-1": 5500,
-      "25-2": 9000,
-      "25-3": 11000,
-      "25-4": 13500,
-      // 30 días (aproximado, no especificado - usar proporcional)
-      "30-1": 6000,
-      "30-2": 10000,
-      "30-3": 14000,
-      "30-4": 18000,
-    };
+    // Buscar el plan correspondiente en la lista de planes
+    const planEncontrado = planes.find(
+      (plan) =>
+        plan.dias === diasSeleccionados &&
+        plan.connection_limit === connectionLimit
+    );
 
-    const key = `${diasSeleccionados}-${connectionLimit}`;
-    return preciosFijos[key] || 0;
+    // Si encontramos el plan, usar su precio, sino usar cálculo proporcional
+    if (planEncontrado) {
+      return planEncontrado.precio;
+    }
+
+    // Fallback: cálculo proporcional si no se encuentra el plan exacto
+    const precioBase = connectionLimit * 1000; // Precio base aproximado
+    const factorDias = diasSeleccionados / 7; // Factor relativo a 7 días
+    return Math.round(precioBase * factorDias);
   };
 
   const resetear = () => {

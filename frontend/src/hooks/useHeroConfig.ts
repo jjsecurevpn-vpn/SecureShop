@@ -1,11 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 interface HeroPromocion {
   habilitada: boolean;
   texto: string;
-  estilo: string;
+  estilo?: string; // Mantener por compatibilidad
   textColor: string;
   bgColor: string;
+  borderColor?: string;
+  iconColor?: string;
+  shadowColor?: string;
+  comentario?: string;
 }
 
 interface HeroConfig {
@@ -23,17 +27,17 @@ export const useHeroConfig = () => {
     const fetchHeroConfig = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/config/hero');
+        const response = await fetch("/api/config/hero");
         const result = await response.json();
-        
+
         if (result.success && result.data) {
           setConfig(result.data);
         } else {
-          setError('No se pudo obtener configuración del hero');
+          setError("No se pudo obtener configuración del hero");
         }
       } catch (err) {
-        console.error('Error fetching hero config:', err);
-        setError('Error al conectar con el servidor');
+        console.error("Error fetching hero config:", err);
+        setError("Error al conectar con el servidor");
       } finally {
         setLoading(false);
       }

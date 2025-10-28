@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -11,8 +11,8 @@ const Header = () => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -21,14 +21,14 @@ const Header = () => {
 
   const scrollToSection = (sectionId: string) => {
     // Si no estamos en la home, navegar primero
-    if (location.pathname !== '/') {
-      window.location.href = '/#' + sectionId;
+    if (location.pathname !== "/") {
+      window.location.href = "/#" + sectionId;
       return;
     }
-    
+
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+      element.scrollIntoView({ behavior: "smooth" });
     }
     setMenuOpen(false);
   };
@@ -37,8 +37,8 @@ const Header = () => {
     <header
       className={`fixed top-0 left-0 w-full py-4 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-gray-900/95 backdrop-blur-sm shadow-lg shadow-purple-500/10'
-          : 'bg-gray-900/90 backdrop-blur-sm'
+          ? "bg-gray-900/95 backdrop-blur-sm shadow-lg shadow-purple-500/10"
+          : "bg-gray-900/90 backdrop-blur-sm"
       }`}
     >
       <div className="container mx-auto px-6">
@@ -49,9 +49,9 @@ const Header = () => {
             className="flex items-center gap-3 group focus:outline-none"
             aria-label="JJSecure VPN"
           >
-            <img 
-              src="/LogoJJSecure.png" 
-              alt="JJSecure VPN" 
+            <img
+              src="/LogoJJSecure.png"
+              alt="JJSecure VPN"
               className="h-10 w-auto"
             />
             <span className="text-xl font-bold text-white">JJSecure VPN</span>
@@ -62,7 +62,7 @@ const Header = () => {
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className="p-2 text-gray-300 hover:text-white hover:bg-gray-800/60 rounded-lg transition-all duration-200"
-              aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+              aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
             >
               {menuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -72,7 +72,7 @@ const Header = () => {
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="block md:hidden p-2 text-gray-300 hover:text-white hover:bg-gray-800/60 rounded-lg transition-all duration-200"
-            aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
           >
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -90,7 +90,7 @@ const Header = () => {
                 Inicio
               </Link>
               <button
-                onClick={() => scrollToSection('about-section')}
+                onClick={() => scrollToSection("about-section")}
                 className="text-left text-gray-300 hover:text-purple-400 font-medium transition-colors py-2"
               >
                 Sobre Nosotros
