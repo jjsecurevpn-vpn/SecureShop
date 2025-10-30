@@ -1,26 +1,36 @@
-import React from 'react';
+import React from "react";
+import { Loader2 } from "lucide-react";
 
 interface LoadingProps {
   message?: string;
+  size?: "sm" | "md" | "lg";
+  fullScreen?: boolean;
 }
 
-const Loading: React.FC<LoadingProps> = ({ message = 'Cargando...' }) => {
+const Loading: React.FC<LoadingProps> = ({
+  message = "Cargando...",
+  size = "md",
+  fullScreen = false,
+}) => {
+  const sizeClasses = {
+    sm: "w-4 h-4",
+    md: "w-6 h-6",
+    lg: "w-8 h-8",
+  };
+
+  const containerClasses = fullScreen
+    ? "flex flex-col items-center justify-center min-h-screen bg-neutral-950"
+    : "flex flex-col items-center justify-center py-8";
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950">
-      <div className="relative">
-        {/* Spinner animado */}
-        <div className="w-16 h-16 border-4 border-gray-700 border-t-purple-500 rounded-full animate-spin"></div>
-        
-        {/* Efecto de brillo */}
-        <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-purple-400 rounded-full animate-spin opacity-50 blur-sm"></div>
-      </div>
-      <p className="mt-6 text-gray-300 font-medium">{message}</p>
-      
-      {/* Puntos animados */}
-      <div className="flex gap-1 mt-2">
-        <span className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-        <span className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-        <span className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+    <div className={containerClasses}>
+      <div className="flex flex-col items-center gap-3">
+        <Loader2
+          className={`${sizeClasses[size]} text-neutral-400 animate-spin`}
+        />
+        {message && (
+          <p className="text-neutral-400 text-sm font-medium">{message}</p>
+        )}
       </div>
     </div>
   );

@@ -106,9 +106,17 @@ class ApiService {
   /**
    * Obtiene la lista de planes de revendedores disponibles
    */
-  async obtenerPlanesRevendedores(): Promise<PlanRevendedor[]> {
+  /**
+   * Obtiene la lista de planes de revendedores disponibles
+   * @param forceReload Si es true, se añade un query param `_t` con timestamp para evitar caches intermedios/304
+   */
+  async obtenerPlanesRevendedores(
+    forceReload: boolean = false
+  ): Promise<PlanRevendedor[]> {
+    const params = forceReload ? { _t: Date.now() } : {};
     const response = await this.client.get<ApiResponse<PlanRevendedor[]>>(
-      "/planes-revendedores"
+      "/planes-revendedores",
+      { params }
     );
     if (!response.data.success) {
       throw new Error(
@@ -170,15 +178,34 @@ class ApiService {
    * Obtiene la configuración del hero para revendedores
    */
   async obtenerConfigHeroRevendedores(): Promise<any> {
-    const response = await this.client.get<ApiResponse<any>>(
-      "/config/hero-revendedores"
-    );
-    if (!response.data.success) {
-      throw new Error(
-        response.data.error || "Error obteniendo configuración del hero"
-      );
+    const response = await this.client.get<any>("/config/hero-revendedores");
+
+    // El backend puede devolver dos formatos:
+    // 1) { success: true, data: { ... } }
+    // 2) { titulo: ..., descripcion: ..., promocion: { ... } }
+    const body = response.data;
+
+    // Caso 1: envoltorio ApiResponse
+    if (typeof body === "object" && body !== null && "success" in body) {
+      if (!body.success) {
+        throw new Error(
+          body.error || "Error obteniendo configuración del hero"
+        );
+      }
+      return body.data || {};
     }
-    return response.data.data || {};
+
+    // Caso 2: respuesta directa con las propiedades del hero
+    if (
+      typeof body === "object" &&
+      body !== null &&
+      ("titulo" in body || "promocion" in body)
+    ) {
+      return body;
+    }
+
+    // En caso inesperado, devolver objeto vacío
+    return {};
   }
 
   /**

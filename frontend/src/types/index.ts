@@ -16,7 +16,7 @@ export interface PlanRevendedor {
   descripcion: string;
   precio: number;
   max_users: number;
-  account_type: 'validity' | 'credit';
+  account_type: "validity" | "credit";
   dias?: number;
   activo?: boolean;
   fecha_creacion?: string;
@@ -27,7 +27,7 @@ export interface Pago {
   id: string;
   plan_id: number;
   monto: number;
-  estado: 'pendiente' | 'aprobado' | 'rechazado' | 'cancelado';
+  estado: "pendiente" | "aprobado" | "rechazado" | "cancelado";
   metodo_pago: string;
   cliente_email: string;
   cliente_nombre: string;
@@ -73,13 +73,13 @@ export interface Usuario {
   category_id: number;
   connection_limit: number;
   duration: number;
-  type: 'user' | 'test';
+  type: "user" | "test";
   observation?: string;
   v2ray_uuid?: string;
   owner_id?: number;
   created_at: string;
   expires_at: string;
-  status: 'active' | 'expired' | 'suspended';
+  status: "active" | "expired" | "suspended";
 }
 
 export interface NoticiaConfig {
@@ -89,7 +89,8 @@ export interface NoticiaConfig {
   aviso: {
     habilitado: boolean;
     texto: string;
-    bgColor: string;
-    textColor: string;
+    bgColor?: string;
+    textColor?: string;
+    subtitulo?: string;
   };
 }

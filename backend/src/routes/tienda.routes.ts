@@ -20,6 +20,23 @@ export function crearRutasTienda(tiendaService: TiendaService): Router {
         data: planes,
       };
 
+      // Evitar que el navegador o proxies cacheen la respuesta de planes
+      res.set(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
+      );
+      res.set("Pragma", "no-cache");
+      res.set("Expires", "0");
+
+      // Quitar ETag para evitar respuestas 304 cuando el cliente envía If-None-Match
+      // así forzamos envío del JSON actualizado con los precios reales
+      try {
+        res.removeHeader("ETag");
+      } catch (_) {
+        // ignore in environments where removeHeader may not exist
+        res.set("ETag", "");
+      }
+
       res.json(response);
     } catch (error: any) {
       console.error("[Rutas] Error obteniendo planes:", error);
@@ -487,6 +504,86 @@ export function crearRutasTienda(tiendaService: TiendaService): Router {
       } as ApiResponse);
     }
   });
+
+  /**
+   * GET /api/pago/obtener-credenciales/:pagoId
+   * Obtiene las credenciales de una compra realizada
+   * ✅ NUEVO: Permite al cliente recuperar credenciales si el email no llegó
+   */
+  router.get(
+    "/pago/obtener-credenciales/:pagoId",
+    async (req: Request, res: Response) => {
+      try {
+        const { pagoId } = req.params;
+        const { clienteEmail } = req.query;
+
+        if (!pagoId) {
+          res.status(400).json({
+            success: false,
+            error: "Falta el ID del pago",
+          } as ApiResponse);
+          return;
+        }
+
+        const pago = tiendaService.obtenerPago(pagoId);
+
+        if (!pago) {
+          res.status(404).json({
+            success: false,
+            error: "Pago no encontrado",
+          } as ApiResponse);
+          return;
+        }
+
+        // Validación de seguridad: verificar que el email coincida (si se proporciona)
+        if (clienteEmail && pago.cliente_email !== clienteEmail) {
+          res.status(403).json({
+            success: false,
+            error: "Email no coincide con el registro",
+          } as ApiResponse);
+          return;
+        }
+
+        // Si el pago no está aprobado, no mostrar credenciales
+        if (pago.estado !== "aprobado") {
+          res.status(400).json({
+            success: false,
+            error: `Pago en estado: ${pago.estado}. Solo pagos aprobados tienen credenciales.`,
+          } as ApiResponse);
+          return;
+        }
+
+        // Si no hay cuenta creada aún, esperar
+        if (!pago.servex_username) {
+          res.status(202).json({
+            success: false,
+            error:
+              "Las credenciales aún se están procesando. Intente en unos segundos.",
+          } as ApiResponse);
+          return;
+        }
+
+        // Devolver credenciales
+        res.json({
+          success: true,
+          data: {
+            username: pago.servex_username,
+            password: pago.servex_password,
+            categoria: pago.servex_categoria,
+            expiracion: pago.servex_expiracion,
+            conexiones: pago.servex_connection_limit,
+            servidores: ["JJSecureARG1 (Argentina)", "JJSecureBR1 (Brasil)"],
+          },
+        } as ApiResponse);
+      } catch (error: any) {
+        console.error("[API] Error obteniendo credenciales:", error);
+        res.status(500).json({
+          success: false,
+          error: error.message || "Error obteniendo credenciales",
+        } as ApiResponse);
+      }
+    }
+  );
 
   return router;
 }

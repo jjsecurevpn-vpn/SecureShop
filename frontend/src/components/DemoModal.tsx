@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import { apiService } from "../services/api.service";
 import Loading from "./Loading";
+import {
+  X,
+  Gift,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  Loader2,
+} from "lucide-react";
 
 interface DemoModalProps {
   isOpen: boolean;
@@ -105,180 +113,229 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-8 relative border border-blue-500/20">
-        {/* Botón cerrar */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 pt-20">
+      <div className="bg-neutral-900 rounded-lg shadow-2xl max-w-md w-full max-h-[70vh] border border-neutral-800 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-white mb-2">
-            🎁 Prueba Gratuita
-          </h2>
-          <p className="text-gray-300 text-sm">
-            Acceso completo por 2 horas sin costo
-          </p>
+        <div className="border-b border-neutral-800 p-6 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+              <Gift className="w-5 h-5 text-blue-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-neutral-200">
+                Prueba Gratuita
+              </h2>
+              <p className="text-xs text-neutral-500">
+                Acceso completo por 2 horas
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleClose}
+            className="text-neutral-400 hover:text-neutral-200 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* Loading */}
-        {loading && <Loading />}
-
-        {/* Success State - Credenciales */}
-        {success && credentials && !loading && (
-          <div className="space-y-6">
-            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-              <p className="text-green-400 text-sm font-semibold mb-2">
-                ✅ ¡Demo activa!
-              </p>
-              <p className="text-gray-300 text-xs">
-                Las credenciales han sido enviadas a tu email. Revisa tu bandeja
-                de entrada.
-              </p>
+        {/* Content */}
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
+          {/* Loading */}
+          {loading && (
+            <div className="flex items-center justify-center py-8">
+              <Loading />
             </div>
+          )}
 
-            <div className="space-y-3">
-              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
-                <p className="text-gray-400 text-xs font-semibold mb-1">
-                  👤 Usuario
-                </p>
-                <p className="text-blue-400 font-mono text-sm break-all">
-                  {credentials.username}
-                </p>
-              </div>
-
-              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
-                <p className="text-gray-400 text-xs font-semibold mb-1">
-                  🔑 Contraseña
-                </p>
-                <p className="text-blue-400 font-mono text-sm break-all">
-                  {credentials.password}
-                </p>
-              </div>
-
-              <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50">
-                <p className="text-gray-400 text-xs font-semibold mb-1">
-                  ⏱️ Válido por
-                </p>
-                <p className="text-yellow-400 font-semibold text-sm">
-                  {credentials.horas_validas} horas
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
-              <p className="text-blue-400 text-xs">
-                💡 Descarga la app JJSecure VPN desde Play Store o App Store e
-                ingresa estas credenciales. Acceso válido por 2 horas.
-              </p>
-            </div>
-
-            <button
-              onClick={handleClose}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
-            >
-              Cerrar
-            </button>
-          </div>
-        )}
-
-        {/* Form State */}
-        {!success && !loading && (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Error Message */}
-            {error && (
-              <div
-                className={`rounded-lg p-4 text-sm ${
-                  bloqueado
-                    ? "bg-orange-500/15 border border-orange-500/40 text-orange-300"
-                    : "bg-red-500/15 border border-red-500/40 text-red-300"
-                }`}
-              >
+          {/* Success State - Credenciales */}
+          {success && credentials && !loading && (
+            <div className="space-y-6">
+              {/* Success Message */}
+              <div className="bg-green-900/20 border border-green-800/50 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <span className="text-lg mt-0.5">
-                    {bloqueado ? "⏳" : "❌"}
-                  </span>
+                  <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold mb-1">
-                      {bloqueado ? "Demo bloqueada" : "Error"}
+                    <p className="text-green-300 font-semibold text-sm">
+                      ¡Demo activa!
                     </p>
-                    <p>{error}</p>
+                    <p className="text-neutral-300 text-xs mt-1">
+                      Las credenciales han sido enviadas a tu email. Revisa tu
+                      bandeja de entrada.
+                    </p>
                   </div>
                 </div>
               </div>
-            )}
 
-            {/* Nombre Input */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">
-                Nombre o Alias
-              </label>
-              <input
-                type="text"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                disabled={loading}
-                placeholder="Tu nombre"
-                className="w-full bg-gray-800/50 border border-gray-700/50 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              />
+              {/* Credentials */}
+              <div className="space-y-3">
+                <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-4 h-4 rounded bg-neutral-700 flex items-center justify-center">
+                      <span className="text-xs">👤</span>
+                    </div>
+                    <p className="text-neutral-400 text-xs font-semibold">
+                      Usuario
+                    </p>
+                  </div>
+                  <p className="text-blue-400 font-mono text-sm break-all">
+                    {credentials.username}
+                  </p>
+                </div>
+
+                <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-4 h-4 rounded bg-neutral-700 flex items-center justify-center">
+                      <span className="text-xs">🔑</span>
+                    </div>
+                    <p className="text-neutral-400 text-xs font-semibold">
+                      Contraseña
+                    </p>
+                  </div>
+                  <p className="text-blue-400 font-mono text-sm break-all">
+                    {credentials.password}
+                  </p>
+                </div>
+
+                <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="w-4 h-4 text-neutral-400" />
+                    <p className="text-neutral-400 text-xs font-semibold">
+                      Válido por
+                    </p>
+                  </div>
+                  <p className="text-yellow-400 font-semibold text-sm">
+                    {credentials.horas_validas} horas
+                  </p>
+                </div>
+              </div>
+
+              {/* Info Box */}
+              <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4">
+                <p className="text-blue-300 text-xs">
+                  Descarga la app JJSecure VPN desde Play Store o App Store e
+                  ingresa estas credenciales. Acceso válido por 2 horas.
+                </p>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={handleClose}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+              >
+                Cerrar
+              </button>
             </div>
+          )}
 
-            {/* Email Input */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                placeholder="tu@email.com"
-                className="w-full bg-gray-800/50 border border-gray-700/50 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-            </div>
+          {/* Form State */}
+          {!success && !loading && (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Error Message */}
+              {error && (
+                <div
+                  className={`rounded-lg p-4 ${
+                    bloqueado
+                      ? "bg-orange-900/20 border border-orange-800/50"
+                      : "bg-red-900/20 border border-red-800/50"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    {bloqueado ? (
+                      <Clock className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                    )}
+                    <div>
+                      <p
+                        className={`font-semibold text-sm ${
+                          bloqueado ? "text-orange-300" : "text-red-300"
+                        }`}
+                      >
+                        {bloqueado ? "Demo bloqueada" : "Error"}
+                      </p>
+                      <p
+                        className={`text-xs mt-1 ${
+                          bloqueado ? "text-orange-200" : "text-red-200"
+                        }`}
+                      >
+                        {error}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-            {/* Info Box */}
-            <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-3 space-y-2">
-              <p className="text-gray-300 text-xs">
-                <span className="font-semibold">✨ Incluye:</span>
-              </p>
-              <ul className="text-gray-400 text-xs space-y-1">
-                <li>✅ 2 horas de acceso completo</li>
-                <li>✅ Todos los servidores disponibles</li>
-                <li>✅ Velocidad sin limitaciones</li>
-              </ul>
-              <p className="text-gray-400 text-xs mt-3 pt-2 border-t border-blue-500/10">
-                ⚠️ Solo puedes solicitar una demo cada 48 horas por email o IP
-              </p>
-            </div>
+              {/* Nombre Input */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Nombre o Alias
+                </label>
+                <input
+                  type="text"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  disabled={loading}
+                  placeholder="Tu nombre"
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
+                />
+              </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading || bloqueado}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-gray-600 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100"
-            >
-              {bloqueado ? "🔒 Bloqueado temporalmente" : "🎁 Solicitar Demo"}
-            </button>
-          </form>
-        )}
+              {/* Email Input */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  placeholder="tu@email.com"
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
+                />
+              </div>
+
+              {/* Info Box */}
+              <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4 space-y-2">
+                <p className="text-neutral-300 text-xs">
+                  <span className="font-semibold">✨ Incluye:</span>
+                </p>
+                <ul className="text-neutral-400 text-xs space-y-1">
+                  <li>✅ 2 horas de acceso completo</li>
+                  <li>✅ Todos los servidores disponibles</li>
+                  <li>✅ Velocidad sin limitaciones</li>
+                </ul>
+                <p className="text-neutral-400 text-xs mt-3 pt-2 border-t border-blue-800/30">
+                  Solo puedes solicitar una demo cada 48 horas por email o IP
+                </p>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading || bloqueado}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-700 disabled:text-neutral-500 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                {bloqueado ? (
+                  <>
+                    <Clock className="w-5 h-5" />
+                    Bloqueado temporalmente
+                  </>
+                ) : loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Solicitando...
+                  </>
+                ) : (
+                  <>
+                    <Gift className="w-5 h-5" />
+                    Solicitar Demo
+                  </>
+                )}
+              </button>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );

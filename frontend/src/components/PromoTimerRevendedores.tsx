@@ -1,18 +1,18 @@
 import { Clock, Zap, Flame } from "lucide-react";
 import { memo } from "react";
-import { usePromoTimer } from "../hooks/usePromoTimer";
+import { usePromoTimerRevendedores } from "../hooks/usePromoTimerRevendedores";
 
 /**
- * Componente que muestra el temporizador de promoción en tiempo real
+ * Componente que muestra el temporizador de promoción para revendedores en tiempo real
  * Memoizado para evitar re-renders innecesarios
  */
-function PromoTimerComponent() {
+function PromoTimerRevendedoresComponent() {
   const {
     promo_config,
     tiempo_restante_formateado,
     porcentaje_restante,
     loading,
-  } = usePromoTimer();
+  } = usePromoTimerRevendedores();
 
   // No mostrar nada si la promo no está activa
   if (!promo_config?.activa) {
@@ -59,26 +59,33 @@ function PromoTimerComponent() {
         {/* Icono */}
         <div className={colorConfig.text}>{colorConfig.icon}</div>
 
-        {/* Tiempo */}
+        {/* Título y temporizador */}
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-neutral-300">
-            Oferta termina en
+            ¡Promoción Activa!
           </span>
           <span className="text-sm font-mono font-bold text-neutral-200 bg-neutral-800 px-2.5 py-0.5 rounded">
             {tiempo}
           </span>
         </div>
 
-        {/* Mini barra de progreso */}
-        <div className="w-16 h-1.5 bg-neutral-700 rounded-full overflow-hidden">
+        {/* Barra de progreso y porcentaje */}
+        <div className="flex items-center gap-2">
+          <div className="w-16 h-1.5 bg-neutral-700 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${colorConfig.progress} transition-all duration-500`}
+              style={{ width: `${Math.max(0, Math.min(100, porcentaje))}%` }}
+            />
+          </div>
           <div
-            className={`h-full ${colorConfig.progress} transition-all duration-500`}
-            style={{ width: `${Math.max(0, Math.min(100, porcentaje))}%` }}
-          />
+            className={`text-xs ${colorConfig.text} font-medium whitespace-nowrap`}
+          >
+            {Math.round(porcentaje)}%
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-export const PromoTimer = memo(PromoTimerComponent);
+export const PromoTimerRevendedores = memo(PromoTimerRevendedoresComponent);

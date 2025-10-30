@@ -11,7 +11,7 @@ import ScrollToTop from "./components/ScrollToTop";
 
 const App = () => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-neutral-900">
       <ScrollToTop />
       <Header />
       <main className="flex-grow">

@@ -85,6 +85,9 @@ export class TiendaService {
     }
 
     console.log("[Tienda] ✅ Planes creados exitosamente");
+
+    // Verificar consistencia con configuración
+    configService.verificarConsistenciaConDB(this.db);
   }
 
   /**
@@ -198,6 +201,7 @@ export class TiendaService {
 
   /**
    * Confirma un pago y crea la cuenta en Servex
+   * ✅ MEJORADO: Validación anti-duplicado
    */
   private async confirmarPagoYCrearCuenta(
     pagoId: string,
@@ -206,9 +210,30 @@ export class TiendaService {
     console.log("[Tienda] Confirmando pago y creando cuenta VPN:", pagoId);
 
     // Obtener pago y plan
-    const pago = this.db.obtenerPagoPorId(pagoId);
+    let pago = this.db.obtenerPagoPorId(pagoId);
     if (!pago) {
       throw new Error("Pago no encontrado");
+    }
+
+    // ✅ VALIDACIÓN ANTI-DUPLICADO: Verificar si ya tiene cuenta
+    if (pago.servex_cuenta_id) {
+      console.log(
+        "[Tienda] ⚠️ Cuenta ya fue creada para este pago:",
+        pago.servex_cuenta_id,
+        "- Abortando para evitar duplicados"
+      );
+      return;
+    }
+
+    // ✅ VALIDACIÓN ANTI-RACE-CONDITION: Verificar si el pago ya fue procesado
+    // (estado != "pendiente" significa que otro webhook ya lo procesó)
+    if (pago.estado !== "pendiente") {
+      console.log(
+        "[Tienda] ⚠️ Pago ya fue procesado (estado: " +
+          pago.estado +
+          ") - Abortando para evitar duplicados"
+      );
+      return;
     }
 
     const plan = this.db.obtenerPlanPorId(pago.plan_id);
@@ -217,8 +242,12 @@ export class TiendaService {
     }
 
     try {
-      // 1. Actualizar estado del pago
+      // 1. Marcar estado como "aprobado" INMEDIATAMENTE para evitar race condition
+      // Esto protege contra múltiples webhooks simultáneos
       this.db.actualizarEstadoPago(pagoId, "aprobado", mpPaymentId);
+      console.log(
+        "[Tienda] ✅ Estado marcado como aprobado (bloqueo de duplicados)"
+      );
 
       // 2. Generar credenciales usando el nombre del cliente
       const { username, password } = this.servex.generarCredenciales(

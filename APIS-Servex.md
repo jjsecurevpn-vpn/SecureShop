@@ -1,191 +1,212 @@
-# 🚀 Servex API – Documentación Simplificada
+Endpoints da API
+Clientes
 
-Bienvenido a la API de **Servex**, una plataforma diseñada para gestionar clientes, revendedores, categorías y datos en tiempo real mediante WebSockets.
+GET
+https://servex.ws/api/clients
+Admin & Reseller
+Retorna uma lista paginada de clientes.
 
----
+Parâmetros
+Parâmetro Tipo Descrição
+page integer Número da página. Padrão: 1.
+limit integer Número de itens por página. Padrão: 10.
+search string Busca por nome de usuário, UUID ou observação.
+status string Filtra por status: 'active', 'expired', 'expires_today', 'expires_soon', 'suspended'.
+scope string Define o escopo da busca: 'meus' (padrão), 'todos' (admin), 'dos_revendedores' (revendedor).
+resellerId integer Filtra clientes de um revendedor específico.
 
-## 🔐 Autenticación
+POST
+https://servex.ws/api/clients
+Admin & Reseller
+Cria um novo cliente.
 
-Todas las peticiones requieren una **API Key**, enviada en el encabezado HTTP:
+Parâmetros
+Parâmetro Tipo Descrição
+username string Nome de usuário do cliente.
+password string Senha do cliente.
+category_id integer ID da categoria do servidor.
+connection_limit integer Limite de conexões simultâneas.
+duration integer Duração do acesso (em dias para usuários, em minutos para testes).
+type string 'user' ou 'test'.
+observation string (Opcional) Observações sobre o cliente.
+v2ray_uuid string (Opcional) UUID para V2Ray.
+owner_id integer (Opcional, Admin) ID do revendedor dono do cliente.
 
+PUT
+https://servex.ws/api/clients/{id}
+Admin & Reseller
+Atualiza os dados de um cliente existente.
 
+Parâmetros
+Parâmetro Tipo Descrição
+id integer ID do cliente (na URL).
+... object Os mesmos campos do POST, exceto que são todos opcionais.
 
+DELETE
+https://servex.ws/api/clients/{id}
+Admin & Reseller
+Remove um cliente.
 
-**Dónde obtenerla:**
-- 👨‍💼 **Admin:** Configurações  
-- 💼 **Revendedor:** Menú del perfil (header)
+Parâmetros
+Parâmetro Tipo Descrição
+id integer ID do cliente (na URL).
 
----
+POST
+https://servex.ws/api/clients/{id}/renew
+Admin & Reseller
+Renova a assinatura de um cliente.
 
-## 👤 Clientes
+Parâmetros
+Parâmetro Tipo Descrição
+id integer ID do cliente (na URL).
+days integer Número de dias para adicionar à validade.
 
-### ➤ Listar clientes
-**GET** `https://servex.ws/api/clients`  
-*(Admin / Revendedor)*  
+PUT
+https://servex.ws/api/clients/{id}/suspend
+Admin & Reseller
+Suspende ou reativa um cliente.
 
-**Parámetros opcionales:**
-| Parámetro | Tipo | Descripción |
-|------------|------|-------------|
-| `page` | integer | Página actual (default: 1) |
-| `limit` | integer | Ítems por página (default: 10) |
-| `search` | string | Buscar por usuario, UUID o nota |
-| `status` | string | `active`, `expired`, `expires_today`, `expires_soon`, `suspended` |
-| `scope` | string | `meus` (default), `todos` (admin), `dos_revendedores` |
-| `resellerId` | integer | Filtra por ID de revendedor |
+Parâmetros
+Parâmetro Tipo Descrição
+id integer ID do cliente (na URL).
+Revendedores
 
----
+GET
+https://servex.ws/api/resellers
+Admin & Reseller
+Retorna uma lista paginada de revendedores.
 
-### ➤ Crear cliente
-**POST** `https://servex.ws/api/clients`
+Parâmetros
+Parâmetro Tipo Descrição
+page integer Número da página.
+limit integer Número de itens por página.
+search string Busca por nome ou usuário.
+status string Filtra por status: 'active', 'suspended', 'expired', etc.
+scope string Define o escopo: 'meus' (padrão) ou 'todos'.
 
-**Campos:**
-| Campo | Tipo | Descripción |
-|--------|------|-------------|
-| `username` | string | Usuario del cliente |
-| `password` | string | Contraseña |
-| `category_id` | integer | ID de la categoría |
-| `connection_limit` | integer | Límite de conexiones |
-| `duration` | integer | Días (user) o minutos (test) |
-| `type` | string | `user` o `test` |
-| `observation` | string | (Opcional) Notas |
-| `v2ray_uuid` | string | (Opcional) UUID V2Ray |
-| `owner_id` | integer | (Opcional, Admin) ID de revendedor |
+POST
+https://servex.ws/api/resellers
+Admin & Reseller
+Cria um novo revendedor.
 
----
+Parâmetros
+Parâmetro Tipo Descrição
+name string Nome do revendedor.
+username string Usuário de login.
+password string Senha de login.
+max_users integer Limite de usuários (contas de validade) ou quantidade de créditos (contas de crédito).
+account_type string 'validity' ou 'credit'.
+category_ids array[integer] Array com IDs das categorias permitidas.
+expiration_date string (Obrigatório para 'validity') Data de expiração no formato YYYY-MM-DD.
+obs string (Opcional) Observações.
 
-### ➤ Editar cliente
-**PUT** `https://servex.ws/api/clients/{id}`  
-Modifica campos existentes.
+PUT
+https://servex.ws/api/resellers/{id}
+Admin & Reseller
+Atualiza um revendedor existente.
 
-### ➤ Eliminar cliente
-**DELETE** `https://servex.ws/api/clients/{id}`
+Parâmetros
+Parâmetro Tipo Descrição
+id integer ID do revendedor (na URL).
+... object Os mesmos campos do POST, todos opcionais.
 
-### ➤ Renovar cliente
-**POST** `https://servex.ws/api/clients/{id}/renew`  
-Campos: `days` → días a añadir
+DELETE
+https://servex.ws/api/resellers/{id}
+Admin & Reseller
+Remove um revendedor e toda a sua hierarquia (sub-revendedores e clientes).
 
-### ➤ Suspender / Reactivar cliente
-**PUT** `https://servex.ws/api/clients/{id}/suspend`
+Parâmetros
+Parâmetro Tipo Descrição
+id integer ID do revendedor (na URL).
 
----
+POST
+https://servex.ws/api/resellers/{id}/renew
+Admin & Reseller
+Renova um revendedor com conta por validade.
 
-## 💼 Revendedores
+Parâmetros
+Parâmetro Tipo Descrição
+id integer ID do revendedor (na URL).
+days integer Número de dias para adicionar à validade.
 
-### ➤ Listar revendedores
-**GET** `https://servex.ws/api/resellers`  
-*(Admin / Revendedor)*
+PUT
+https://servex.ws/api/resellers/{id}/toggle-status
+Admin & Reseller
+Ativa ou desativa um revendedor e toda a sua hierarquia.
 
-**Parámetros:**  
-`page`, `limit`, `search`, `status`, `scope`
+Parâmetros
+Parâmetro Tipo Descrição
+id integer ID do revendedor (na URL).
+Categorias
 
----
+GET
+https://servex.ws/api/categories
+Admin & Reseller
+Retorna uma lista de categorias. Para revendedores, retorna apenas as categorias às quais ele tem acesso.
 
-### ➤ Crear revendedor
-**POST** `https://servex.ws/api/resellers`
+POST
+https://servex.ws/api/categories
+Admin
+Cria uma nova categoria.
 
-| Campo | Tipo | Descripción |
-|--------|------|-------------|
-| `name` | string | Nombre |
-| `username` | string | Usuario |
-| `password` | string | Contraseña |
-| `max_users` | integer | Límite de usuarios o créditos |
-| `account_type` | string | `validity` o `credit` |
-| `category_ids` | array | IDs de categorías permitidas |
-| `expiration_date` | string | (Obligatorio si `validity`) formato `YYYY-MM-DD` |
-| `obs` | string | (Opcional) Observaciones |
+Parâmetros
+Parâmetro Tipo Descrição
+name string Nome da categoria.
+description string (Opcional) Descrição da categoria.
+limiter_active boolean (Opcional) Ativa o limitador de conexões. Padrão: false.
 
----
+PUT
+https://servex.ws/api/categories/{id}
+Admin
+Atualiza uma categoria existente.
 
-### ➤ Editar revendedor
-**PUT** `https://servex.ws/api/resellers/{id}`  
-Campos opcionales iguales al POST.
+Parâmetros
+Parâmetro Tipo Descrição
+id integer ID da categoria (na URL).
+name string Novo nome da categoria.
+description string (Opcional) Nova descrição.
+limiter_active boolean (Opcional) Ativa ou desativa o limitador.
 
-### ➤ Eliminar revendedor
-**DELETE** `https://servex.ws/api/resellers/{id}`  
-Elimina el revendedor y toda su jerarquía.
+DELETE
+https://servex.ws/api/categories/{id}
+Admin
+Remove uma categoria. Só é possível se não houver servidores, clientes ou revendedores vinculados.
 
-### ➤ Renovar revendedor
-**POST** `https://servex.ws/api/resellers/{id}/renew`  
-Campo: `days`
+Parâmetros
+Parâmetro Tipo Descrição
+id integer ID da categoria (na URL).
+WebSockets API
+Para dados em tempo real, utilizamos WebSockets. A autenticação é feita via um token temporário que deve ser obtido no seguinte endpoint:
 
-### ➤ Activar / Desactivar revendedor
-**PUT** `https://servex.ws/api/resellers/{id}/toggle-status`
+GET
+https://servex.ws/api/auth/sse-token
+Admin & Reseller
+Retorna um token JWT válido por 24 horas para autenticação em conexões WebSocket. Pode ser chamado com a chave de API.
 
----
-
-## 📂 Categorías
-
-### ➤ Listar categorías
-**GET** `https://servex.ws/api/categories`  
-(Admin / Revendedor)  
-Devuelve solo las categorías disponibles para el usuario.
-
----
-
-### ➤ Crear categoría
-**POST** `https://servex.ws/api/categories`  
-(Admin)
-
-| Campo | Tipo | Descripción |
-|--------|------|-------------|
-| `name` | string | Nombre |
-| `description` | string | (Opcional) Descripción |
-| `limiter_active` | boolean | (Opcional) Activa limitador (default: false) |
-
----
-
-### ➤ Editar categoría
-**PUT** `https://servex.ws/api/categories/{id}`  
-(Admin)  
-Permite actualizar nombre, descripción o limitador.
-
-### ➤ Eliminar categoría
-**DELETE** `https://servex.ws/api/categories/{id}`  
-(Admin)  
-Solo si no tiene vínculos con servidores, clientes o revendedores.
-
----
-
-## 🔄 WebSockets API (Datos en tiempo real)
-
-Para información en tiempo real, la API usa **WebSockets**.
-
-### 1️⃣ Obtener token temporal
-**GET** `https://servex.ws/api/auth/sse-token`
-
-**Respuesta:**
-```json
+Exemplo de Resposta
 {
-  "token": "ey...",
-  "exp": 1678886400
+"token": "ey...",
+"exp": 1678886400
 }
+Após obter o token, conecte-se ao WebSocket desejado. O URL base para os WebSockets é wss://front.servex.ws.
 
+const ws = new WebSocket(`wss://front.servex.ws/ws/{endpoint}?token=${token}`);
+/ws/server-status
+Admin
+Recebe atualizações em tempo real sobre o status de todos os servidores do admin (CPU, RAM, usuários online, etc.).
 
-wss://front.servex.ws/ws/{endpoint}?token={token}
+/ws/command-updates
+Admin
+Recebe atualizações sobre o status dos comandos executados nos servidores (instalação, criação de usuário, etc.).
 
+/ws/user-status
+Admin & Reseller
+Recebe o status (online/offline, contagem de conexão, método) de clientes específicos.
 
-const ws = new WebSocket(`wss://front.servex.ws/ws/user-status?token=${token}`);
+Para receber dados, você deve enviar uma mensagem para o WebSocket especificando para quais usuários deseja monitorar o status.
 
-| Endpoint              | Acceso             | Descripción                                             |
-| --------------------- | ------------------ | ------------------------------------------------------- |
-| `/ws/server-status`   | Admin              | Estado de CPU, RAM, usuarios online                     |
-| `/ws/command-updates` | Admin              | Actualizaciones de comandos (instalación, etc.)         |
-| `/ws/user-status`     | Admin / Revendedor | Estado de clientes (online/offline, conexiones, método) |
-
-
+Mensagem de Filtro
 {
-  "type": "update_filter",
-  "usernames": ["cliente1", "cliente2"]
+"type": "update_filter",
+"usernames": ["cliente1", "cliente2", "teste123"]
 }
-
-
-📎 Notas finales
-
-API base: https://servex.ws/api
-
-WebSocket base: wss://front.servex.ws/ws
-
-Autenticación: Bearer Token
-
-Tokens SSE expiran en 24 horas
-

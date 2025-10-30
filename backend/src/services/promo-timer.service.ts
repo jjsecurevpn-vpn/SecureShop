@@ -1,4 +1,5 @@
-import fs from 'fs';
+import fs from "fs";
+import { configService } from "./config.service";
 
 /**
  * Servicio que gestiona la expiración automática de promociones
@@ -6,18 +7,31 @@ import fs from 'fs';
  */
 export class PromoTimerService {
   private configPath: string;
+  private revendedoresConfigPath: string;
+  private noticiasConfigPath: string;
   private intervaloVerificacion: NodeJS.Timeout | null = null;
   private intervaloMs: number = 5 * 60 * 1000; // 5 minutos
 
   constructor(configPath: string) {
     this.configPath = configPath;
+    const base = require("path").join(process.cwd(), "public", "config");
+    this.revendedoresConfigPath = require("path").join(
+      base,
+      "revendedores.config.json"
+    );
+    this.noticiasConfigPath = require("path").join(
+      base,
+      "noticias.config.json"
+    );
   }
 
   /**
    * Inicia el servicio de verificación automática
    */
   iniciar(): void {
-    console.log('[PromoTimerService] ⏱️ Iniciando servicio de verificación de promociones...');
+    console.log(
+      "[PromoTimerService] ⏱️ Iniciando servicio de verificación de promociones..."
+    );
 
     // Verificar inmediatamente al iniciar
     this.verificarPromos();
@@ -27,7 +41,9 @@ export class PromoTimerService {
       this.verificarPromos();
     }, this.intervaloMs);
 
-    console.log('[PromoTimerService] ✅ Servicio iniciado (verifica cada 5 minutos)');
+    console.log(
+      "[PromoTimerService] ✅ Servicio iniciado (verifica cada 5 minutos)"
+    );
   }
 
   /**
@@ -37,7 +53,7 @@ export class PromoTimerService {
     if (this.intervaloVerificacion) {
       clearInterval(this.intervaloVerificacion);
       this.intervaloVerificacion = null;
-      console.log('[PromoTimerService] ⏹️ Servicio detenido');
+      console.log("[PromoTimerService] ⏹️ Servicio detenido");
     }
   }
 
@@ -50,7 +66,7 @@ export class PromoTimerService {
         return;
       }
 
-      const contenido = fs.readFileSync(this.configPath, 'utf-8');
+      const contenido = fs.readFileSync(this.configPath, "utf-8");
       const config: any = JSON.parse(contenido);
 
       // Si no hay promo config, salir
@@ -77,28 +93,126 @@ export class PromoTimerService {
       const ahora = new Date();
 
       if (ahora >= venceEn) {
-        console.log(`[PromoTimerService] ⏰ Promoción expirada. Desactivando...`);
-        console.log(`[PromoTimerService] 📊 Activada: ${activadaEn.toISOString()}`);
+        console.log(
+          `[PromoTimerService] ⏰ Promoción expirada. Desactivando...`
+        );
+        console.log(
+          `[PromoTimerService] 📊 Activada: ${activadaEn.toISOString()}`
+        );
         console.log(`[PromoTimerService] 📊 Vencía: ${venceEn.toISOString()}`);
         console.log(`[PromoTimerService] 📊 Ahora: ${ahora.toISOString()}`);
 
-        // Desactivar la promoción
+        // Desactivar la promoción en el archivo principal
         promoConfig.activa = false;
         promoConfig.desactivada_en = ahora.toISOString();
 
-        // Guardar cambios
-        fs.writeFileSync(this.configPath, JSON.stringify(config, null, 2), 'utf-8');
-        console.log('[PromoTimerService] ✅ Promoción desactivada exitosamente');
+        // Guardar cambios en el archivo principal
+        fs.writeFileSync(
+          this.configPath,
+          JSON.stringify(config, null, 2),
+          "utf-8"
+        );
+        console.log(
+          "[PromoTimerService] ✅ Promoción desactivada en",
+          this.configPath
+        );
+
+        // Además, intentar desactivar las promos/avisos relacionados en
+        // revendedores.config.json y noticias.config.json para mantener
+        // coherencia visual en la UI (hero/promocion y aviso global)
+        try {
+          // Revendedores: desactivar promo_config y el banner del hero si existe
+          if (fs.existsSync(this.revendedoresConfigPath)) {
+            const revContent = fs.readFileSync(
+              this.revendedoresConfigPath,
+              "utf-8"
+            );
+            const revConfig: any = JSON.parse(revContent);
+            if (revConfig.promo_config && revConfig.promo_config.activa) {
+              revConfig.promo_config.activa = false;
+              revConfig.promo_config.desactivada_en = ahora.toISOString();
+            }
+            if (
+              revConfig.hero &&
+              revConfig.hero.promocion &&
+              revConfig.hero.promocion.habilitada
+            ) {
+              revConfig.hero.promocion.habilitada = false;
+            }
+            fs.writeFileSync(
+              this.revendedoresConfigPath,
+              JSON.stringify(revConfig, null, 2),
+              "utf-8"
+            );
+            console.log(
+              "[PromoTimerService] ✅ Revendedores promo/hero desactivados en",
+              this.revendedoresConfigPath
+            );
+          }
+        } catch (err: any) {
+          console.error(
+            "[PromoTimerService] ❌ Error desactivando revendedores config:",
+            err?.message || err
+          );
+        }
+
+        try {
+          // Noticias: desactivar el aviso global si está activo
+          if (fs.existsSync(this.noticiasConfigPath)) {
+            const notContent = fs.readFileSync(
+              this.noticiasConfigPath,
+              "utf-8"
+            );
+            const notConfig: any = JSON.parse(notContent);
+            if (notConfig.aviso && notConfig.aviso.habilitado) {
+              notConfig.aviso.habilitado = false;
+            }
+            fs.writeFileSync(
+              this.noticiasConfigPath,
+              JSON.stringify(notConfig, null, 2),
+              "utf-8"
+            );
+            console.log(
+              "[PromoTimerService] ✅ Aviso de noticias desactivado en",
+              this.noticiasConfigPath
+            );
+          }
+        } catch (err: any) {
+          console.error(
+            "[PromoTimerService] ❌ Error desactivando noticias config:",
+            err?.message || err
+          );
+        }
+
+        // Invalidar caché en ConfigService para que los cambios se reflejen de inmediato
+        try {
+          configService.limpiarCache();
+          console.log(
+            "[PromoTimerService] 🔄 Caché de configuración invalidado en ConfigService"
+          );
+        } catch (err: any) {
+          console.error(
+            "[PromoTimerService] ❌ Error invalidando caché:",
+            err?.message || err
+          );
+        }
       } else {
         // Calcular tiempo restante
         const diferencia = venceEn.getTime() - ahora.getTime();
         const horasRestantes = Math.floor(diferencia / (60 * 60 * 1000));
-        const minutosRestantes = Math.floor((diferencia % (60 * 60 * 1000)) / (60 * 1000));
+        const minutosRestantes = Math.floor(
+          (diferencia % (60 * 60 * 1000)) / (60 * 1000)
+        );
 
-        console.log(`[PromoTimerService] ⏳ Promoción activa. Vence en: ${horasRestantes}h ${minutosRestantes}m`);
+        console.log(
+          `[PromoTimerService] ⏳ Promoción activa. Vence en: ${horasRestantes}h ${minutosRestantes}m`
+        );
       }
     } catch (error: any) {
-      console.error('[PromoTimerService] ❌ Error verificando promos:', error.message);
+      console.error(
+        "[PromoTimerService] ❌ Error verificando promos:",
+        error.message
+      );
     }
   }
 
@@ -111,7 +225,7 @@ export class PromoTimerService {
         return null;
       }
 
-      const contenido = fs.readFileSync(this.configPath, 'utf-8');
+      const contenido = fs.readFileSync(this.configPath, "utf-8");
       const config: any = JSON.parse(contenido);
 
       if (!config.promo_config || !config.promo_config.activa) {
@@ -132,7 +246,10 @@ export class PromoTimerService {
 
       return null;
     } catch (error: any) {
-      console.error('[PromoTimerService] ❌ Error calculando tiempo restante:', error.message);
+      console.error(
+        "[PromoTimerService] ❌ Error calculando tiempo restante:",
+        error.message
+      );
       return null;
     }
   }
@@ -151,7 +268,7 @@ export class PromoTimerService {
         return null;
       }
 
-      const contenido = fs.readFileSync(this.configPath, 'utf-8');
+      const contenido = fs.readFileSync(this.configPath, "utf-8");
       const config: any = JSON.parse(contenido);
 
       if (!config.promo_config) {
@@ -168,7 +285,9 @@ export class PromoTimerService {
       }
 
       const horas = Math.floor(tiempoRestante / (60 * 60 * 1000));
-      const minutos = Math.floor((tiempoRestante % (60 * 60 * 1000)) / (60 * 1000));
+      const minutos = Math.floor(
+        (tiempoRestante % (60 * 60 * 1000)) / (60 * 1000)
+      );
       const segundos = Math.floor((tiempoRestante % (60 * 1000)) / 1000);
 
       return {
@@ -178,12 +297,15 @@ export class PromoTimerService {
         duracionHoras: promoConfig.duracion_horas,
       };
     } catch (error: any) {
-      console.error('[PromoTimerService] ❌ Error obteniendo info promo:', error.message);
+      console.error(
+        "[PromoTimerService] ❌ Error obteniendo info promo:",
+        error.message
+      );
       return null;
     }
   }
 }
 
 export const promoTimerService = new PromoTimerService(
-  require('path').join(process.cwd(), 'public', 'config', 'planes.config.json')
+  require("path").join(process.cwd(), "public", "config", "planes.config.json")
 );

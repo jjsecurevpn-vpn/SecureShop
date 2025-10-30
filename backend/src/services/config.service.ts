@@ -1,6 +1,55 @@
 import fs from "fs";
 import path from "path";
+import { z } from "zod";
 import { Plan } from "../types";
+
+// Esquemas de validación con Zod
+const PlanOverrideSchema = z.object({
+  precio: z.number().optional(),
+  descripcion: z.string().optional(),
+  activo: z.boolean().optional(),
+  dias: z.number().optional(),
+  connection_limit: z.number().optional(),
+});
+
+const PromoConfigSchema = z.object({
+  activa: z.boolean(),
+  activada_en: z.string().nullable().optional(),
+  duracion_horas: z.number(),
+  auto_desactivar: z.boolean(),
+});
+
+const HeroConfigSchema = z.object({
+  titulo: z.string().optional(),
+  descripcion: z.string().optional(),
+  promocion: z
+    .object({
+      habilitada: z.boolean().optional(),
+      texto: z.string().optional(),
+      borderColor: z.string().optional(),
+      bgColor: z.string().optional(),
+      textColor: z.string().optional(),
+      iconColor: z.string().optional(),
+      shadowColor: z.string().optional(),
+      comentario: z.string().optional(),
+    })
+    .optional(),
+});
+
+const ConfigPlanesSchema = z.object({
+  enabled: z.boolean().default(true),
+  version: z.string().optional(),
+  ultima_actualizacion: z.string().optional(),
+  moneda: z.string().default("ARS"),
+  notas: z.string().optional(),
+  hero: HeroConfigSchema.optional(),
+  planes_disponibles: z.record(z.string(), z.string()).optional(),
+  precios_normales: z.record(z.string(), z.number()).optional(),
+  overrides: z
+    .record(z.string(), z.union([PlanOverrideSchema, z.string()]))
+    .optional(),
+  promo_config: PromoConfigSchema.optional(),
+});
 
 interface PlanOverride {
   precio?: number;
@@ -42,7 +91,7 @@ interface ConfigPlanes {
     [planId: string]: number;
   };
   overrides?: {
-    [planId: string]: PlanOverride;
+    [planId: string]: PlanOverride | string;
   };
   promo_config?: PromoConfig;
 }
@@ -175,6 +224,21 @@ export class ConfigService {
     const ahora = Date.now();
 
     // Si el caché no ha expirado, devolverlo
+    // Si el archivo en disco cambió desde que guardamos el caché, invalidarlo
+    try {
+      if (fs.existsSync(this.configPath)) {
+        const stats = fs.statSync(this.configPath);
+        const mtimeMs = Math.floor(stats.mtimeMs || 0);
+        if (this.cache && mtimeMs > this.cacheTime) {
+          // Archivo actualizado externamente, invalidar caché
+          this.cache = null;
+          this.cacheTime = 0;
+        }
+      }
+    } catch (err: any) {
+      // Ignorar errores de stat y continuar con lógica de caché
+    }
+
     if (this.cache && ahora - this.cacheTime < this.cacheExpire) {
       return this.cache;
     }
@@ -188,15 +252,49 @@ export class ConfigService {
       }
 
       const contenido = fs.readFileSync(this.configPath, "utf-8");
-      const config: ConfigPlanes = JSON.parse(contenido);
+      const dataParseada = JSON.parse(contenido);
+
+      // Validar con Zod
+      const configValidada = ConfigPlanesSchema.parse(dataParseada);
+
+      // Transformar para coincidir con la interfaz
+      const config: ConfigPlanes = {
+        ...configValidada,
+        promo_config: configValidada.promo_config
+          ? {
+              ...configValidada.promo_config,
+              activada_en: configValidada.promo_config.activada_en ?? null,
+            }
+          : undefined,
+      };
+
+      // Validaciones adicionales de consistencia
+      this.validarConsistenciaConfig(config);
 
       // Actualizar caché
       this.cache = config;
       this.cacheTime = ahora;
 
+      console.log(
+        "[ConfigService] ✅ Configuración cargada y validada correctamente"
+      );
       return config;
     } catch (error: any) {
-      console.error("[ConfigService] ❌ Error leyendo config:", error.message);
+      if (error instanceof z.ZodError) {
+        console.error(
+          "[ConfigService] ❌ Error de validación en config:",
+          error.errors
+        );
+        console.error(
+          "[ConfigService] 📄 Revisa el archivo planes.config.json"
+        );
+      } else {
+        console.error(
+          "[ConfigService] ❌ Error leyendo config:",
+          error.message
+        );
+      }
+      // En caso de error, devolver configuración segura por defecto
       return { enabled: false };
     }
   }
@@ -212,7 +310,7 @@ export class ConfigService {
       return plan;
     }
 
-    // Verificar si la promoción está activa
+    // Verificar si la promoción está activa y válida
     if (!config.promo_config?.activa) {
       // Si la promo no está activa, usar precios normales
       if (config.precios_normales) {
@@ -224,7 +322,25 @@ export class ConfigService {
       return plan;
     }
 
-    // La promo está activa, intentar aplicar overrides
+    // Validar configuración de promoción antes de aplicar
+    const validacionPromo = this.validarConfigPromocion();
+    if (!validacionPromo.valido) {
+      console.error(
+        "[ConfigService] ❌ Configuración de promoción inválida, usando precios normales:"
+      );
+      validacionPromo.errores.forEach((error) => console.error(`  - ${error}`));
+
+      // Fallback a precios normales
+      if (config.precios_normales) {
+        const precioNormal = config.precios_normales[plan.id.toString()];
+        if (precioNormal !== undefined) {
+          return { ...plan, precio: precioNormal };
+        }
+      }
+      return plan;
+    }
+
+    // La promo está activa y válida, aplicar overrides
     const override = config.overrides?.[plan.id.toString()];
     if (!override) {
       return plan;
@@ -235,7 +351,11 @@ export class ConfigService {
       override
     );
 
-    // Aplicar overrides
+    // Aplicar overrides (solo si es un objeto, no un comentario string)
+    if (typeof override === "string") {
+      return plan; // Es un comentario, no aplicar
+    }
+
     return {
       ...plan,
       precio: override.precio !== undefined ? override.precio : plan.precio,
@@ -269,8 +389,20 @@ export class ConfigService {
 
     // Verificar si la promoción está activa
     if (!config.promo_config?.activa) {
-      console.log("[DEBUG] Promo not active, using normal prices");
-      // Si la promo no está activa, usar precios normales si existen
+      console.log("[DEBUG] Promo not active, using DB prices");
+      // Si la promo no está activa, NO modificar precios, usar los de DB
+      return planes;
+    }
+
+    // Validar configuración de promoción antes de aplicar
+    const validacionPromo = this.validarConfigPromocion();
+    if (!validacionPromo.valido) {
+      console.error(
+        "[ConfigService] ❌ Configuración de promoción inválida, usando precios normales:"
+      );
+      validacionPromo.errores.forEach((error) => console.error(`  - ${error}`));
+
+      // Fallback a precios normales
       if (config.precios_normales) {
         return planes.map((plan) => {
           const precioNormal = config.precios_normales![plan.id.toString()];
@@ -283,11 +415,11 @@ export class ConfigService {
       return planes;
     }
 
-    // La promo está activa, aplicar overrides
+    // La promo está activa y válida, aplicar overrides
     return planes.map((plan) => {
       const override = config.overrides?.[plan.id.toString()];
-      if (!override) {
-        return plan;
+      if (!override || typeof override === "string") {
+        return plan; // No hay override o es un comentario
       }
 
       // Aplicar overrides
@@ -343,6 +475,8 @@ export class ConfigService {
     this.cacheTime = 0;
     this.revendedoresCache = null;
     this.revendedoresCacheTime = 0;
+    this.noticiasCache = null;
+    this.noticiasCacheTime = 0;
     console.log("[ConfigService] 🔄 Caché limpiado (planes y revendedores)");
   }
 
@@ -415,6 +549,20 @@ export class ConfigService {
   leerConfigRevendedores(): any {
     const ahora = Date.now();
 
+    // Si el fichero en disco cambió desde que guardamos el caché, invalidarlo
+    try {
+      if (fs.existsSync(this.revendedoresConfigPath)) {
+        const stats = fs.statSync(this.revendedoresConfigPath);
+        const mtimeMs = Math.floor(stats.mtimeMs || 0);
+        if (this.revendedoresCache && mtimeMs > this.revendedoresCacheTime) {
+          this.revendedoresCache = null;
+          this.revendedoresCacheTime = 0;
+        }
+      }
+    } catch (err: any) {
+      // Ignorar errores de stat
+    }
+
     // Si el caché no ha expirado, devolverlo
     if (
       this.revendedoresCache &&
@@ -485,35 +633,29 @@ export class ConfigService {
 
     // Verificar si la promoción está activa
     if (!config.promo_config?.activa) {
-      // Si la promo no está activa, usar precios normales
-      if (config.precios_normales) {
-        const precioNormal = config.precios_normales[plan.id.toString()];
-        if (precioNormal !== undefined) {
-          return { ...plan, precio: precioNormal };
-        }
-      }
+      // Si la promo no está activa, NO usar precios del config, mantener precio de DB
       return plan;
     }
 
-    // La promo está activa, intentar aplicar overrides
+    // La promo está activa, intentar aplicar overrides o precios normales del config
     const override = config.overrides?.[plan.id.toString()];
-    if (!override) {
-      return plan;
+    if (
+      override &&
+      typeof override === "object" &&
+      override.precio !== undefined
+    ) {
+      return { ...plan, precio: override.precio };
     }
 
-    // Aplicar overrides
-    const planActualizado = { ...plan };
-    if (override.precio !== undefined) {
-      planActualizado.precio = override.precio;
-    }
-    if (override.descripcion !== undefined) {
-      planActualizado.descripcion = override.descripcion;
-    }
-    if (override.activo !== undefined) {
-      planActualizado.activo = override.activo;
+    // Si no hay override pero promo activa, usar precios normales del config
+    if (config.precios_normales) {
+      const precioNormal = config.precios_normales[plan.id.toString()];
+      if (precioNormal !== undefined) {
+        return { ...plan, precio: precioNormal };
+      }
     }
 
-    return planActualizado;
+    return plan;
   }
 
   /**
@@ -653,6 +795,207 @@ export class ConfigService {
     }
 
     return config;
+  }
+
+  /**
+   * Valida la consistencia interna de la configuración
+   */
+  private validarConsistenciaConfig(config: ConfigPlanes): void {
+    const errores: string[] = [];
+
+    // Verificar que los planes disponibles tengan precios normales
+    if (config.planes_disponibles && config.precios_normales) {
+      const planesIds = Object.keys(config.planes_disponibles);
+      const preciosIds = Object.keys(config.precios_normales);
+
+      const planesSinPrecio = planesIds.filter(
+        (id) => !preciosIds.includes(id)
+      );
+      if (planesSinPrecio.length > 0) {
+        errores.push(`Planes sin precio normal: ${planesSinPrecio.join(", ")}`);
+      }
+
+      const preciosSinPlan = preciosIds.filter((id) => !planesIds.includes(id));
+      if (preciosSinPlan.length > 0) {
+        errores.push(
+          `Precios normales sin plan correspondiente: ${preciosSinPlan.join(
+            ", "
+          )}`
+        );
+      }
+    }
+
+    // Verificar que los overrides sean para planes existentes
+    if (config.overrides && config.planes_disponibles) {
+      const overrideIds = Object.keys(config.overrides);
+      const planesIds = Object.keys(config.planes_disponibles);
+
+      const overridesInvalidos = overrideIds.filter(
+        (id) => !planesIds.includes(id)
+      );
+      if (overridesInvalidos.length > 0) {
+        console.warn(
+          `[ConfigService] ⚠️ Overrides para planes no existentes: ${overridesInvalidos.join(
+            ", "
+          )}`
+        );
+        // No es un error fatal, solo una advertencia
+      }
+    }
+
+    // Verificar configuración de promoción
+    if (config.promo_config?.activa && !config.overrides) {
+      errores.push("Promoción activa pero no hay overrides definidos");
+    }
+
+    if (errores.length > 0) {
+      console.error("[ConfigService] ❌ Errores de consistencia en config:");
+      errores.forEach((error) => console.error(`  - ${error}`));
+      throw new Error(`Configuración inconsistente: ${errores.join("; ")}`);
+    }
+  }
+
+  /**
+   * Valida la configuración de promociones
+   */
+  validarConfigPromocion(): { valido: boolean; errores: string[] } {
+    const errores: string[] = [];
+    const config = this.leerConfig();
+
+    if (!config.enabled) {
+      return { valido: true, errores: [] }; // Si config deshabilitada, no validar
+    }
+
+    if (config.promo_config?.activa) {
+      // Verificar que haya overrides definidos
+      if (!config.overrides || Object.keys(config.overrides).length === 0) {
+        errores.push(
+          "Promoción activa pero no hay overrides de precio definidos"
+        );
+      }
+
+      // Verificar que los overrides tengan precios válidos
+      if (config.overrides) {
+        Object.entries(config.overrides).forEach(([id, override]) => {
+          if (
+            typeof override === "object" &&
+            override !== null &&
+            override.precio !== undefined &&
+            (override.precio < 0 || !Number.isFinite(override.precio))
+          ) {
+            errores.push(
+              `Override para plan ${id} tiene precio inválido: ${override.precio}`
+            );
+          }
+        });
+      }
+
+      // Verificar duración de la promoción
+      if (
+        config.promo_config.duracion_horas <= 0 ||
+        config.promo_config.duracion_horas > 24 * 30
+      ) {
+        errores.push(
+          `Duración de promoción inválida: ${config.promo_config.duracion_horas} horas`
+        );
+      }
+
+      // Verificar fecha de activación si existe
+      if (config.promo_config.activada_en) {
+        const fechaActivacion = new Date(config.promo_config.activada_en);
+        if (isNaN(fechaActivacion.getTime())) {
+          errores.push(
+            `Fecha de activación inválida: ${config.promo_config.activada_en}`
+          );
+        } else {
+          const ahora = new Date();
+          const tiempoTranscurrido =
+            ahora.getTime() - fechaActivacion.getTime();
+          const horasTranscurridas = tiempoTranscurrido / (1000 * 60 * 60);
+
+          if (
+            config.promo_config.auto_desactivar &&
+            horasTranscurridas > config.promo_config.duracion_horas
+          ) {
+            console.warn(
+              `[ConfigService] ⚠️ Promoción expirada (${horasTranscurridas.toFixed(
+                1
+              )}h > ${config.promo_config.duracion_horas}h)`
+            );
+            // Podríamos auto-desactivar aquí, pero por ahora solo advertir
+          }
+        }
+      }
+    }
+
+    return {
+      valido: errores.length === 0,
+      errores,
+    };
+  }
+
+  /**
+   * Verifica la consistencia entre la configuración y la base de datos
+   */
+  verificarConsistenciaConDB(databaseService: any): void {
+    try {
+      const config = this.leerConfig();
+      if (!config.enabled) {
+        console.log(
+          "[ConfigService] ⚠️ Config deshabilitada, saltando verificación con DB"
+        );
+        return;
+      }
+
+      const planesDB: Plan[] = databaseService.obtenerPlanes();
+      const planesConfig = config.planes_disponibles || {};
+
+      console.log(
+        `[ConfigService] 🔍 Verificando consistencia: ${
+          planesDB.length
+        } planes en DB, ${Object.keys(planesConfig).length} en config`
+      );
+
+      // Verificar que todos los planes activos en DB estén en config
+      const planesFaltantesEnConfig = planesDB
+        .filter((plan: Plan) => plan.activo)
+        .filter((plan: Plan) => !planesConfig[plan.id.toString()]);
+
+      if (planesFaltantesEnConfig.length > 0) {
+        console.warn(
+          "[ConfigService] ⚠️ Planes activos en DB pero no en config:"
+        );
+        planesFaltantesEnConfig.forEach((plan: Plan) => {
+          console.warn(`  - Plan ${plan.id}: ${plan.nombre}`);
+        });
+      }
+
+      // Verificar que todos los planes en config existan en DB
+      const planesFaltantesEnDB = Object.keys(planesConfig).filter(
+        (id) => !planesDB.find((plan: Plan) => plan.id.toString() === id)
+      );
+
+      if (planesFaltantesEnDB.length > 0) {
+        console.warn("[ConfigService] ⚠️ Planes en config pero no en DB:");
+        planesFaltantesEnDB.forEach((id) => {
+          console.warn(`  - Plan ${id}: ${planesConfig[id]}`);
+        });
+      }
+
+      if (
+        planesFaltantesEnConfig.length === 0 &&
+        planesFaltantesEnDB.length === 0
+      ) {
+        console.log(
+          "[ConfigService] ✅ Consistencia entre config y DB verificada"
+        );
+      }
+    } catch (error: any) {
+      console.error(
+        "[ConfigService] ❌ Error verificando consistencia con DB:",
+        error.message
+      );
+    }
   }
 }
 

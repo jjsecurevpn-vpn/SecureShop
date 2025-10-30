@@ -8,7 +8,7 @@
     "titulo": "Conecta sin Límites",
     "descripcion": "Planes flexibles y velocidad premium para tu estilo de vida digital",
     "promocion": {
-      "habilitada": true,
+      "habilitada": false,
       "texto": "⚡ PROMOCIÓN ESPECIAL - 20% OFF EN TODOS LOS PLANES",
       "borderColor": "border-rose-500/40",
       "bgColor": "bg-slate-900/60",
@@ -98,7 +98,7 @@
     "80": { "precio": 12000 }
   },
   "promo_config": {
-    "activa": true,
+    "activa": false,
     "activada_en": "2025-10-27T19:50:00Z",
     "duracion_horas": 24,
     "auto_desactivar": true,

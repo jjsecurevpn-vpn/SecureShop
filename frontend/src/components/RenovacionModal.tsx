@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   X,
   Search,
@@ -6,17 +6,17 @@ import {
   AlertCircle,
   CheckCircle,
   Loader2,
+  ChevronRight,
 } from "lucide-react";
-import { useEffect } from "react";
-import { apiService } from "../services/api.service";
 import { Plan } from "../types";
+import { apiService } from "../services/api.service";
 
 interface RenovacionModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type Paso = "buscar" | "seleccionar" | "checkout";
+type Paso = "buscar" | "seleccionar";
 
 interface CuentaEncontrada {
   tipo: "cliente" | "revendedor";
@@ -54,6 +54,7 @@ export default function RenovacionModal({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      cargarPlanes();
     } else {
       document.body.style.overflow = "unset";
     }
@@ -62,19 +63,13 @@ export default function RenovacionModal({
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    if (isOpen) {
-      cargarPlanes();
-    }
-  }, [isOpen]);
-
   const cargarPlanes = async () => {
     try {
-      const planesObtenidos = await apiService.obtenerPlanes();
-      setPlanes(planesObtenidos);
-    } catch (err: any) {
-      console.error("Error cargando planes:", err);
-      // En caso de error, usar precios por defecto
+      const p = await apiService.obtenerPlanes();
+      setPlanes(p);
+    } catch (err) {
+      console.error("Error obteniendo planes:", err);
+      setPlanes([]);
     }
   };
 
@@ -82,7 +77,7 @@ export default function RenovacionModal({
 
   const buscarCuenta = async () => {
     if (!busqueda.trim()) {
-      setError("Por favor ingresa un email o username");
+      setError("Ingresa un email o username");
       return;
     }
 
@@ -120,7 +115,7 @@ export default function RenovacionModal({
 
   const procesarRenovacion = async () => {
     if (!cuenta || !nombreCliente.trim() || !emailCliente.trim()) {
-      setError("Por favor completa todos los campos");
+      setError("Completa todos los campos");
       return;
     }
 
@@ -132,42 +127,20 @@ export default function RenovacionModal({
         cuenta.tipo === "cliente"
           ? "/api/renovacion/cliente"
           : "/api/renovacion/revendedor";
-
       const body: any = {
         busqueda: busqueda.trim(),
         dias: diasSeleccionados,
-        precio: calcularPrecio(), // Enviar precio calculado correctamente
+        precio: calcularPrecio(),
         clienteEmail: emailCliente.trim(),
         clienteNombre: nombreCliente.trim(),
       };
 
-      // Si hay cambio de dispositivos (y es diferente al actual), incluirlo
       if (cuenta.tipo === "cliente" && dispositivosSeleccionados !== null) {
         const limiteActual = cuenta.datos.connection_limit || 1;
-        console.log(
-          "[DEBUG] Límite actual:",
-          limiteActual,
-          "| Límite seleccionado:",
-          dispositivosSeleccionados
-        );
         if (dispositivosSeleccionados !== limiteActual) {
           body.nuevoConnectionLimit = dispositivosSeleccionados;
-          console.log(
-            "[DEBUG] ✅ Enviando nuevoConnectionLimit:",
-            dispositivosSeleccionados
-          );
-        } else {
-          console.log(
-            "[DEBUG] ⚠️ No se envía nuevoConnectionLimit (son iguales)"
-          );
         }
-      } else {
-        console.log(
-          "[DEBUG] dispositivosSeleccionados es null, no se envía cambio de límite"
-        );
       }
-
-      console.log("[DEBUG] Body a enviar:", JSON.stringify(body, null, 2));
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -181,7 +154,6 @@ export default function RenovacionModal({
         throw new Error(data.error || "Error al procesar la renovación");
       }
 
-      // Redirigir a MercadoPago
       window.location.href = data.linkPago;
     } catch (err: any) {
       setError(err.message || "Error al procesar la renovación");
@@ -191,25 +163,16 @@ export default function RenovacionModal({
 
   const calcularPrecio = () => {
     if (!cuenta) return 0;
-
     const connectionLimit =
       dispositivosSeleccionados || cuenta.datos.connection_limit || 1;
-
-    // Buscar el plan correspondiente en la lista de planes
     const planEncontrado = planes.find(
       (plan) =>
         plan.dias === diasSeleccionados &&
         plan.connection_limit === connectionLimit
     );
-
-    // Si encontramos el plan, usar su precio, sino usar cálculo proporcional
-    if (planEncontrado) {
-      return planEncontrado.precio;
-    }
-
-    // Fallback: cálculo proporcional si no se encuentra el plan exacto
-    const precioBase = connectionLimit * 1000; // Precio base aproximado
-    const factorDias = diasSeleccionados / 7; // Factor relativo a 7 días
+    if (planEncontrado) return planEncontrado.precio;
+    const precioBase = connectionLimit * 1000;
+    const factorDias = diasSeleccionados / 7;
     return Math.round(precioBase * factorDias);
   };
 
@@ -229,81 +192,88 @@ export default function RenovacionModal({
     onClose();
   };
 
+  const preciosPorDia: { [key: number]: number } = {
+    1: 500,
+    2: 833,
+    3: 1166,
+    4: 1500,
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-hidden">
-      <div className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] border border-gray-800/60 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 pt-20">
+      <div className="bg-neutral-900 rounded-lg shadow-2xl max-w-2xl w-full max-h-[70vh] border border-neutral-800 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-b from-gray-900 to-gray-900 border-b border-gray-800/60 p-6 flex items-center justify-between flex-shrink-0">
+        <div className="border-b border-neutral-800 p-6 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
               <RefreshCw className="w-5 h-5 text-purple-400" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">
-                Renovar o Actualizar Cuenta
+              <h2 className="text-lg font-bold text-neutral-200">
+                Renovar o Actualizar
               </h2>
-              <p className="text-xs text-gray-400">
-                {paso === "buscar" && "Busca tu cuenta por email o username"}
-                {paso === "seleccionar" && "Selecciona los días a agregar"}
-                {paso === "checkout" && "Confirma tu renovación"}
+              <p className="text-xs text-neutral-500">
+                {paso === "buscar"
+                  ? "Busca tu cuenta por email o username"
+                  : "Selecciona los días a agregar"}
               </p>
             </div>
           </div>
           <button
             onClick={cerrar}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-neutral-400 hover:text-neutral-200 transition-colors"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Contenido */}
-        <div className="p-6 space-y-4 overflow-y-auto flex-1">
-          {/* Error Message */}
+        {/* Content */}
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
+          {/* Error */}
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex items-start gap-3">
-              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-              <p className="text-red-400 text-xs">{error}</p>
+            <div className="bg-red-900/20 border border-red-800/50 rounded-lg p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <p className="text-sm text-red-200">{error}</p>
             </div>
           )}
 
-          {/* Paso 1: Buscar */}
+          {/* Step 1: Search */}
           {paso === "buscar" && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                <label className="block text-sm font-medium text-neutral-300 mb-2">
                   Email o Username
                 </label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
                   <input
                     type="text"
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && buscarCuenta()}
                     placeholder="ejemplo@email.com o username123"
-                    className="w-full pl-9 pr-4 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20"
+                    className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     disabled={buscando}
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1.5">
-                  Ingresa el email o username que usaste al comprar tu cuenta
+                <p className="text-xs text-neutral-500 mt-2">
+                  Ingresa el email o username que usaste al comprar
                 </p>
               </div>
 
               <button
                 onClick={buscarCuenta}
                 disabled={buscando || !busqueda.trim()}
-                className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold text-sm rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-neutral-700 disabled:text-neutral-500 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 {buscando ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     Buscando...
                   </>
                 ) : (
                   <>
-                    <Search className="w-4 h-4" />
+                    <Search className="w-5 h-5" />
                     Buscar Cuenta
                   </>
                 )}
@@ -311,28 +281,28 @@ export default function RenovacionModal({
             </div>
           )}
 
-          {/* Paso 2: Seleccionar días */}
+          {/* Step 2: Select */}
           {paso === "seleccionar" && cuenta && (
-            <div className="space-y-4">
-              {/* Info de la cuenta encontrada */}
-              <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-3">
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                  <div className="text-xs space-y-1">
-                    <p className="text-purple-300 font-semibold">
+            <div className="space-y-6">
+              {/* Account Found */}
+              <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-purple-300">
                       ¡Cuenta encontrada!
                     </p>
-                    <div className="text-gray-300 space-y-0.5">
+                    <div className="text-sm text-neutral-300 space-y-1">
                       <div>
-                        <span className="text-gray-500">Tipo:</span>{" "}
+                        <span className="text-neutral-500">Tipo:</span>{" "}
                         <span className="font-medium">
                           {cuenta.tipo === "cliente"
                             ? "Cliente VPN"
-                            : "Cuenta Revendedor"}
+                            : "Revendedor"}
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-500">Username:</span>{" "}
+                        <span className="text-neutral-500">Username:</span>{" "}
                         <span className="font-medium">
                           {cuenta.datos.servex_username}
                         </span>
@@ -340,135 +310,101 @@ export default function RenovacionModal({
                       {cuenta.tipo === "cliente" &&
                         cuenta.datos.connection_limit && (
                           <div>
-                            <span className="text-gray-500">Dispositivos:</span>{" "}
+                            <span className="text-neutral-500">
+                              Dispositivos:
+                            </span>{" "}
                             <span className="font-medium">
-                              {cuenta.datos.connection_limit}{" "}
-                              {cuenta.datos.connection_limit === 1
-                                ? "dispositivo"
-                                : "dispositivos"}
+                              {cuenta.datos.connection_limit}
                             </span>
                           </div>
                         )}
                       {cuenta.datos.plan_nombre && (
                         <div>
-                          <span className="text-gray-500">Plan actual:</span>{" "}
+                          <span className="text-neutral-500">Plan actual:</span>{" "}
                           <span className="font-medium">
                             {cuenta.datos.plan_nombre}
                           </span>
                         </div>
                       )}
-                      {cuenta.tipo === "revendedor" &&
-                        cuenta.datos.servex_account_type && (
-                          <div>
-                            <span className="text-gray-500">
-                              Tipo de cuenta:
-                            </span>{" "}
-                            <span className="font-medium">
-                              {cuenta.datos.servex_account_type === "validity"
-                                ? "Validez"
-                                : "Créditos"}
-                            </span>
-                          </div>
-                        )}
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Selector de días con opciones fijas */}
+              {/* Days Selector */}
               <div>
-                <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                <label className="block text-sm font-medium text-neutral-300 mb-3">
                   Días a agregar:{" "}
-                  <span className="text-purple-400 font-bold text-base">
+                  <span className="text-purple-400 font-bold text-lg">
                     {diasSeleccionados}
                   </span>
                 </label>
-                <div className="space-y-3">
-                  <p className="text-xs text-gray-500">
-                    Selecciona una duración fija:
-                  </p>
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                    {[3, 7, 15, 20, 25, 30].map((dias) => (
-                      <button
-                        key={dias}
-                        onClick={() => setDiasSeleccionados(dias)}
-                        className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                          diasSeleccionados === dias
-                            ? "bg-purple-500 text-white"
-                            : "bg-gray-800/50 text-gray-400 hover:bg-gray-800 border border-gray-700/50"
-                        }`}
-                      >
-                        {dias}d
-                      </button>
-                    ))}
-                  </div>
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  {[3, 7, 15, 20, 25, 30].map((dias) => (
+                    <button
+                      key={dias}
+                      onClick={() => setDiasSeleccionados(dias)}
+                      className={`py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                        diasSeleccionados === dias
+                          ? "bg-purple-600 text-white"
+                          : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700 border border-neutral-700"
+                      }`}
+                    >
+                      {dias}d
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Selector de dispositivos (solo para clientes) */}
+              {/* Devices Selector */}
               {cuenta.tipo === "cliente" && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                  <label className="block text-sm font-medium text-neutral-300 mb-3">
                     Dispositivos simultáneos
                   </label>
-                  <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-2.5 mb-2">
-                    <p className="text-xs text-gray-400">
+                  <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-3 mb-3">
+                    <p className="text-sm text-neutral-400">
                       Actual:{" "}
-                      <span className="text-white font-semibold">
+                      <span className="text-neutral-200 font-semibold">
                         {cuenta.datos.connection_limit || 1}
                       </span>
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[1, 2, 3, 4].map((dispositivos) => {
                       const esActual =
                         dispositivos === cuenta.datos.connection_limit;
                       const esSeleccionado =
                         dispositivosSeleccionados === dispositivos;
-
                       return (
                         <button
                           key={dispositivos}
                           onClick={() =>
                             setDispositivosSeleccionados(dispositivos)
                           }
-                          className={`p-2 sm:p-2.5 rounded-lg border-2 transition-all relative ${
+                          className={`p-4 rounded-lg border-2 transition-all relative ${
                             esSeleccionado
-                              ? "border-purple-500 bg-purple-500/10 text-white"
+                              ? "border-purple-500 bg-purple-500/10 text-neutral-200"
                               : esActual
-                              ? "border-purple-500/50 bg-purple-500/5 text-white"
-                              : "border-gray-700/50 bg-gray-800/40 text-gray-400 hover:border-gray-600"
+                              ? "border-purple-500/30 bg-purple-500/5 text-neutral-200"
+                              : "border-neutral-700 bg-neutral-800 text-neutral-400 hover:border-neutral-600"
                           }`}
                         >
                           {esActual && !esSeleccionado && (
-                            <span className="absolute -top-1.5 -right-1.5 bg-purple-500/80 text-white text-[10px] px-1.5 py-0.5 rounded-full leading-none">
+                            <span className="absolute -top-2 -right-2 bg-purple-500 text-white text-xs px-2 py-0.5 rounded-full">
                               Actual
                             </span>
                           )}
                           {esSeleccionado && (
-                            <span className="absolute -top-1.5 -right-1.5 bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded-full leading-none">
+                            <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full">
                               Nuevo
                             </span>
                           )}
-                          <p className="text-lg sm:text-xl font-bold">
+                          <p className="text-2xl font-bold mb-1">
                             {dispositivos}
                           </p>
-                          <p className="text-[10px] sm:text-xs mt-0.5 leading-tight">
-                            {dispositivos === 1 ? "disp." : "disp."}
-                          </p>
-                          <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 leading-tight">
-                            $
-                            {(() => {
-                              // Precios fijos por día para renovación
-                              const preciosPorDia: { [key: number]: string } = {
-                                1: "500",
-                                2: "833",
-                                3: "1166",
-                                4: "1500",
-                              };
-                              return preciosPorDia[dispositivos] || "500";
-                            })()}
-                            /d
+                          <p className="text-xs text-neutral-500">
+                            ${preciosPorDia[dispositivos]}/día
                           </p>
                         </button>
                       );
@@ -477,92 +413,87 @@ export default function RenovacionModal({
                 </div>
               )}
 
-              {/* Datos de contacto */}
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={nombreCliente}
-                  onChange={(e) => setNombreCliente(e.target.value)}
-                  placeholder="Nombre completo"
-                  className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20"
-                />
-
-                <input
-                  type="email"
-                  value={emailCliente}
-                  onChange={(e) => setEmailCliente(e.target.value)}
-                  placeholder="tu@email.com"
-                  className="w-full px-3 py-2.5 bg-gray-800/50 border border-gray-700/50 rounded-lg text-white placeholder-gray-500 text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20"
-                />
+              {/* Contact Info */}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    Nombre completo
+                  </label>
+                  <input
+                    type="text"
+                    value={nombreCliente}
+                    onChange={(e) => setNombreCliente(e.target.value)}
+                    placeholder="Tu nombre"
+                    className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={emailCliente}
+                    onChange={(e) => setEmailCliente(e.target.value)}
+                    placeholder="tu@email.com"
+                    className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
               </div>
 
-              {/* Resumen de precio */}
-              <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-3 space-y-2 text-sm">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Días a agregar:</span>
-                  <span className="text-white font-semibold">
-                    {diasSeleccionados}{" "}
-                    {diasSeleccionados === 1 ? "día" : "días"}
+              {/* Summary */}
+              <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-4 space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-neutral-400">Días a agregar:</span>
+                  <span className="text-neutral-200 font-semibold">
+                    {diasSeleccionados} días
                   </span>
                 </div>
                 {cuenta.tipo === "cliente" && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400">Dispositivos:</span>
-                    <span className="text-white font-semibold">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-neutral-400">Dispositivos:</span>
+                    <span className="text-neutral-200 font-semibold">
                       {dispositivosSeleccionados ||
                         cuenta.datos.connection_limit ||
-                        1}{" "}
-                      {(dispositivosSeleccionados ||
-                        cuenta.datos.connection_limit ||
-                        1) === 1
-                        ? "dispositivo"
-                        : "dispositivos"}
+                        1}
                       {dispositivosSeleccionados &&
                         dispositivosSeleccionados !==
                           cuenta.datos.connection_limit && (
                           <span className="ml-2 text-xs text-purple-400">
-                            (cambio de {cuenta.datos.connection_limit})
+                            (cambio)
                           </span>
                         )}
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Precio por día:</span>
-                  <span className="text-white font-semibold">
+                <div className="flex justify-between text-sm">
+                  <span className="text-neutral-400">Precio por día:</span>
+                  <span className="text-neutral-200 font-semibold">
                     $
-                    {(() => {
-                      const connectionLimit =
+                    {
+                      preciosPorDia[
                         dispositivosSeleccionados ||
-                        cuenta.datos.connection_limit ||
-                        1;
-                      // Precios fijos por día para renovación
-                      const preciosPorDia: { [key: number]: string } = {
-                        1: "500",
-                        2: "833",
-                        3: "1166",
-                        4: "1500",
-                      };
-                      return preciosPorDia[connectionLimit] || "500";
-                    })()}{" "}
-                    ARS
+                          cuenta.datos.connection_limit ||
+                          1
+                      ]
+                    }
                   </span>
                 </div>
-                <div className="border-t border-gray-700/50 pt-2">
+                <div className="border-t border-neutral-700 pt-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-white font-bold">Total:</span>
-                    <span className="text-purple-400 text-lg font-bold">
-                      ${calcularPrecio().toLocaleString("es-AR")} ARS
+                    <span className="text-neutral-200 font-bold">Total:</span>
+                    <span className="text-2xl font-bold text-purple-400">
+                      ${calcularPrecio().toLocaleString("es-AR")}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* Botones */}
+              {/* Actions */}
               <div className="flex gap-3">
                 <button
                   onClick={() => setPaso("buscar")}
-                  className="flex-1 py-2.5 bg-gray-800/50 text-gray-300 font-semibold text-sm rounded-lg hover:bg-gray-800 transition-colors border border-gray-700/50"
+                  className="flex-1 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold rounded-lg transition-colors border border-neutral-700"
                 >
                   Volver
                 </button>
@@ -571,15 +502,18 @@ export default function RenovacionModal({
                   disabled={
                     procesando || !nombreCliente.trim() || !emailCliente.trim()
                   }
-                  className="flex-1 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold text-sm rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-neutral-700 disabled:text-neutral-500 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   {procesando ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-5 h-5 animate-spin" />
                       Procesando...
                     </>
                   ) : (
-                    <>Continuar al Pago</>
+                    <>
+                      Continuar al Pago
+                      <ChevronRight className="w-4 h-4" />
+                    </>
                   )}
                 </button>
               </div>

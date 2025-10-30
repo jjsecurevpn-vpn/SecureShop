@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Shield, Zap, Globe, ArrowRight, Play, Users } from "lucide-react";
+import { Shield, Zap, Globe, ArrowRight, Users } from "lucide-react";
 import { useNoticias } from "../hooks/useNoticias";
 import DemoModal from "../components/DemoModal";
 
@@ -9,19 +9,12 @@ export default function HeroSection() {
   const { config } = useNoticias();
   const [isDemoOpen, setIsDemoOpen] = useState(false);
 
-  const goToPlans = () => {
-    navigate("/planes");
-  };
-
-  const goToResellers = () => {
-    navigate("/revendedores");
-  };
+  const goToPlans = () => navigate("/planes");
+  const goToResellers = () => navigate("/revendedores");
 
   const scrollToAbout = () => {
     const aboutSection = document.getElementById("about-section");
-    if (aboutSection) {
-      aboutSection.scrollIntoView({ behavior: "smooth" });
-    }
+    if (aboutSection) aboutSection.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -30,104 +23,111 @@ export default function HeroSection() {
 
       <section
         id="hero-section"
-        className="relative min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-purple-950 pt-16"
+        className="relative min-h-screen pt-16 overflow-hidden"
       >
-        {/* Aviso Global */}
+        {/* Efecto de luz sutil */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/5 blur-3xl rounded-full"></div>
+        {/* Aviso Global Minimalista */}
         {config?.aviso?.habilitado && (
-          <div className={`w-full py-3 text-center ${config.aviso.bgColor}`}>
-            <p
-              className={`font-bold text-sm md:text-base ${config.aviso.textColor}`}
-            >
-              {config.aviso.texto}
-            </p>
+          <div className="w-full pt-4 pb-2 px-4 text-center">
+            <div className="flex items-center justify-center gap-2 max-w-4xl mx-auto">
+              <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
+              <p className="text-xs text-white">{config.aviso.texto}</p>
+            </div>
           </div>
-        )}
-
+        )}{" "}
         {/* Contenido principal */}
-        <div className="relative container mx-auto px-4 pt-8 sm:pt-16 lg:pt-24 pb-16 sm:pb-20 flex flex-col lg:flex-row items-center justify-between min-h-screen">
-          {/* Lado izquierdo - Contenido textual */}
-          <div className="flex-1 text-center lg:text-left lg:pr-12 mb-8 lg:mb-0">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
-              JJSecure VPN
-            </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-purple-300 mb-4 sm:mb-6 font-medium">
-              Tu conexión segura y privada
-            </p>
-            <p className="text-base sm:text-lg text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              Protege tu privacidad en línea con la VPN más confiable. Navega
-              sin restricciones, accede a contenido global y mantén tus datos
-              seguros con nuestra tecnología de cifrado avanzada.
-            </p>
+        <div className="relative container mx-auto px-6 py-16 lg:py-20">
+          <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
+            {/* Contenido textual */}
+            <div className="space-y-6 text-center lg:text-left order-2 lg:order-1">
+              {/* Badge minimalista */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-800 border border-neutral-700">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                <span className="text-xs text-neutral-400">
+                  Protección empresarial
+                </span>
+              </div>
 
-            {/* Características destacadas */}
-            <div className="flex flex-wrap justify-center lg:justify-start gap-3 sm:gap-4 mb-6 sm:mb-8">
-              <div className="flex items-center gap-2 text-purple-300">
-                <Shield className="w-4 sm:w-5 h-4 sm:h-5" />
-                <span className="text-xs sm:text-sm font-medium">
-                  Cifrado Militar
-                </span>
+              {/* Título compacto */}
+              <div className="space-y-3">
+                <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight">
+                  JJSecure VPN
+                </h1>
+                <p className="text-sm text-neutral-400 max-w-md mx-auto lg:mx-0">
+                  Navega libre y seguro. Sin límites, sin rastreos.
+                </p>
               </div>
-              <div className="flex items-center gap-2 text-purple-300">
-                <Zap className="w-4 sm:w-5 h-4 sm:h-5" />
-                <span className="text-xs sm:text-sm font-medium">
-                  Ultra Rápido
-                </span>
+
+              {/* Features ultra-compactos */}
+              <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-xs">
+                <div className="flex items-center gap-1.5 text-neutral-400">
+                  <Shield className="w-3.5 h-3.5 text-purple-500" />
+                  <span>AES-256</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-neutral-400">
+                  <Zap className="w-3.5 h-3.5 text-green-500" />
+                  <span>Alta velocidad</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-neutral-400">
+                  <Globe className="w-3.5 h-3.5 text-purple-400" />
+                  <span>+50 países</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2 text-purple-300">
-                <Globe className="w-4 sm:w-5 h-4 sm:h-5" />
-                <span className="text-xs sm:text-sm font-medium">
-                  Servidores Globales
-                </span>
+
+              {/* CTA Buttons compactos */}
+              <div className="flex flex-col sm:flex-row gap-2 justify-center lg:justify-start pt-2">
+                <button
+                  onClick={goToPlans}
+                  className="group px-6 py-2.5 bg-purple-600 hover:bg-purple-500 rounded-lg text-sm font-medium text-white transition-colors"
+                >
+                  <span className="flex items-center justify-center gap-1.5">
+                    Ver Planes
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setIsDemoOpen(true)}
+                  className="px-6 py-2.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm font-medium text-white transition-colors"
+                >
+                  🎁 Prueba Gratis
+                </button>
+              </div>
+
+              {/* Links secundarios */}
+              <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2 text-xs">
+                <button
+                  onClick={goToResellers}
+                  className="flex items-center gap-1.5 text-neutral-500 hover:text-purple-400 transition-colors"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Revendedores</span>
+                </button>
+                <button
+                  onClick={scrollToAbout}
+                  className="text-neutral-500 hover:text-purple-400 transition-colors"
+                >
+                  ¿Cómo funciona?
+                </button>
               </div>
             </div>
 
-            {/* Botones de acción */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
-              <button
-                onClick={goToPlans}
-                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 sm:py-4 px-6 sm:px-8 rounded-xl flex items-center justify-center gap-3 transition-all duration-200 hover:shadow-lg hover:shadow-purple-500/30"
-              >
-                <Shield className="w-4 sm:w-5 h-4 sm:h-5" />
-                <span className="text-sm sm:text-base">Ver Planes</span>
-                <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5" />
-              </button>
+            {/* Imagen del dispositivo */}
+            <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end">
+              <div className="relative">
+                {/* Glow sutil */}
+                <div className="absolute inset-0 bg-purple-600/20 blur-3xl rounded-full" />
 
-              <button
-                onClick={() => setIsDemoOpen(true)}
-                className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold py-3 sm:py-4 px-6 sm:px-8 rounded-xl flex items-center justify-center gap-3 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/30"
-              >
-                <span className="text-sm sm:text-base">🎁 Prueba Gratis</span>
-                <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5" />
-              </button>
-
-              <button
-                onClick={goToResellers}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 sm:py-4 px-6 sm:px-8 rounded-xl flex items-center justify-center gap-3 transition-all duration-200 hover:shadow-lg hover:shadow-pink-500/30"
-              >
-                <Users className="w-4 sm:w-5 h-4 sm:h-5" />
-                <span className="text-sm sm:text-base">Revendedores</span>
-                <ArrowRight className="w-4 sm:w-5 h-4 sm:h-5" />
-              </button>
-
-              <button
-                onClick={scrollToAbout}
-                className="bg-white/10 hover:bg-white/20 border border-gray-800/60 text-white font-semibold py-3 sm:py-4 px-6 sm:px-8 rounded-xl flex items-center justify-center gap-3 transition-all duration-200 hover:border-purple-500/30"
-              >
-                <Play className="w-4 sm:w-5 h-4 sm:h-5 text-purple-300" />
-                <span className="text-sm sm:text-base">¿Cómo funciona?</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Lado derecho - Marco del celular */}
-          <div className="flex-1 flex justify-center lg:justify-end mt-8 lg:mt-0">
-            <div className="relative">
-              {/* Imagen de la aplicación */}
-              <img
-                src="/MarcoCelularSecure.png"
-                alt="JJSecure VPN App"
-                className="w-64 sm:w-72 md:w-80 lg:w-72 h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300"
-              />
+                {/* Device mockup */}
+                <div className="relative z-10">
+                  <img
+                    src="/MarcoCelularSecure.png"
+                    alt="JJSecure VPN"
+                    className="w-56 sm:w-64 lg:w-72 h-auto object-contain drop-shadow-xl"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -135,3 +135,4 @@ export default function HeroSection() {
     </>
   );
 }
+<Globe className="w-3.5 h-3.5 text-purple-400" />;
