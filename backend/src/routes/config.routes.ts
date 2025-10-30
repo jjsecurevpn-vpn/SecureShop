@@ -147,6 +147,33 @@ router.post("/sync-precios", (_req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/config/sync-precios-revendedores
+ * Sincroniza los precios de revendedores en la base de datos con `precios_normales` del config
+ */
+router.post("/sync-precios-revendedores", (_req: Request, res: Response) => {
+  try {
+    const result =
+      preciosSyncService.sincronizarPreciosRevendedoresDesdeConfig();
+
+    // Limpiar caché para que la app lea los nuevos valores
+    configService.limpiarCache();
+
+    return res.status(200).json({
+      success: true,
+      message: "Precios de revendedores sincronizados desde config - TEST",
+      data: result,
+    });
+  } catch (error: any) {
+    console.error("Error sincronizando precios revendedores:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Error sincronizando precios de revendedores",
+      detalles: error.message || String(error),
+    });
+  }
+});
+
+/**
  * GET /api/config/promo-status
  * Obtiene el estado actual de la promoción y tiempo restante
  */

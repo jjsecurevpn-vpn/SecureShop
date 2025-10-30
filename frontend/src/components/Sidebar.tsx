@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Users, CreditCard, Store, FileText, Shield } from "lucide-react";
 
 interface SidebarProps {
@@ -12,61 +12,56 @@ interface MenuItem {
   label: string;
   action: () => void;
   section: string;
+  path: string;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
   const location = useLocation();
-
-  const scrollToSection = (sectionId: string) => {
-    if (location.pathname !== "/") {
-      window.location.href = "/#" + sectionId;
-      return;
-    }
-
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-    onClose();
-  };
+  const [isHovered, setIsHovered] = useState(false);
 
   const menuItems: MenuItem[] = [
     {
       icon: Home,
       label: "Inicio",
-      action: () => (window.location.href = "/"),
+      action: () => navigate("/"),
       section: "main",
+      path: "/",
     },
     {
       icon: Users,
       label: "Sobre Nosotros",
-      action: () => scrollToSection("about-section"),
+      action: () => navigate("/sobre-nosotros"),
       section: "main",
+      path: "/sobre-nosotros",
     },
     {
       icon: CreditCard,
       label: "Planes",
-      action: () => (window.location.href = "/planes"),
+      action: () => navigate("/planes"),
       section: "main",
+      path: "/planes",
     },
     {
       icon: Store,
       label: "Revendedores",
-      action: () => (window.location.href = "/revendedores"),
+      action: () => navigate("/revendedores"),
       section: "main",
+      path: "/revendedores",
     },
     {
       icon: FileText,
       label: "Términos",
-      action: () => (window.location.href = "/terminos"),
+      action: () => navigate("/terminos"),
       section: "legal",
+      path: "/terminos",
     },
     {
       icon: Shield,
       label: "Privacidad",
-      action: () => (window.location.href = "/privacidad"),
+      action: () => navigate("/privacidad"),
       section: "legal",
+      path: "/privacidad",
     },
   ];
 
@@ -84,7 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 bg-neutral-900 border-r border-neutral-800 transition-all duration-200 ease-out pt-14 ${
+        className={`fixed inset-y-0 left-0 z-50 bg-neutral-900 border-r border-neutral-800 pt-14 ${
           isOpen ? "block" : "hidden md:block"
         }`}
         style={{ width: isExpanded ? "208px" : "56px" }}
@@ -95,7 +90,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Menu Items */}
           {menuItems.map((item, index) => {
             const Icon = item.icon;
-            const isFirstItem = index === 0;
+            const isActive = location.pathname === item.path;
             const needsSeparator = index === 4; // Después de Revendedores
 
             return (
@@ -104,12 +99,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <div className="my-2 mx-0 border-t border-neutral-800" />
                 )}
                 <button
-                  onClick={item.action}
+                  onClick={() => {
+                    item.action();
+                    onClose();
+                  }}
                   className={`
                     flex items-center w-full h-9 mx-0 mb-1 px-3 rounded
-                    text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800
-                    transition-colors duration-150
-                    ${isFirstItem ? "text-neutral-200 bg-neutral-800" : ""}
+                    ${
+                      isActive
+                        ? "text-neutral-200 bg-neutral-800"
+                        : "text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800"
+                    }
                   `}
                 >
                   <div className="flex items-center justify-center w-5 h-5 flex-shrink-0">
@@ -117,7 +117,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   </div>
                   <span
                     className={`
-                      ml-3 text-sm whitespace-nowrap transition-opacity duration-200
+                      ml-3 text-sm whitespace-nowrap
                       ${isExpanded ? "opacity-100" : "opacity-0"}
                     `}
                     style={{
@@ -131,9 +131,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             );
           })}
 
-          {/* Toggle button at bottom */}
           <div className="mt-auto mb-2 mx-0">
-            <button className="flex items-center justify-center w-full h-9 px-3 rounded text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800 transition-colors duration-150">
+            <button className="flex items-center justify-center w-full h-9 px-3 rounded text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800">
               <div className="flex items-center justify-center w-5 h-5">
                 <div className="w-3 h-3 border border-current rounded" />
               </div>

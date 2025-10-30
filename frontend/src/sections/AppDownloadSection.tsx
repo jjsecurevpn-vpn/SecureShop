@@ -44,7 +44,7 @@ export default function AppDownloadSection() {
   ];
 
   return (
-    <section className="relative py-16 bg-neutral-900">
+    <section className="relative py-16">
       <div className="relative container mx-auto px-6 max-w-6xl">
         {/* Header compacto */}
         <div className="text-center mb-12">

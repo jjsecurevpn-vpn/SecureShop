@@ -16,6 +16,7 @@ import {
   Smartphone,
   Gauge,
   Sparkles,
+  Menu,
 } from "lucide-react";
 import CheckoutModal from "../components/CheckoutModal";
 import RenovacionModal from "../components/RenovacionModal";
@@ -32,8 +33,49 @@ export default function PlanesPage() {
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [mostrarRenovacion, setMostrarRenovacion] = useState(false);
   const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("3-días");
 
   const { totalUsers, onlineServers } = useServerStats(10000);
+
+  const planSections = [
+    {
+      id: "3-días",
+      label: "3 días",
+      subtitle: "Prueba rápida",
+      icon: <Timer className="w-4 h-4" />,
+    },
+    {
+      id: "7-días",
+      label: "7 días",
+      subtitle: "Ideal para probar",
+      icon: <Timer className="w-4 h-4" />,
+    },
+    {
+      id: "15-días",
+      label: "15 días",
+      subtitle: "Balance perfecto",
+      icon: <Zap className="w-4 h-4" />,
+    },
+    {
+      id: "20-días",
+      label: "20 días",
+      subtitle: "Duración media",
+      icon: <Zap className="w-4 h-4" />,
+    },
+    {
+      id: "25-días",
+      label: "25 días",
+      subtitle: "Casi mensual",
+      icon: <Star className="w-4 h-4" />,
+    },
+    {
+      id: "30-días",
+      label: "30 días",
+      subtitle: "Mejor valor",
+      icon: <Crown className="w-4 h-4" />,
+    },
+  ];
 
   useEffect(() => {
     cargarPlanes();
@@ -122,379 +164,458 @@ export default function PlanesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#181818] md:ml-14">
+    <div className="min-h-screen bg-[#181818]">
+      {/* Mobile Header */}
+      <div className="md:hidden bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between fixed top-12 left-0 right-0 z-30">
+        <h1 className="text-lg font-semibold text-white">Planes VPN</h1>
+
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="p-2 hover:bg-neutral-800 rounded-lg transition-colors"
+          aria-label="Abrir menú de navegación"
+        >
+          <Menu className="w-5 h-5 text-neutral-400" />
+        </button>
+      </div>
+
+      {/* Sidebar */}
+      <aside className="hidden lg:block w-72 border-r border-neutral-800 bg-neutral-900/50 fixed left-14 top-12 bottom-0 overflow-y-auto z-10 transition-all duration-300">
+        <div className="p-6 border-b border-neutral-800">
+          <h2 className="text-2xl font-bold text-white mb-2">Planes VPN</h2>
+          <p className="text-sm text-neutral-400">Elige tu plan</p>
+        </div>
+
+        <nav className="flex-1 p-4">
+          <ul className="space-y-1">
+            {planSections.map((section) => (
+              <li key={section.id}>
+                <button
+                  onClick={() => {
+                    setActiveSection(section.id);
+                    const element = document.getElementById(
+                      `plan-${section.id}`
+                    );
+                    if (element) {
+                      element.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      });
+                    }
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    activeSection === section.id
+                      ? "bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/10"
+                      : "text-neutral-400 hover:text-white hover:bg-neutral-800/50 border border-transparent"
+                  }`}
+                >
+                  {section.icon}
+                  <div className="text-left">
+                    <div>{section.label}</div>
+                    <div className="text-xs opacity-70">{section.subtitle}</div>
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </aside>
+
       <DemoModal isOpen={isDemoOpen} onClose={() => setIsDemoOpen(false)} />
 
-      {/* Hero Section */}
-      <section className="relative pt-24 pb-16 md:pt-32 md:pb-20">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-full px-4 py-2 mb-6">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">VPN Premium</span>
-            </div>
+      {/* Main Content */}
+      <main className="lg:ml-72">
+        {/* Hero Section */}
+        <section className="relative pt-32 pb-16 md:pt-32 md:pb-20">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-8">
+            <div className="max-w-3xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-full px-4 py-2 mb-6">
+                <Sparkles className="w-4 h-4" />
+                <span className="text-sm font-medium">VPN Premium</span>
+              </div>
 
-            <h1 className="text-4xl md:text-6xl font-bold text-neutral-200 mb-6">
-              Planes VPN Premium
-            </h1>
+              <h1 className="text-4xl md:text-6xl font-bold text-neutral-200 mb-6">
+                Planes VPN Premium
+              </h1>
 
-            <p className="text-lg text-neutral-400 mb-12">
-              Conecta de forma segura y privada. Elige el plan perfecto para ti.
-            </p>
+              <p className="text-lg text-neutral-400 mb-12">
+                Conecta de forma segura y privada. Elige el plan perfecto para
+                ti.
+              </p>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-              {[
-                {
-                  value: "99.9%",
-                  label: "Uptime",
-                  icon: <Signal className="w-4 h-4" />,
-                },
-                {
-                  value: "24/7",
-                  label: "Soporte",
-                  icon: <MessageCircle className="w-4 h-4" />,
-                },
-                {
-                  value: totalUsers > 0 ? `${totalUsers}+` : "...",
-                  label: "Usuarios",
-                  icon: <Users className="w-4 h-4" />,
-                },
-                {
-                  value: onlineServers > 0 ? onlineServers : "...",
-                  label: "Servidores",
-                  icon: <Shield className="w-4 h-4" />,
-                },
-              ].map((stat, i) => (
-                <div
-                  key={i}
-                  className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 hover:border-neutral-700 transition-colors"
+              {/* Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+                {[
+                  {
+                    value: "99.9%",
+                    label: "Uptime",
+                    icon: <Signal className="w-4 h-4" />,
+                  },
+                  {
+                    value: "24/7",
+                    label: "Soporte",
+                    icon: <MessageCircle className="w-4 h-4" />,
+                  },
+                  {
+                    value: totalUsers > 0 ? `${totalUsers}+` : "...",
+                    label: "Usuarios",
+                    icon: <Users className="w-4 h-4" />,
+                  },
+                  {
+                    value: onlineServers > 0 ? onlineServers : "...",
+                    label: "Servidores",
+                    icon: <Shield className="w-4 h-4" />,
+                  },
+                ].map((stat, i) => (
+                  <div
+                    key={i}
+                    className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 hover:border-neutral-700 transition-colors"
+                  >
+                    <div className="flex justify-center mb-2 text-purple-400">
+                      {stat.icon}
+                    </div>
+                    <div className="text-2xl font-bold text-neutral-200 mb-1">
+                      {stat.value}
+                    </div>
+                    <div className="text-xs text-neutral-500">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={() => setIsDemoOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold text-white transition-colors"
                 >
-                  <div className="flex justify-center mb-2 text-purple-400">
-                    {stat.icon}
+                  <Sparkles className="w-4 h-4" />
+                  Prueba gratis (2 horas)
+                </button>
+                <button
+                  onClick={() => setMostrarRenovacion(true)}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm font-semibold text-neutral-200 transition-colors"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Renovar plan
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Benefits Banner */}
+        <section className="pb-16">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-8">
+            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
+                <div className="flex items-center gap-2 font-semibold text-neutral-200">
+                  <Shield className="w-4 h-4 text-purple-400" />
+                  Todos los planes incluyen:
+                </div>
+                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-neutral-400">
+                  <span className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-purple-400" /> Velocidad
+                    ilimitada
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-purple-400" /> Cifrado
+                    seguro
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-purple-400" /> Soporte
+                    24/7
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Check className="w-3.5 h-3.5 text-purple-400" /> Activación
+                    instantánea
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Plans Section */}
+        <section className="pb-20">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-8">
+            <div className="space-y-12">
+              {groupedPlans.map((group) => (
+                <div
+                  key={group.title}
+                  id={`plan-${group.title.toLowerCase().replace(" ", "-")}`}
+                  className={`transition-all duration-500 ${
+                    activeSection ===
+                    group.title.toLowerCase().replace(" ", "-")
+                      ? "ring-2 ring-purple-500/30 rounded-lg p-2 md:p-4 bg-purple-500/5"
+                      : ""
+                  }`}
+                >
+                  {/* Group Header */}
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`p-2 rounded-lg border ${group.accent}`}>
+                        <div className={group.accentText}>{group.icon}</div>
+                      </div>
+                      <div>
+                        <h2
+                          className={`text-2xl font-bold flex items-center gap-2 transition-colors duration-300 ${
+                            activeSection ===
+                            group.title.toLowerCase().replace(" ", "-")
+                              ? "text-purple-300"
+                              : "text-neutral-200"
+                          }`}
+                        >
+                          {group.title}
+                          {group.recommended && (
+                            <span className="text-xs font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-1 rounded-full">
+                              <Star className="w-3 h-3 inline mr-1" />
+                              Recomendado
+                            </span>
+                          )}
+                        </h2>
+                        <p className="text-sm text-neutral-500">
+                          {group.subtitle}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-2xl font-bold text-neutral-200 mb-1">
-                    {stat.value}
+
+                  {/* Plans List */}
+                  <div className="space-y-3">
+                    {group.items.map((plan) => (
+                      <div
+                        key={plan.id}
+                        className={`bg-neutral-900 border rounded-lg overflow-hidden transition-all ${
+                          plan.popular
+                            ? "border-purple-500/50"
+                            : "border-neutral-800 hover:border-neutral-700"
+                        }`}
+                      >
+                        {/* Plan Header - Clickable */}
+                        <button
+                          onClick={() => togglePlan(plan.id)}
+                          className="w-full px-6 py-4 flex items-center justify-between hover:bg-neutral-800/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-4">
+                            {plan.popular && (
+                              <span className="text-xs font-semibold bg-purple-500/10 border border-purple-500/20 text-purple-400 px-2 py-1 rounded-full flex items-center gap-1">
+                                <Crown className="w-3 h-3" />
+                                Popular
+                              </span>
+                            )}
+                            <div className="text-left">
+                              <div className="text-sm font-semibold text-neutral-200">
+                                {plan.connection_limit}{" "}
+                                {plan.connection_limit === 1
+                                  ? "Login"
+                                  : "Logins"}
+                              </div>
+                              <div className="text-xs text-neutral-500">
+                                {plan.connection_limit} dispositivo
+                                {plan.connection_limit !== 1 ? "s" : ""}{" "}
+                                simultáneo
+                                {plan.connection_limit !== 1 ? "s" : ""}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-neutral-200">
+                                ${plan.precio.toLocaleString()}
+                              </div>
+                              <div className="text-xs text-neutral-500">
+                                ${(plan.precio / plan.dias).toFixed(0)}/día
+                              </div>
+                            </div>
+                            <ChevronRight
+                              className={`w-5 h-5 text-neutral-400 transition-transform ${
+                                expandedPlanId === plan.id ? "rotate-90" : ""
+                              }`}
+                            />
+                          </div>
+                        </button>
+
+                        {/* Expanded Content */}
+                        {expandedPlanId === plan.id && (
+                          <div className="border-t border-neutral-800 bg-neutral-900/50">
+                            <div className="p-6 space-y-6">
+                              {/* Features Grid */}
+                              <div>
+                                <h4 className="text-sm font-semibold text-neutral-200 mb-3">
+                                  ¿Qué incluye este plan?
+                                </h4>
+                                <div className="grid md:grid-cols-2 gap-3">
+                                  <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                    <Timer className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                    <span>
+                                      <strong>{plan.dias} días</strong> de
+                                      acceso completo
+                                    </span>
+                                  </div>
+                                  <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                    <Smartphone className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                    <span>
+                                      <strong>
+                                        {plan.connection_limit} dispositivo
+                                        {plan.connection_limit !== 1 ? "s" : ""}
+                                      </strong>{" "}
+                                      simultáneamente
+                                    </span>
+                                  </div>
+                                  <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                    <Wifi className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                    <span>
+                                      <strong>Velocidad ilimitada</strong> sin
+                                      restricciones
+                                    </span>
+                                  </div>
+                                  <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                    <Gauge className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                    <span>
+                                      <strong>Todos los servidores</strong>{" "}
+                                      disponibles
+                                    </span>
+                                  </div>
+                                  <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                    <Shield className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                    <span>
+                                      <strong>Cifrado militar</strong> seguridad
+                                      máxima
+                                    </span>
+                                  </div>
+                                  <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                    <MessageCircle className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                                    <span>
+                                      <strong>Soporte prioritario</strong> 24/7
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Value Box */}
+                              <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-neutral-400">
+                                    Costo diario:
+                                  </span>
+                                  <span className="text-xl font-bold text-emerald-400">
+                                    ${(plan.precio / plan.dias).toFixed(2)}/día
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Description */}
+                              <div className="bg-neutral-800/30 border border-neutral-700 rounded-lg p-4">
+                                <p className="text-sm text-neutral-400 leading-relaxed">
+                                  {plan.dias === 3 &&
+                                    "Ideal para testing rápido o uso muy corto. Perfecto para verificar la calidad del servicio."}
+                                  {plan.dias === 7 &&
+                                    "Perfecto para probar sin riesgo. Acceso completo a todas las funciones premium."}
+                                  {plan.dias === 15 &&
+                                    "El equilibrio perfecto entre duración y precio. Excelente relación calidad-precio."}
+                                  {plan.dias === 20 &&
+                                    "Duración intermedia excelente. Más económico que el plan mensual pero suficiente para la mayoría."}
+                                  {plan.dias === 25 &&
+                                    "Casi mensual pero más conveniente. El mejor precio por día entre las opciones disponibles."}
+                                  {plan.dias === 30 &&
+                                    "El mejor valor del mercado. Un mes completo para usuarios regulares que buscan el máximo ahorro."}
+                                </p>
+                              </div>
+
+                              {/* CTA Button */}
+                              <button
+                                onClick={() => setPlanSeleccionado(plan)}
+                                className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                              >
+                                Comprar ahora
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-xs text-neutral-500">{stat.label}</div>
                 </div>
               ))}
             </div>
-
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button
-                onClick={() => setIsDemoOpen(true)}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold text-white transition-colors"
-              >
-                <Sparkles className="w-4 h-4" />
-                Prueba gratis (2 horas)
-              </button>
-              <button
-                onClick={() => setMostrarRenovacion(true)}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm font-semibold text-neutral-200 transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Renovar plan
-              </button>
-            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Benefits Banner */}
-      <section className="pb-16">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-8">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-            <div className="flex flex-col md:flex-row md:items-center gap-4">
-              <div className="flex items-center gap-2 font-semibold text-neutral-200">
-                <Shield className="w-4 h-4 text-purple-400" />
-                Todos los planes incluyen:
-              </div>
-              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-neutral-400">
-                <span className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-purple-400" /> Velocidad
-                  ilimitada
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-purple-400" /> Cifrado
-                  seguro
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-purple-400" /> Soporte 24/7
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-purple-400" /> Activación
-                  instantánea
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Plans Section */}
-      <section className="pb-20">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-8">
-          <div className="space-y-12">
-            {groupedPlans.map((group) => (
-              <div key={group.title}>
-                {/* Group Header */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className={`p-2 rounded-lg border ${group.accent}`}>
-                      <div className={group.accentText}>{group.icon}</div>
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-neutral-200 flex items-center gap-2">
-                        {group.title}
-                        {group.recommended && (
-                          <span className="text-xs font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-1 rounded-full">
-                            <Star className="w-3 h-3 inline mr-1" />
-                            Recomendado
-                          </span>
-                        )}
-                      </h2>
-                      <p className="text-sm text-neutral-500">
-                        {group.subtitle}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Plans List */}
-                <div className="space-y-3">
-                  {group.items.map((plan) => (
-                    <div
-                      key={plan.id}
-                      className={`bg-neutral-900 border rounded-lg overflow-hidden transition-all ${
-                        plan.popular
-                          ? "border-purple-500/50"
-                          : "border-neutral-800 hover:border-neutral-700"
-                      }`}
-                    >
-                      {/* Plan Header - Clickable */}
-                      <button
-                        onClick={() => togglePlan(plan.id)}
-                        className="w-full px-6 py-4 flex items-center justify-between hover:bg-neutral-800/50 transition-colors"
-                      >
-                        <div className="flex items-center gap-4">
-                          {plan.popular && (
-                            <span className="text-xs font-semibold bg-purple-500/10 border border-purple-500/20 text-purple-400 px-2 py-1 rounded-full flex items-center gap-1">
-                              <Crown className="w-3 h-3" />
-                              Popular
-                            </span>
-                          )}
-                          <div className="text-left">
-                            <div className="text-sm font-semibold text-neutral-200">
-                              {plan.connection_limit}{" "}
-                              {plan.connection_limit === 1 ? "Login" : "Logins"}
-                            </div>
-                            <div className="text-xs text-neutral-500">
-                              {plan.connection_limit} dispositivo
-                              {plan.connection_limit !== 1 ? "s" : ""}{" "}
-                              simultáneo{plan.connection_limit !== 1 ? "s" : ""}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-neutral-200">
-                              ${plan.precio.toLocaleString()}
-                            </div>
-                            <div className="text-xs text-neutral-500">
-                              ${(plan.precio / plan.dias).toFixed(0)}/día
-                            </div>
-                          </div>
-                          <ChevronRight
-                            className={`w-5 h-5 text-neutral-400 transition-transform ${
-                              expandedPlanId === plan.id ? "rotate-90" : ""
-                            }`}
-                          />
-                        </div>
-                      </button>
-
-                      {/* Expanded Content */}
-                      {expandedPlanId === plan.id && (
-                        <div className="border-t border-neutral-800 bg-neutral-900/50">
-                          <div className="p-6 space-y-6">
-                            {/* Features Grid */}
-                            <div>
-                              <h4 className="text-sm font-semibold text-neutral-200 mb-3">
-                                ¿Qué incluye este plan?
-                              </h4>
-                              <div className="grid md:grid-cols-2 gap-3">
-                                <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                  <Timer className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                                  <span>
-                                    <strong>{plan.dias} días</strong> de acceso
-                                    completo
-                                  </span>
-                                </div>
-                                <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                  <Smartphone className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                                  <span>
-                                    <strong>
-                                      {plan.connection_limit} dispositivo
-                                      {plan.connection_limit !== 1 ? "s" : ""}
-                                    </strong>{" "}
-                                    simultáneamente
-                                  </span>
-                                </div>
-                                <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                  <Wifi className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                                  <span>
-                                    <strong>Velocidad ilimitada</strong> sin
-                                    restricciones
-                                  </span>
-                                </div>
-                                <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                  <Gauge className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                                  <span>
-                                    <strong>Todos los servidores</strong>{" "}
-                                    disponibles
-                                  </span>
-                                </div>
-                                <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                  <Shield className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                                  <span>
-                                    <strong>Cifrado militar</strong> seguridad
-                                    máxima
-                                  </span>
-                                </div>
-                                <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                  <MessageCircle className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
-                                  <span>
-                                    <strong>Soporte prioritario</strong> 24/7
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Value Box */}
-                            <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-neutral-400">
-                                  Costo diario:
-                                </span>
-                                <span className="text-xl font-bold text-emerald-400">
-                                  ${(plan.precio / plan.dias).toFixed(2)}/día
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Description */}
-                            <div className="bg-neutral-800/30 border border-neutral-700 rounded-lg p-4">
-                              <p className="text-sm text-neutral-400 leading-relaxed">
-                                {plan.dias === 3 &&
-                                  "Ideal para testing rápido o uso muy corto. Perfecto para verificar la calidad del servicio."}
-                                {plan.dias === 7 &&
-                                  "Perfecto para probar sin riesgo. Acceso completo a todas las funciones premium."}
-                                {plan.dias === 15 &&
-                                  "El equilibrio perfecto entre duración y precio. Excelente relación calidad-precio."}
-                                {plan.dias === 20 &&
-                                  "Duración intermedia excelente. Más económico que el plan mensual pero suficiente para la mayoría."}
-                                {plan.dias === 25 &&
-                                  "Casi mensual pero más conveniente. El mejor precio por día entre las opciones disponibles."}
-                                {plan.dias === 30 &&
-                                  "El mejor valor del mercado. Un mes completo para usuarios regulares que buscan el máximo ahorro."}
-                              </p>
-                            </div>
-
-                            {/* CTA Button */}
-                            <button
-                              onClick={() => setPlanSeleccionado(plan)}
-                              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
-                            >
-                              Comprar ahora
-                              <ChevronRight className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Support Section */}
-      <section className="py-20 bg-neutral-900/50">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-neutral-200 mb-3">
-              Soporte 24/7
-            </h2>
-            <p className="text-neutral-400">
-              Estamos disponibles para ayudarte
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            <a
-              href="https://t.me/+rAuU1_uHGZthMWZh"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-lg p-8 text-center transition-all"
-            >
-              <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-6 h-6 text-purple-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-neutral-200 mb-2">
-                Telegram
-              </h3>
-              <p className="text-sm text-neutral-400 mb-4">
-                Respuesta inmediata
+        {/* Support Section */}
+        <section className="py-20 bg-neutral-900/50">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-neutral-200 mb-3">
+                Soporte 24/7
+              </h2>
+              <p className="text-neutral-400">
+                Estamos disponibles para ayudarte
               </p>
-              <span className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:gap-3 transition-all">
-                Contactar <ChevronRight className="w-4 h-4" />
-              </span>
-            </a>
+            </div>
 
-            <a
-              href="https://chat.whatsapp.com/LU16SUptp4xFQ4zTNta7Ja"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-lg p-8 text-center transition-all"
-            >
-              <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Phone className="w-6 h-6 text-purple-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-neutral-200 mb-2">
-                WhatsApp
-              </h3>
-              <p className="text-sm text-neutral-400 mb-4">
-                Ayuda especializada
-              </p>
-              <span className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:gap-3 transition-all">
-                Unirse <ChevronRight className="w-4 h-4" />
-              </span>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Error Toast */}
-      {error && (
-        <div className="fixed bottom-4 right-4 z-50 max-w-md">
-          <div className="bg-red-900/20 border border-red-800/50 rounded-lg p-4 backdrop-blur-sm">
-            <div className="flex items-start gap-3">
-              <div className="text-red-400">⚠️</div>
-              <p className="text-sm text-red-200 flex-1">{error}</p>
-              <button
-                onClick={() => setError(null)}
-                className="text-red-400 hover:text-red-300 transition-colors"
+            <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+              <a
+                href="https://t.me/+rAuU1_uHGZthMWZh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-lg p-8 text-center transition-all"
               >
-                ×
-              </button>
+                <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <MessageCircle className="w-6 h-6 text-purple-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-neutral-200 mb-2">
+                  Telegram
+                </h3>
+                <p className="text-sm text-neutral-400 mb-4">
+                  Respuesta inmediata
+                </p>
+                <span className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:gap-3 transition-all">
+                  Contactar <ChevronRight className="w-4 h-4" />
+                </span>
+              </a>
+
+              <a
+                href="https://chat.whatsapp.com/LU16SUptp4xFQ4zTNta7Ja"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-lg p-8 text-center transition-all"
+              >
+                <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Phone className="w-6 h-6 text-purple-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-neutral-200 mb-2">
+                  WhatsApp
+                </h3>
+                <p className="text-sm text-neutral-400 mb-4">
+                  Ayuda especializada
+                </p>
+                <span className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:gap-3 transition-all">
+                  Unirse <ChevronRight className="w-4 h-4" />
+                </span>
+              </a>
             </div>
           </div>
-        </div>
-      )}
+        </section>
+
+        {/* Error Toast */}
+        {error && (
+          <div className="fixed bottom-4 right-4 z-50 max-w-md">
+            <div className="bg-red-900/20 border border-red-800/50 rounded-lg p-4 backdrop-blur-sm">
+              <div className="flex items-start gap-3">
+                <div className="text-red-400">⚠️</div>
+                <p className="text-sm text-red-200 flex-1">{error}</p>
+                <button
+                  onClick={() => setError(null)}
+                  className="text-red-400 hover:text-red-300 transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
 
       {/* Modals */}
       {planSeleccionado && (
@@ -509,6 +630,71 @@ export default function PlanesPage() {
         isOpen={mostrarRenovacion}
         onClose={() => setMostrarRenovacion(false)}
       />
+
+      {/* Mobile Bottom Sheet */}
+      <>
+        {/* Backdrop */}
+        {isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Bottom Sheet */}
+        <div
+          className={`fixed bottom-0 left-0 right-0 bg-neutral-900 text-white z-50 transform transition-transform duration-300 ease-in-out lg:hidden ${
+            isMobileMenuOpen ? "translate-y-0" : "translate-y-full"
+          } max-h-[80vh] rounded-t-lg overflow-hidden`}
+        >
+          {/* Header */}
+          <div className="p-4 border-b border-neutral-700 flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-semibold">Planes VPN</h2>
+              <p className="text-sm text-gray-400">Elige tu duración</p>
+            </div>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-gray-400 hover:text-white p-2"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Navigation Items */}
+          <div className="flex-1 overflow-y-auto max-h-[60vh]">
+            {planSections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => {
+                  setActiveSection(section.id);
+                  const element = document.getElementById(`plan-${section.id}`);
+                  if (element) {
+                    element.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                    });
+                  }
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center gap-3 px-4 py-4 border-b border-neutral-800/30 ${
+                  activeSection === section.id
+                    ? "bg-purple-600/10 border-l-4 border-purple-500"
+                    : "hover:bg-neutral-800"
+                }`}
+              >
+                {section.icon}
+                <div className="text-left">
+                  <div className="font-medium">{section.label}</div>
+                  <div className="text-xs text-gray-400">
+                    {section.subtitle}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </>
     </div>
   );
 }

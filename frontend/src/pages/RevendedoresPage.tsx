@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Users,
-  Shield,
   Star,
   Check,
   MessageCircle,
@@ -13,6 +12,8 @@ import {
   Zap,
   Gift,
   TrendingUp,
+  Menu,
+  ChevronDown,
 } from "lucide-react";
 import CheckoutModalRevendedor from "../components/CheckoutModalRevendedor";
 import RenovacionModalRevendedor from "../components/RenovacionModalRevendedor";
@@ -28,6 +29,11 @@ export default function RevendedoresPage() {
   const [planes, setPlanes] = useState<PlanRevendedor[]>([]);
   const [mostrarRenovacion, setMostrarRenovacion] = useState(false);
   const [expandedPlanId, setExpandedPlanId] = useState<number | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("creditos");
+  const [expandedMenuSections, setExpandedMenuSections] = useState<string[]>(
+    []
+  );
 
   useEffect(() => {
     cargarPlanes();
@@ -50,6 +56,12 @@ export default function RevendedoresPage() {
     if (credits <= 20) return 3;
     if (credits <= 30) return 4;
     return 5;
+  };
+
+  // Función para extraer el número de usuarios del nombre del plan
+  const extractUsersFromName = (name: string) => {
+    const match = name.match(/^(\d+)\s+Usuarios?$/i);
+    return match ? parseInt(match[1]) : 1;
   };
 
   const togglePlan = (planId: number) => {
@@ -92,6 +104,77 @@ export default function RevendedoresPage() {
     },
   ];
 
+  // Secciones del menú de navegación generadas dinámicamente
+  const revendedorSections = useMemo(() => {
+    const sections: any[] = [];
+
+    groupedPlans.forEach((group) => {
+      const groupId = group.title.toLowerCase().replace(" ", "-");
+      const isExpanded = expandedMenuSections.includes(groupId);
+
+      // Agregar la sección principal del grupo
+      sections.push({
+        id: groupId,
+        label: group.title,
+        subtitle: group.subtitle,
+        icon: group.icon,
+        isGroup: true,
+        isExpanded,
+        onToggle: () => {
+          const wasExpanded = expandedMenuSections.includes(groupId);
+          setExpandedMenuSections((prev) =>
+            prev.includes(groupId)
+              ? prev.filter((id) => id !== groupId)
+              : [...prev, groupId]
+          );
+          setActiveSection(groupId); // Activar el grupo cuando se expande
+
+          // Si se está expandiendo (no estaba expandido antes), hacer scroll al grupo
+          if (!wasExpanded) {
+            setTimeout(() => {
+              const element = document.getElementById(`plan-${groupId}`);
+              if (element) {
+                element.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              }
+            }, 100); // Pequeño delay para que se complete la expansión
+          }
+        },
+      });
+
+      // Agregar los planes individuales si el grupo está expandido
+      if (isExpanded) {
+        group.items.forEach((plan) => {
+          sections.push({
+            id: `plan-${plan.id}`,
+            label:
+              plan.account_type === "credit"
+                ? `${plan.max_users} créditos`
+                : `${extractUsersFromName(plan.nombre)} usuarios`,
+            subtitle:
+              plan.account_type === "credit"
+                ? `Equivale a ${creditMonths(plan)} mes${
+                    creditMonths(plan) > 1 ? "es" : ""
+                  }`
+                : "30 días",
+            icon: (
+              <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+              </div>
+            ),
+            isPlan: true,
+            planId: plan.id,
+            parentGroup: groupId,
+          });
+        });
+      }
+    });
+
+    return sections;
+  }, [groupedPlans, expandedMenuSections]);
+
   const handleConfirmarCompra = async (datos: CompraRevendedorRequest) => {
     try {
       setComprando(true);
@@ -110,403 +193,649 @@ export default function RevendedoresPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#181818] md:ml-14">
-      <HeroReventa />
+    <div className="min-h-screen bg-[#181818]">
+      {/* Mobile Header */}
+      <div className="md:hidden bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between fixed top-12 left-0 right-0 z-30">
+        <h1 className="text-lg font-semibold text-white">Revendedores</h1>
 
-      {/* Plans Section */}
-      <section className="py-20">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-8">
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="p-2 hover:bg-neutral-800 rounded-lg transition-colors"
+          aria-label="Abrir menú de navegación"
+        >
+          <Menu className="w-5 h-5 text-neutral-400" />
+        </button>
+      </div>
+
+      {/* Sidebar */}
+      <aside className="fixed left-14 top-12 z-40 h-[calc(100vh-3rem)] w-72 bg-neutral-900 border-r border-neutral-800 hidden lg:block">
+        <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="text-center mb-12 max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-neutral-200 mb-4">
-              Planes de Revendedor
-            </h2>
-            <p className="text-lg text-neutral-400 mb-8">
-              Elige el tipo de cuenta que mejor se adapte a tu modelo de negocio
-            </p>
+          <div className="p-6 border-b border-neutral-800">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                <Users className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-neutral-200">
+                  Revendedores
+                </h1>
+                <p className="text-sm text-neutral-400">Planes disponibles</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 p-4">
+            <ul className="space-y-1">
+              {revendedorSections.map((section) => (
+                <li key={section.id}>
+                  {section.isGroup ? (
+                    // Grupo colapsable
+                    <button
+                      onClick={section.onToggle}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        activeSection === section.id
+                          ? "bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/10"
+                          : "text-neutral-400 hover:text-white hover:bg-neutral-800/50 border border-transparent"
+                      }`}
+                    >
+                      {section.icon}
+                      <div className="text-left flex-1">
+                        <div>{section.label}</div>
+                        <div className="text-xs opacity-70">
+                          {section.subtitle}
+                        </div>
+                      </div>
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-200 ${
+                          section.isExpanded ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                  ) : section.isPlan ? (
+                    // Plan individual
+                    <button
+                      onClick={() => {
+                        setActiveSection(section.id);
+                        const element = document.getElementById(
+                          `plan-${section.planId}`
+                        );
+                        if (element) {
+                          element.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center",
+                          });
+                        }
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-2 ml-6 rounded-lg text-sm transition-all duration-200 ${
+                        activeSection === section.id
+                          ? "bg-purple-600/10 text-purple-300 border-l-2 border-purple-500"
+                          : "text-neutral-500 hover:text-white hover:bg-neutral-800/30"
+                      }`}
+                    >
+                      {section.icon}
+                      <div className="text-left">
+                        <div className="font-medium">{section.label}</div>
+                        <div className="text-xs opacity-70">
+                          {section.subtitle}
+                        </div>
+                      </div>
+                    </button>
+                  ) : (
+                    // Sección regular (por si acaso)
+                    <button
+                      onClick={() => {
+                        setActiveSection(section.id);
+                        const element = document.getElementById(
+                          `plan-${section.id}`
+                        );
+                        if (element) {
+                          const headerOffset = 140; // Offset para el header fijo
+                          const elementPosition =
+                            element.getBoundingClientRect().top;
+                          const offsetPosition =
+                            elementPosition + window.pageYOffset - headerOffset;
+
+                          window.scrollTo({
+                            top: offsetPosition,
+                            behavior: "smooth",
+                          });
+                        }
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        activeSection === section.id
+                          ? "bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/10"
+                          : "text-neutral-400 hover:text-white hover:bg-neutral-800/50 border border-transparent"
+                      }`}
+                    >
+                      {section.icon}
+                      <div className="text-left">
+                        <div>{section.label}</div>
+                        <div className="text-xs opacity-70">
+                          {section.subtitle}
+                        </div>
+                      </div>
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Mobile Menu Button */}
+          <div className="p-4 border-t border-neutral-800 lg:hidden">
             <button
-              onClick={() => setMostrarRenovacion(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-semibold transition-colors"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-600/10 hover:bg-purple-600/20 border border-purple-500/20 rounded-lg text-purple-300 font-medium transition-colors"
             >
-              <RefreshCw className="w-5 h-5" />
-              ¿Ya eres revendedor? Renueva aquí
+              <Users className="w-4 h-4" />
+              Ver planes
             </button>
           </div>
+        </div>
+      </aside>
+      {/* Main Content */}
+      <main className="lg:ml-72">
+        <HeroReventa />
 
-          {/* Benefits Banner */}
-          <div className="mb-12 bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-            <div className="flex flex-col md:flex-row md:items-center gap-4">
-              <div className="flex items-center gap-2 font-semibold text-neutral-200">
-                <Shield className="w-4 h-4 text-purple-400" />
-                Todos los planes incluyen:
-              </div>
-              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-neutral-400">
-                <span className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-purple-400" /> Panel
-                  profesional
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-purple-400" /> Soporte 24/7
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-purple-400" /> Activación
-                  instantánea
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5 text-purple-400" /> Sin límites
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Comparison */}
-          <div className="mb-16">
-            <h3 className="text-2xl font-bold text-neutral-200 mb-6 text-center">
-              ¿Cuál elegir?
-            </h3>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-                    <Zap className="w-5 h-5 text-emerald-400" />
-                  </div>
-                  <h4 className="font-semibold text-emerald-300">
-                    Elige CRÉDITOS si...
-                  </h4>
-                </div>
-                <ul className="space-y-2 text-sm text-neutral-300">
-                  <li className="flex gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                    Quieres ofrecer planes estándar (30+ días)
-                  </li>
-                  <li className="flex gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                    Buscas suscripciones predecibles
-                  </li>
-                  <li className="flex gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                    Necesitas modelo simple
-                  </li>
-                  <li className="flex gap-2">
-                    <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                    Retención a largo plazo
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <Gift className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <h4 className="font-semibold text-blue-300">
-                    Elige VALIDEZ si...
-                  </h4>
-                </div>
-                <ul className="space-y-2 text-sm text-neutral-300">
-                  <li className="flex gap-2">
-                    <Check className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-                    Necesitas máxima flexibilidad
-                  </li>
-                  <li className="flex gap-2">
-                    <Check className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-                    Crear pruebas gratis (3-7 días)
-                  </li>
-                  <li className="flex gap-2">
-                    <Check className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-                    Optimizar tu inventario
-                  </li>
-                  <li className="flex gap-2">
-                    <Check className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-                    Cuentas variables
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          {/* Plans Groups */}
-          <div className="space-y-12">
-            {groupedPlans.map((group) => (
-              <div key={group.title}>
-                {/* Group Header */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={`p-2 rounded-lg border ${group.accent}`}>
-                      <div className={group.accentText}>{group.icon}</div>
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-neutral-200 flex items-center gap-2">
-                        {group.title}
-                        {group.recommended && (
-                          <span className="text-xs font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-1 rounded-full">
-                            <Star className="w-3 h-3 inline mr-1" />
-                            Recomendado
-                          </span>
-                        )}
-                      </h3>
-                      <p className="text-sm text-neutral-500">
-                        {group.subtitle}
+        {/* Plans Section */}
+        <section className="pb-20">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-8">
+            <div className="space-y-12">
+              {groupedPlans.map((group) => (
+                <div
+                  key={group.title}
+                  id={`plan-${group.title.toLowerCase().replace(" ", "-")}`}
+                  className={`transition-all duration-500 ${
+                    activeSection ===
+                    group.title.toLowerCase().replace(" ", "-")
+                      ? "ring-2 ring-purple-500/30 rounded-lg p-2 md:p-4 bg-purple-500/5"
+                      : ""
+                  }`}
+                >
+                  {/* Group Header */}
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`p-2 rounded-lg border ${group.accent}`}>
+                        <div className={group.accentText}>{group.icon}</div>
+                      </div>
+                      <div>
+                        <h2
+                          className={`text-2xl font-bold flex items-center gap-2 transition-colors duration-300 ${
+                            activeSection ===
+                            group.title.toLowerCase().replace(" ", "-")
+                              ? "text-purple-300"
+                              : "text-neutral-200"
+                          }`}
+                        >
+                          {group.title}
+                          {group.recommended && (
+                            <span className="text-xs font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-1 rounded-full">
+                              <Star className="w-3 h-3 inline mr-1" />
+                              Recomendado
+                            </span>
+                          )}
+                        </h2>
+                        <p className="text-sm text-neutral-500">
+                          {group.subtitle}
+                        </p>
+                      </div>
+                    </div>{" "}
+                    {/* Description */}
+                    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 mb-4">
+                      <p className="text-sm text-neutral-300 leading-relaxed">
+                        {group.description}
                       </p>
                     </div>
-                  </div>
-
-                  {/* Description */}
-                  <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 mb-4">
-                    <p className="text-sm text-neutral-300 leading-relaxed">
-                      {group.description}
-                    </p>
-                  </div>
-
-                  {/* Benefits Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {group.benefits.map((benefit, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-start gap-2 text-xs text-neutral-400"
-                      >
-                        <Check
-                          className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                        />
-                        <span>{benefit}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Plans List */}
-                {group.items.length > 0 ? (
-                  <div className="space-y-3">
-                    {group.items.map((plan: PlanRevendedor) => (
-                      <div
-                        key={plan.id}
-                        className="bg-neutral-900 border border-neutral-800 hover:border-neutral-700 rounded-lg overflow-hidden transition-all"
-                      >
-                        {/* Plan Header */}
-                        <button
-                          onClick={() => togglePlan(plan.id)}
-                          className="w-full px-6 py-4 flex items-center justify-between hover:bg-neutral-800/50 transition-colors"
+                    {/* Benefits Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {group.benefits.map((benefit, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-start gap-2 text-xs text-neutral-400"
                         >
-                          <div className="flex items-center gap-4">
-                            <div className="text-left">
-                              <div className="text-sm font-semibold text-neutral-200">
-                                {plan.nombre}
-                              </div>
-                              <div className="text-xs text-neutral-500">
-                                {plan.account_type === "credit"
-                                  ? `${creditMonths(plan)} mes${
-                                      creditMonths(plan) > 1 ? "es" : ""
-                                    }`
-                                  : "30 días"}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <div className="text-2xl font-bold text-emerald-400">
-                                ${plan.precio.toLocaleString("es-AR")}
-                              </div>
-                            </div>
-                            <ChevronRight
-                              className={`w-5 h-5 text-neutral-400 transition-transform ${
-                                expandedPlanId === plan.id ? "rotate-90" : ""
-                              }`}
-                            />
-                          </div>
-                        </button>
-
-                        {/* Expanded Content */}
-                        {expandedPlanId === plan.id && (
-                          <div className="border-t border-neutral-800 bg-neutral-900/50">
-                            <div className="p-6 space-y-6">
-                              {/* Features */}
-                              <div>
-                                <h4 className="text-sm font-semibold text-neutral-200 mb-3">
-                                  ¿Qué incluye?
-                                </h4>
-                                <div className="space-y-3">
-                                  {plan.account_type === "credit" ? (
-                                    <>
-                                      <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                        <CreditCard
-                                          className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                        />
-                                        <span>
-                                          <strong>
-                                            {plan.max_users} créditos
-                                          </strong>{" "}
-                                          en tu panel
-                                        </span>
-                                      </div>
-                                      <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                        <Calendar
-                                          className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                        />
-                                        <span>
-                                          Equivale a{" "}
-                                          <strong>
-                                            {creditMonths(plan)}{" "}
-                                            {creditMonths(plan) > 1
-                                              ? "meses"
-                                              : "mes"}
-                                          </strong>{" "}
-                                          de acceso VPN
-                                        </span>
-                                      </div>
-                                      <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                        <Zap
-                                          className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                        />
-                                        <span>
-                                          Crea cuentas de{" "}
-                                          <strong>30 días o más</strong>
-                                        </span>
-                                      </div>
-                                      <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                        <Users
-                                          className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                        />
-                                        <span>
-                                          Acumula créditos y úsalos cuando
-                                          necesites
-                                        </span>
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                        <Calendar
-                                          className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                        />
-                                        <span>
-                                          <strong>30 días</strong> totales para
-                                          crear cuentas
-                                        </span>
-                                      </div>
-                                      <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                        <Gift
-                                          className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                        />
-                                        <span>
-                                          Flexibilidad: cada plan corresponde a{" "}
-                                          <strong>30 días</strong>
-                                        </span>
-                                      </div>
-                                      <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                        <TrendingUp
-                                          className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                        />
-                                        <span>
-                                          Ejemplo: 1×30 días, 2×15 días, o
-                                          combina
-                                        </span>
-                                      </div>
-                                      <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                        <RefreshCw
-                                          className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                        />
-                                        <span>
-                                          Al expirar,{" "}
-                                          <strong>se libera el cupo</strong>{" "}
-                                          automáticamente
-                                        </span>
-                                      </div>
-                                    </>
-                                  )}
+                          <Check
+                            className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${group.accentText}`}
+                          />
+                          <span>{benefit}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Plans List */}
+                    {group.items.length > 0 ? (
+                      <div className="space-y-3">
+                        {group.items.map((plan: PlanRevendedor) => (
+                          <div
+                            key={plan.id}
+                            id={`plan-${plan.id}`}
+                            className={`bg-neutral-900 border hover:border-neutral-700 rounded-lg overflow-hidden transition-all ${
+                              activeSection === `plan-${plan.id}`
+                                ? "ring-2 ring-purple-500/50 border-purple-500/50 bg-purple-500/5 shadow-lg shadow-purple-500/10"
+                                : "border-neutral-800"
+                            }`}
+                          >
+                            {/* Plan Header */}
+                            <button
+                              onClick={() => togglePlan(plan.id)}
+                              className="w-full px-6 py-4 flex items-center justify-between hover:bg-neutral-800/50 transition-colors"
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className="text-left">
+                                  <div
+                                    className={`text-sm font-semibold transition-colors ${
+                                      activeSection === `plan-${plan.id}`
+                                        ? "text-purple-300"
+                                        : "text-neutral-200"
+                                    }`}
+                                  >
+                                    {plan.nombre}
+                                  </div>
+                                  <div className="text-xs text-neutral-500">
+                                    {plan.account_type === "credit"
+                                      ? `Equivale a ${creditMonths(plan)} mes${
+                                          creditMonths(plan) > 1 ? "es" : ""
+                                        }`
+                                      : "30 días"}
+                                  </div>
                                 </div>
                               </div>
 
-                              {/* Use Case */}
-                              <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
-                                <h4 className="text-sm font-semibold text-neutral-200 mb-2">
-                                  Caso de uso ideal:
-                                </h4>
-                                <p className="text-sm text-neutral-400 leading-relaxed">
-                                  {plan.account_type === "credit"
-                                    ? "Perfecto si quieres ofrecer planes estándar mensuales. Tus clientes reciben acceso consistente cada 30 días. Ideal para construir una base de clientes leales."
-                                    : "Perfecto si necesitas flexibilidad máxima. Crea pruebas gratis de 3-7 días, o combina diferentes duraciones para optimizar tu inventario."}
-                                </p>
+                              <div className="flex items-center gap-4">
+                                <div className="text-right">
+                                  <div className="text-2xl font-bold text-emerald-400">
+                                    ${plan.precio.toLocaleString("es-AR")}
+                                  </div>
+                                  <div className="text-xs text-neutral-500">
+                                    $
+                                    {(
+                                      plan.precio / (plan.max_users || 1)
+                                    ).toFixed(0)}{" "}
+                                    por{" "}
+                                    {plan.account_type === "credit"
+                                      ? "crédito"
+                                      : "usuario"}
+                                  </div>
+                                </div>
+                                <ChevronRight
+                                  className={`w-5 h-5 text-neutral-400 transition-transform ${
+                                    expandedPlanId === plan.id
+                                      ? "rotate-90"
+                                      : ""
+                                  }`}
+                                />
                               </div>
+                            </button>
 
-                              {/* CTA */}
-                              <button
-                                onClick={() => setPlanSeleccionado(plan)}
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
-                              >
-                                Comprar ahora
-                                <ChevronRight className="w-4 h-4" />
-                              </button>
-                            </div>
+                            {/* Expanded Content */}
+                            {expandedPlanId === plan.id && (
+                              <div className="border-t border-neutral-800 bg-neutral-900/50">
+                                <div className="p-6 space-y-6">
+                                  {/* Features */}
+                                  <div>
+                                    <h4 className="text-sm font-semibold text-neutral-200 mb-3">
+                                      ¿Qué incluye?
+                                    </h4>
+                                    <div className="space-y-3">
+                                      {plan.account_type === "credit" ? (
+                                        <>
+                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                            <CreditCard
+                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
+                                            />
+                                            <span>
+                                              <strong>
+                                                {plan.max_users} créditos
+                                              </strong>{" "}
+                                              en tu panel
+                                            </span>
+                                          </div>
+                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                            <Calendar
+                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
+                                            />
+                                            <span>
+                                              Equivale a{" "}
+                                              <strong>
+                                                {creditMonths(plan)}{" "}
+                                                {creditMonths(plan) > 1
+                                                  ? "meses"
+                                                  : "mes"}
+                                              </strong>{" "}
+                                              de acceso VPN
+                                            </span>
+                                          </div>
+                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                            <Zap
+                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
+                                            />
+                                            <span>
+                                              Crea cuentas de{" "}
+                                              <strong>30 días o más</strong>
+                                            </span>
+                                          </div>
+                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                            <Users
+                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
+                                            />
+                                            <span>
+                                              Acumula créditos y úsalos cuando
+                                              necesites
+                                            </span>
+                                          </div>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                            <Calendar
+                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
+                                            />
+                                            <span>
+                                              <strong>30 días</strong> totales
+                                              para crear cuentas
+                                            </span>
+                                          </div>
+                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                            <Gift
+                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
+                                            />
+                                            <span>
+                                              Flexibilidad: cada plan
+                                              corresponde a{" "}
+                                              <strong>30 días</strong>
+                                            </span>
+                                          </div>
+                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                            <TrendingUp
+                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
+                                            />
+                                            <span>
+                                              Ejemplo: 1×30 días, 2×15 días, o
+                                              combina
+                                            </span>
+                                          </div>
+                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
+                                            <RefreshCw
+                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
+                                            />
+                                            <span>
+                                              Al expirar,{" "}
+                                              <strong>se libera el cupo</strong>{" "}
+                                              automáticamente
+                                            </span>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Costo por unidad */}
+                                  <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
+                                    <h4 className="text-sm font-semibold text-neutral-200 mb-2">
+                                      Costo por unidad:
+                                    </h4>
+                                    <div className="text-lg font-bold text-emerald-400">
+                                      $
+                                      {(
+                                        plan.precio / (plan.max_users || 1)
+                                      ).toFixed(0)}{" "}
+                                      ARS
+                                      <span className="text-sm font-normal text-neutral-400 ml-1">
+                                        por{" "}
+                                        {plan.account_type === "credit"
+                                          ? "crédito"
+                                          : "usuario"}
+                                      </span>
+                                    </div>
+                                    <p className="text-xs text-neutral-500 mt-1">
+                                      {plan.account_type === "credit"
+                                        ? "Cada crédito te permite crear una cuenta VPN de 30 días"
+                                        : "Cada usuario corresponde a una cuenta VPN individual"}
+                                    </p>
+                                  </div>
+
+                                  {/* Use Case */}
+                                  <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
+                                    <h4 className="text-sm font-semibold text-neutral-200 mb-2">
+                                      Caso de uso ideal:
+                                    </h4>
+                                    <p className="text-sm text-neutral-400 leading-relaxed">
+                                      {plan.account_type === "credit"
+                                        ? "Perfecto si quieres ofrecer planes estándar mensuales. Tus clientes reciben acceso consistente cada 30 días. Ideal para construir una base de clientes leales."
+                                        : "Perfecto si necesitas flexibilidad máxima. Crea pruebas gratis de 3-7 días, o combina diferentes duraciones para optimizar tu inventario."}
+                                    </p>
+                                  </div>
+
+                                  {/* CTA */}
+                                  <button
+                                    onClick={() => setPlanSeleccionado(plan)}
+                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                                  >
+                                    Comprar ahora
+                                    <ChevronRight className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        )}
+                        ))}
                       </div>
-                    ))}
+                    ) : (
+                      <div className="text-center py-12 text-neutral-500">
+                        No hay planes disponibles
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-center py-12 text-neutral-500">
-                    No hay planes disponibles
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Support Section */}
+        <section className="py-20 bg-neutral-900/50">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-neutral-200 mb-3">
+                ¿Dudas? Contacta a nuestro equipo
+              </h2>
+              <p className="text-neutral-400">Soporte prioritario 24/7</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+              <a
+                href="https://t.me/+rAuU1_uHGZthMWZh"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-lg p-8 text-center transition-all"
+              >
+                <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <MessageCircle className="w-6 h-6 text-purple-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-neutral-200 mb-2">
+                  Telegram
+                </h3>
+                <p className="text-sm text-neutral-400 mb-4">
+                  Respuesta inmediata
+                </p>
+                <span className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:gap-3 transition-all">
+                  Contactar <ChevronRight className="w-4 h-4" />
+                </span>
+              </a>
+
+              <a
+                href="https://chat.whatsapp.com/LU16SUptp4xFQ4zTNta7Ja"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-lg p-8 text-center transition-all"
+              >
+                <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <Phone className="w-6 h-6 text-purple-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-neutral-200 mb-2">
+                  WhatsApp
+                </h3>
+                <p className="text-sm text-neutral-400 mb-4">
+                  Ayuda especializada
+                </p>
+                <span className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:gap-3 transition-all">
+                  Unirse <ChevronRight className="w-4 h-4" />
+                </span>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* Error Toast */}
+      </main>
+
+      {/* Mobile Bottom Sheet */}
+      <>
+        {/* Backdrop */}
+        {isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Bottom Sheet */}
+        <div
+          className={`fixed bottom-0 left-0 right-0 bg-neutral-900 text-white z-50 transform transition-transform duration-300 ease-in-out lg:hidden ${
+            isMobileMenuOpen ? "translate-y-0" : "translate-y-full"
+          } max-h-[80vh] rounded-t-lg overflow-hidden`}
+        >
+          {/* Header */}
+          <div className="p-4 border-b border-neutral-700 flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-semibold">Planes Revendedor</h2>
+              <p className="text-sm text-gray-400">Elige tu sistema</p>
+            </div>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="text-gray-400 hover:text-white p-2"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Navigation Items */}
+          <div className="flex-1 overflow-y-auto max-h-[60vh]">
+            {revendedorSections.map((section) =>
+              section.isGroup ? (
+                // Grupo colapsable
+                <button
+                  key={section.id}
+                  onClick={section.onToggle}
+                  className={`w-full flex items-center gap-3 px-4 py-4 border-b border-neutral-800/30 ${
+                    activeSection === section.id
+                      ? "bg-purple-600/10 border-l-4 border-purple-500"
+                      : "hover:bg-neutral-800"
+                  }`}
+                >
+                  {section.icon}
+                  <div className="text-left flex-1">
+                    <div className="font-medium">{section.label}</div>
+                    <div className="text-xs text-gray-400">
+                      {section.subtitle}
+                    </div>
                   </div>
-                )}
-              </div>
-            ))}
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      section.isExpanded ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+              ) : section.isPlan ? (
+                // Plan individual
+                <button
+                  key={section.id}
+                  onClick={() => {
+                    setActiveSection(section.id);
+                    const element = document.getElementById(
+                      `plan-${section.planId}`
+                    );
+                    if (element) {
+                      element.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      });
+                    }
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 ml-8 border-b border-neutral-800/20 ${
+                    activeSection === section.id
+                      ? "bg-purple-600/5 border-l-2 border-purple-500"
+                      : "hover:bg-neutral-800/50"
+                  }`}
+                >
+                  {section.icon}
+                  <div className="text-left">
+                    <div className="font-medium text-sm">{section.label}</div>
+                    <div className="text-xs text-gray-500">
+                      {section.subtitle}
+                    </div>
+                  </div>
+                </button>
+              ) : (
+                // Sección regular
+                <button
+                  key={section.id}
+                  onClick={() => {
+                    setActiveSection(section.id);
+                    const element = document.getElementById(
+                      `plan-${section.id}`
+                    );
+                    if (element) {
+                      const headerOffset = 120; // Offset para móvil (sin sidebar)
+                      const elementPosition =
+                        element.getBoundingClientRect().top;
+                      const offsetPosition =
+                        elementPosition + window.pageYOffset - headerOffset;
+
+                      window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth",
+                      });
+                    }
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-4 py-4 border-b border-neutral-800/30 ${
+                    activeSection === section.id
+                      ? "bg-purple-600/10 border-l-4 border-purple-500"
+                      : "hover:bg-neutral-800"
+                  }`}
+                >
+                  {section.icon}
+                  <div className="text-left">
+                    <div className="font-medium">{section.label}</div>
+                    <div className="text-xs text-gray-400">
+                      {section.subtitle}
+                    </div>
+                  </div>
+                </button>
+              )
+            )}
           </div>
         </div>
-      </section>
+      </>
 
-      {/* Support Section */}
-      <section className="py-20 bg-neutral-900/50">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-neutral-200 mb-3">
-              ¿Dudas? Contacta a nuestro equipo
-            </h2>
-            <p className="text-neutral-400">Soporte prioritario 24/7</p>
-          </div>
+      {/* Modals */}
+      {planSeleccionado && (
+        <CheckoutModalRevendedor
+          plan={planSeleccionado}
+          onClose={() => setPlanSeleccionado(null)}
+          onConfirm={handleConfirmarCompra}
+          loading={comprando}
+        />
+      )}
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            <a
-              href="https://t.me/+rAuU1_uHGZthMWZh"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-lg p-8 text-center transition-all"
-            >
-              <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-6 h-6 text-purple-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-neutral-200 mb-2">
-                Telegram
-              </h3>
-              <p className="text-sm text-neutral-400 mb-4">
-                Respuesta inmediata
-              </p>
-              <span className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:gap-3 transition-all">
-                Contactar <ChevronRight className="w-4 h-4" />
-              </span>
-            </a>
-
-            <a
-              href="https://chat.whatsapp.com/LU16SUptp4xFQ4zTNta7Ja"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-lg p-8 text-center transition-all"
-            >
-              <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Phone className="w-6 h-6 text-purple-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-neutral-200 mb-2">
-                WhatsApp
-              </h3>
-              <p className="text-sm text-neutral-400 mb-4">
-                Ayuda especializada
-              </p>
-              <span className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:gap-3 transition-all">
-                Unirse <ChevronRight className="w-4 h-4" />
-              </span>
-            </a>
-          </div>
-        </div>
-      </section>
+      {mostrarRenovacion && (
+        <RenovacionModalRevendedor
+          isOpen={mostrarRenovacion}
+          onClose={() => setMostrarRenovacion(false)}
+        />
+      )}
 
       {/* Error Toast */}
       {error && (

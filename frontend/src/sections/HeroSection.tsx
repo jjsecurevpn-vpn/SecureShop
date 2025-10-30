@@ -12,10 +12,7 @@ export default function HeroSection() {
   const goToPlans = () => navigate("/planes");
   const goToResellers = () => navigate("/revendedores");
 
-  const scrollToAbout = () => {
-    const aboutSection = document.getElementById("about-section");
-    if (aboutSection) aboutSection.scrollIntoView({ behavior: "smooth" });
-  };
+  const goToAbout = () => navigate("/sobre-nosotros");
 
   return (
     <>
@@ -105,7 +102,7 @@ export default function HeroSection() {
                   <span>Revendedores</span>
                 </button>
                 <button
-                  onClick={scrollToAbout}
+                  onClick={goToAbout}
                   className="text-neutral-500 hover:text-purple-400 transition-colors"
                 >
                   ¿Cómo funciona?
