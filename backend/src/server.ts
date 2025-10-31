@@ -184,7 +184,10 @@ class Server {
     );
 
     // Rutas de la API - Estadísticas
-    this.app.use("/api/stats", crearRutasStats(this.wsService));
+    this.app.use(
+      "/api/stats",
+      crearRutasStats(this.wsService, this.servexService)
+    );
 
     // Rutas de la API - Clientes
     this.app.use("/api", crearRutasClientes(this.servexService));

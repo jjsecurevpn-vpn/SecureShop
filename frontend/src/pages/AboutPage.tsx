@@ -81,7 +81,7 @@ const AboutPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-[#181818]">
       {/* Mobile Header */}
       <div className="md:hidden bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between fixed top-12 left-0 right-0 z-30">
         <h1 className="text-lg font-semibold text-white">Sobre Nosotros</h1>
@@ -99,7 +99,7 @@ const AboutPage = () => {
       <aside className="hidden lg:block w-72 border-r border-neutral-800 bg-neutral-900/50 fixed left-14 top-12 bottom-0 overflow-y-auto z-10 transition-all duration-300">
         <div className="p-6 border-b border-neutral-800">
           <h2 className="text-2xl font-bold text-white mb-2">Sobre Nosotros</h2>
-          <p className="text-sm text-neutral-400">Conoce JHSecure VPN</p>
+          <p className="text-sm text-neutral-400">Conoce JJSecure VP-N</p>
         </div>
 
         <nav className="flex-1 p-4">
@@ -150,14 +150,14 @@ const AboutPage = () => {
 
       {/* Main Content */}
       {/* Main Content */}
-      <main className="lg:ml-[21.5rem] min-h-screen pt-20 md:pt-0">
+      <main className="lg:ml-[21.5rem] min-h-screen pt-28">
         <div className="container mx-auto px-6 py-12 max-w-5xl">
           {/* Hero */}
           <div className="mb-20">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-600/10 border border-purple-500/20 rounded-full mb-6">
               <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
               <span className="text-xs font-medium text-purple-400">
-                Sobre JHSecure
+                Sobre JJSecure VP-N
               </span>
             </div>
 

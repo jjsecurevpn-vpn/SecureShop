@@ -65,6 +65,7 @@ export interface CompraRevendedorRequest {
 export interface CompraResponse {
   pago: Pago;
   linkPago: string;
+  preferenceId: string;
 }
 
 export interface Usuario {

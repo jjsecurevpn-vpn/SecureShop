@@ -1,24 +1,50 @@
-import { Router, Request, Response } from 'express';
-import { WebSocketService } from '../services/websocket.service';
+import { Router, Request, Response } from "express";
+import { WebSocketService } from "../services/websocket.service";
+import { ServexService } from "../services/servex.service";
 
-export function crearRutasStats(wsService: WebSocketService): Router {
+export function crearRutasStats(
+  wsService: WebSocketService,
+  servexService: ServexService
+): Router {
   const router = Router();
 
   /**
    * GET /api/stats/servidores
    * Obtiene estadísticas en tiempo real de los servidores
    */
-  router.get('/servidores', async (_req: Request, res: Response) => {
+  router.get("/servidores", async (_req: Request, res: Response) => {
     try {
       const stats = wsService.obtenerEstadisticas();
-      
+
       return res.json({
         servidores: stats,
         ultimaActualizacion: new Date(),
-        nota: 'Datos en tiempo real de usuarios conectados a través de nuestro panel'
+        nota: "Datos en tiempo real de usuarios conectados a través de nuestro panel",
       });
     } catch (error: any) {
-      console.error('[Stats API] Error obteniendo estadísticas:', error);
+      console.error("[Stats API] Error obteniendo estadísticas:", error);
+      return res.status(500).json({ error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/stats/revendedores
+   * Obtiene el conteo total de revendedores activos
+   */
+  router.get("/revendedores", async (_req: Request, res: Response) => {
+    try {
+      const conteo = await servexService.obtenerConteoRevendedores();
+
+      return res.json({
+        totalRevendedores: conteo,
+        ultimaActualizacion: new Date(),
+        nota: "Conteo de revendedores activos en el sistema Servex",
+      });
+    } catch (error: any) {
+      console.error(
+        "[Stats API] Error obteniendo conteo de revendedores:",
+        error
+      );
       return res.status(500).json({ error: error.message });
     }
   });

@@ -4,6 +4,7 @@
   "description": "Frontend de SecureShop VPN",
   "private": true,
   "dependencies": {
+    "@mercadopago/sdk-js": "^0.0.3",
     "axios": "^1.6.2",
     "lucide-react": "^0.546.0",
     "react": "^18.2.0",

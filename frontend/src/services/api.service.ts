@@ -231,6 +231,21 @@ class ApiService {
       };
     }
   }
+
+  /**
+   * Obtiene la configuración de MercadoPago
+   */
+  async obtenerConfigMercadoPago(): Promise<{ publicKey: string }> {
+    const response = await this.client.get<ApiResponse<{ publicKey: string }>>(
+      "/config/mercadopago"
+    );
+    if (!response.data.success) {
+      throw new Error(
+        response.data.error || "Error obteniendo configuración de MercadoPago"
+      );
+    }
+    return response.data.data!;
+  }
 }
 
 export const apiService = new ApiService();

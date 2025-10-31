@@ -794,4 +794,39 @@ export class ServexService {
       throw new Error(`Error obteniendo clientes de Servex: ${mensaje}`);
     }
   }
+
+  /**
+   * Obtiene el conteo total de revendedores activos
+   */
+  async obtenerConteoRevendedores(): Promise<number> {
+    try {
+      console.log("[Servex] Obteniendo conteo de revendedores");
+
+      // Hacer una petición con límite alto para obtener todos los revendedores
+      const response = await this.client.get("/resellers", {
+        params: {
+          scope: "todos",
+          limit: 10000, // Límite alto para obtener todos
+        },
+      });
+
+      const revendedores = response.data?.resellers || [];
+      const conteo = revendedores.length;
+
+      console.log(`[Servex] ✅ Conteo de revendedores obtenido: ${conteo}`);
+      return conteo;
+    } catch (error: any) {
+      const mensaje =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message;
+      console.error(
+        "[Servex] Error obteniendo conteo de revendedores:",
+        mensaje
+      );
+      throw new Error(
+        `Error obteniendo conteo de revendedores de Servex: ${mensaje}`
+      );
+    }
+  }
 }

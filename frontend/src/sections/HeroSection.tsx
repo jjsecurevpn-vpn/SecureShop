@@ -1,16 +1,23 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { Shield, Zap, Globe, ArrowRight, Users } from "lucide-react";
-import { useNoticias } from "../hooks/useNoticias";
+import {
+  Shield,
+  Zap,
+  Globe,
+  ArrowRight,
+  Users,
+  Smartphone,
+} from "lucide-react";
 import DemoModal from "../components/DemoModal";
 
 export default function HeroSection() {
   const navigate = useNavigate();
-  const { config } = useNoticias();
   const [isDemoOpen, setIsDemoOpen] = useState(false);
 
   const goToPlans = () => navigate("/planes");
   const goToResellers = () => navigate("/revendedores");
+  const goToPlayStore = () =>
+    window.open("https://play.google.com/store", "_blank");
 
   const goToAbout = () => navigate("/sobre-nosotros");
 
@@ -24,15 +31,7 @@ export default function HeroSection() {
       >
         {/* Efecto de luz sutil */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/5 blur-3xl rounded-full"></div>
-        {/* Aviso Global Minimalista */}
-        {config?.aviso?.habilitado && (
-          <div className="w-full pt-4 pb-2 px-4 text-center">
-            <div className="flex items-center justify-center gap-2 max-w-4xl mx-auto">
-              <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
-              <p className="text-xs text-white">{config.aviso.texto}</p>
-            </div>
-          </div>
-        )}{" "}
+
         {/* Contenido principal */}
         <div className="relative container mx-auto px-6 py-16 lg:py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
@@ -89,6 +88,16 @@ export default function HeroSection() {
                   className="px-6 py-2.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm font-medium text-white transition-colors"
                 >
                   🎁 Prueba Gratis
+                </button>
+
+                <button
+                  onClick={goToPlayStore}
+                  className="px-6 py-2.5 bg-green-600 hover:bg-green-500 border border-green-600 rounded-lg text-sm font-medium text-white transition-colors"
+                >
+                  <span className="flex items-center justify-center gap-1.5">
+                    <Smartphone className="w-3.5 h-3.5" />
+                    Play Store
+                  </span>
                 </button>
               </div>
 

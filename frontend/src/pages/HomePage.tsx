@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Home, Download, BarChart3, Users, Menu } from "lucide-react";
+import { Home, BarChart3, Users, Menu } from "lucide-react";
 import { apiService } from "../services/api.service";
 import HeroSection from "../sections/HeroSection";
-import AppDownloadSection from "../sections/AppDownloadSection";
 import ServerStatsSection from "../sections/ServerStatsSection";
 import LatestUsersSection from "../sections/LatestUsersSection";
 
@@ -43,12 +42,6 @@ const HomePage = () => {
       label: "Inicio",
       subtitle: "Bienvenido",
       icon: <Home className="w-4 h-4" />,
-    },
-    {
-      id: "app-download",
-      label: "Aplicación",
-      subtitle: "Descarga la app",
-      icon: <Download className="w-4 h-4" />,
     },
     {
       id: "server-stats",
@@ -175,11 +168,6 @@ const HomePage = () => {
         {/* Hero Section */}
         <div id="section-hero">
           <HeroSection />
-        </div>
-
-        {/* App Download Section */}
-        <div id="section-app-download">
-          <AppDownloadSection />
         </div>
 
         {/* Server Stats - Real Time */}

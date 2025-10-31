@@ -7,10 +7,13 @@ import {
 } from "lucide-react";
 import { PromoTimerRevendedores } from "./PromoTimerRevendedores";
 import { useHeroConfigRevendedores } from "../hooks/useHeroConfigRevendedores";
+import { useRevendedoresCount } from "../hooks/useRevendedoresCount";
 
 export default function HeroReventa() {
   // Configuración del hero
   const { config: heroConfig } = useHeroConfigRevendedores();
+  // Conteo de revendedores
+  const { totalRevendedores, loading: loadingCount } = useRevendedoresCount();
 
   return (
     <section className="relative min-h-screen pt-16 overflow-hidden">
@@ -74,7 +77,13 @@ export default function HeroReventa() {
             <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2 text-xs">
               <div className="flex items-center gap-1.5 text-neutral-500">
                 <Users className="w-3.5 h-3.5" />
-                <span>+1000 Revendedores</span>
+                <span>
+                  {loadingCount ? (
+                    <span className="animate-pulse">Cargando...</span>
+                  ) : (
+                    `+${totalRevendedores.toLocaleString()} Revendedores`
+                  )}
+                </span>
               </div>
               <div className="flex items-center gap-1.5 text-neutral-500">
                 <MessageCircle className="w-3.5 h-3.5" />

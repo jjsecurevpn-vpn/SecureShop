@@ -255,7 +255,7 @@ export class DemoService {
         nombre,
         username,
         password,
-        horas_validas: 24,
+        horas_validas: 2,
         servidores: ["JJSecureARG1 (Argentina)", "JJSecureBR1 (Brasil)"],
       });
     } catch (error: any) {
