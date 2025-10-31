@@ -31,7 +31,6 @@ export function useRevendedoresCount(
         }
         setLoading(false);
       } catch (error: any) {
-        console.error("Error fetching revendedores count:", error);
         setError(error.message || "Error desconocido");
         setLoading(false);
       }

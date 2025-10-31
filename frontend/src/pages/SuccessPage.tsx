@@ -91,11 +91,6 @@ const SuccessPage: React.FC = () => {
           const delay = reintentos < 5 ? 1000 : reintentos < 10 ? 2000 : 3000;
 
           setTimeout(() => {
-            console.log(
-              `[Success] ⏳ Reintentando verificación del pago... intento ${
-                reintentos + 1
-              }/30 (espera: ${delay}ms)`
-            );
             setReintentos((prev) => prev + 1);
           }, delay);
         } else {
@@ -105,17 +100,11 @@ const SuccessPage: React.FC = () => {
         }
       }
     } catch (err: any) {
-      console.error("[Success] Error cargando pago:", err);
       // Si hay un error HTTP y aún podemos reintentar, volver a intentar
       if (reintentos < 30) {
         const delay = reintentos < 5 ? 1000 : reintentos < 10 ? 2000 : 3000;
 
         setTimeout(() => {
-          console.log(
-            `[Success] ⏳ Reintentando después de error... intento ${
-              reintentos + 1
-            }/30 (espera: ${delay}ms)`
-          );
           setReintentos((prev) => prev + 1);
         }, delay);
       } else {
@@ -172,7 +161,7 @@ const SuccessPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 py-8 px-4">
+    <div className="min-h-screen bg-neutral-950 pt-16 pb-8 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Success Header */}
         <div className="text-center mb-8">

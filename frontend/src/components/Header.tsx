@@ -8,6 +8,7 @@ import {
   Info,
   CheckCircle,
   XCircle,
+  Download,
 } from "lucide-react";
 import Sidebar from "./Sidebar";
 import { useNoticias } from "../hooks/useNoticias";
@@ -81,8 +82,16 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* Right side: Notifications and user info */}
+        {/* Right side: Download button, Notifications and user info */}
         <div className="flex items-center gap-3">
+          {/* Download Button */}
+          <Link
+            to="/descargar"
+            className="flex items-center justify-center w-8 h-8 text-neutral-400 hover:text-white hover:bg-neutral-800 border border-neutral-600 rounded-full transition-colors duration-200"
+            aria-label="Descargar aplicación"
+          >
+            <Download size={16} />
+          </Link>
           {/* News Button */}
           <button
             onClick={() => setNoticiasOpen(!noticiasOpen)}

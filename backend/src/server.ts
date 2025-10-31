@@ -16,7 +16,7 @@ import { crearRutasRenovacion } from "./routes/renovacion.routes";
 import { crearRutasStats } from "./routes/stats.routes";
 import { crearRutasClientes } from "./routes/clientes.routes";
 import configRoutes from "./routes/config.routes";
-import promoRoutes from "./routes/promo.routes";
+// import promoRoutes from "./routes/promo.routes"; // DESACTIVADO por conflicto
 import {
   corsMiddleware,
   loggerMiddleware,
@@ -195,8 +195,8 @@ class Server {
     // Rutas de la API - Config (Promociones, etc)
     this.app.use("/api/config", configRoutes);
 
-    // Rutas de la API - Promo (para revendedores)
-    this.app.use("/api/config", promoRoutes);
+    // Rutas de la API - Promo (para revendedores) - DESACTIVADO por conflicto
+    // this.app.use("/api/config", promoRoutes);
 
     // Inicializar PromoTimerService para verificar promos expiradas cada 5 minutos
     const configPath = require("path").join(

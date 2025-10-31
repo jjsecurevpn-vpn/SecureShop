@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 interface ServerStat {
   serverName: string;
   location: string;
-  status: 'online' | 'offline';
+  status: "online" | "offline";
   connectedUsers: number;
   lastUpdate: string;
 }
@@ -15,7 +15,9 @@ interface ServerStatsData {
   loading: boolean;
 }
 
-export function useServerStats(refreshInterval: number = 10000): ServerStatsData {
+export function useServerStats(
+  refreshInterval: number = 10000
+): ServerStatsData {
   const [servers, setServers] = useState<ServerStat[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [onlineServers, setOnlineServers] = useState(0);
@@ -24,20 +26,25 @@ export function useServerStats(refreshInterval: number = 10000): ServerStatsData
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/stats/servidores`);
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/stats/servidores`
+        );
         const data = await response.json();
-        
+
         if (data.servidores) {
           setServers(data.servidores);
-          const total = data.servidores.reduce((sum: number, server: ServerStat) => 
-            sum + server.connectedUsers, 0
+          const total = data.servidores.reduce(
+            (sum: number, server: ServerStat) => sum + server.connectedUsers,
+            0
           );
           setTotalUsers(total);
-          setOnlineServers(data.servidores.filter((s: ServerStat) => s.status === 'online').length);
+          setOnlineServers(
+            data.servidores.filter((s: ServerStat) => s.status === "online")
+              .length
+          );
         }
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching server stats:', error);
         setLoading(false);
       }
     };
@@ -51,6 +58,6 @@ export function useServerStats(refreshInterval: number = 10000): ServerStatsData
     servers,
     totalUsers,
     onlineServers,
-    loading
+    loading,
   };
 }

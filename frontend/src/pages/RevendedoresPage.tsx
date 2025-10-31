@@ -12,12 +12,14 @@ import {
   Zap,
   Gift,
   TrendingUp,
-  Menu,
   ChevronDown,
 } from "lucide-react";
 import CheckoutModalRevendedor from "../components/CheckoutModalRevendedor";
 import RenovacionModalRevendedor from "../components/RenovacionModalRevendedor";
 import HeroReventa from "../components/HeroReventa";
+import MobilePageHeader from "../components/MobilePageHeader";
+import BottomSheet from "../components/BottomSheet";
+import NavigationSidebar from "../components/NavigationSidebar";
 import { PlanRevendedor, CompraRevendedorRequest } from "../types";
 import { apiService } from "../services/api.service";
 
@@ -35,6 +37,21 @@ export default function RevendedoresPage() {
     []
   );
 
+  const sidebarSections = [
+    {
+      id: "creditos",
+      label: "Sistema de Créditos",
+      subtitle: "Máxima flexibilidad",
+      icon: <Zap className="w-4 h-4" />,
+    },
+    {
+      id: "validez",
+      label: "Sistema de Validez",
+      subtitle: "Total control",
+      icon: <Calendar className="w-4 h-4" />,
+    },
+  ];
+
   useEffect(() => {
     cargarPlanes();
   }, []);
@@ -42,6 +59,15 @@ export default function RevendedoresPage() {
   const cargarPlanes = async () => {
     try {
       const planos = await apiService.obtenerPlanesRevendedores(true);
+      console.log("Planes cargados:", planos);
+      console.log(
+        "Planes credit:",
+        planos.filter((p) => p.account_type === "credit")
+      );
+      console.log(
+        "Planes validity:",
+        planos.filter((p) => p.account_type === "validity")
+      );
       setPlanes(planos);
     } catch (err: any) {
       console.error("Error cargando planes de revendedor:", err);
@@ -195,152 +221,25 @@ export default function RevendedoresPage() {
   return (
     <div className="min-h-screen bg-[#181818]">
       {/* Mobile Header */}
-      <div className="md:hidden bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between fixed top-12 left-0 right-0 z-30">
-        <h1 className="text-lg font-semibold text-white">Revendedores</h1>
-
-        <button
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="p-2 hover:bg-neutral-800 rounded-lg transition-colors"
-          aria-label="Abrir menú de navegación"
-        >
-          <Menu className="w-5 h-5 text-neutral-400" />
-        </button>
-      </div>
+      <MobilePageHeader
+        title="Revendedores"
+        onMenuClick={() => setIsMobileMenuOpen(true)}
+      />
 
       {/* Sidebar */}
-      <aside className="fixed left-14 top-12 z-40 h-[calc(100vh-3rem)] w-72 bg-neutral-900 border-r border-neutral-800 hidden lg:block">
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="p-6 border-b border-neutral-800">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-                <Users className="w-5 h-5 text-purple-400" />
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-neutral-200">
-                  Revendedores
-                </h1>
-                <p className="text-sm text-neutral-400">Planes disponibles</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 p-4">
-            <ul className="space-y-1">
-              {revendedorSections.map((section) => (
-                <li key={section.id}>
-                  {section.isGroup ? (
-                    // Grupo colapsable
-                    <button
-                      onClick={section.onToggle}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        activeSection === section.id
-                          ? "bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/10"
-                          : "text-neutral-400 hover:text-white hover:bg-neutral-800/50 border border-transparent"
-                      }`}
-                    >
-                      {section.icon}
-                      <div className="text-left flex-1">
-                        <div>{section.label}</div>
-                        <div className="text-xs opacity-70">
-                          {section.subtitle}
-                        </div>
-                      </div>
-                      <ChevronDown
-                        className={`w-4 h-4 transition-transform duration-200 ${
-                          section.isExpanded ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
-                  ) : section.isPlan ? (
-                    // Plan individual
-                    <button
-                      onClick={() => {
-                        setActiveSection(section.id);
-                        const element = document.getElementById(
-                          `plan-${section.planId}`
-                        );
-                        if (element) {
-                          element.scrollIntoView({
-                            behavior: "smooth",
-                            block: "center",
-                          });
-                        }
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-2 ml-6 rounded-lg text-sm transition-all duration-200 ${
-                        activeSection === section.id
-                          ? "bg-purple-600/10 text-purple-300 border-l-2 border-purple-500"
-                          : "text-neutral-500 hover:text-white hover:bg-neutral-800/30"
-                      }`}
-                    >
-                      {section.icon}
-                      <div className="text-left">
-                        <div className="font-medium">{section.label}</div>
-                        <div className="text-xs opacity-70">
-                          {section.subtitle}
-                        </div>
-                      </div>
-                    </button>
-                  ) : (
-                    // Sección regular (por si acaso)
-                    <button
-                      onClick={() => {
-                        setActiveSection(section.id);
-                        const element = document.getElementById(
-                          `plan-${section.id}`
-                        );
-                        if (element) {
-                          const headerOffset = 140; // Offset para el header fijo
-                          const elementPosition =
-                            element.getBoundingClientRect().top;
-                          const offsetPosition =
-                            elementPosition + window.pageYOffset - headerOffset;
-
-                          window.scrollTo({
-                            top: offsetPosition,
-                            behavior: "smooth",
-                          });
-                        }
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        activeSection === section.id
-                          ? "bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/10"
-                          : "text-neutral-400 hover:text-white hover:bg-neutral-800/50 border border-transparent"
-                      }`}
-                    >
-                      {section.icon}
-                      <div className="text-left">
-                        <div>{section.label}</div>
-                        <div className="text-xs opacity-70">
-                          {section.subtitle}
-                        </div>
-                      </div>
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </nav>
-
-          {/* Mobile Menu Button */}
-          <div className="p-4 border-t border-neutral-800 lg:hidden">
-            <button
-              onClick={() => setIsMobileMenuOpen(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-purple-600/10 hover:bg-purple-600/20 border border-purple-500/20 rounded-lg text-purple-300 font-medium transition-colors"
-            >
-              <Users className="w-4 h-4" />
-              Ver planes
-            </button>
-          </div>
-        </div>
-      </aside>
+      <NavigationSidebar
+        title="Revendedores"
+        subtitle="Planes disponibles"
+        sections={sidebarSections}
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+      />
       {/* Main Content */}
-      <main className="lg:ml-72">
+      <main className="md:ml-[312px]">
         <HeroReventa />
 
         {/* Plans Section */}
-        <section className="pb-20">
+        <section id="planes-section" className="pb-20">
           <div className="max-w-[1400px] mx-auto px-6 md:px-8">
             <div className="space-y-12">
               {groupedPlans.map((group) => (
@@ -362,7 +261,7 @@ export default function RevendedoresPage() {
                       </div>
                       <div>
                         <h2
-                          className={`text-2xl font-bold flex items-center gap-2 transition-colors duration-300 ${
+                          className={`text-2xl font-bold flex items-center gap-2 transition-colors duration-300 break-words ${
                             activeSection ===
                             group.title.toLowerCase().replace(" ", "-")
                               ? "text-purple-300"
@@ -384,7 +283,7 @@ export default function RevendedoresPage() {
                     </div>{" "}
                     {/* Description */}
                     <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 mb-4">
-                      <p className="text-sm text-neutral-300 leading-relaxed">
+                      <p className="text-sm text-neutral-300 leading-relaxed break-words">
                         {group.description}
                       </p>
                     </div>
@@ -398,18 +297,18 @@ export default function RevendedoresPage() {
                           <Check
                             className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${group.accentText}`}
                           />
-                          <span>{benefit}</span>
+                          <span className="break-words">{benefit}</span>
                         </div>
                       ))}
                     </div>
                     {/* Plans List */}
                     {group.items.length > 0 ? (
-                      <div className="space-y-3">
+                      <div className="space-y-3 max-w-full">
                         {group.items.map((plan: PlanRevendedor) => (
                           <div
                             key={plan.id}
                             id={`plan-${plan.id}`}
-                            className={`bg-neutral-900 border hover:border-neutral-700 rounded-lg overflow-hidden transition-all ${
+                            className={`bg-neutral-900 border hover:border-neutral-700 rounded-lg overflow-hidden transition-all max-w-full ${
                               activeSection === `plan-${plan.id}`
                                 ? "ring-2 ring-purple-500/50 border-purple-500/50 bg-purple-500/5 shadow-lg shadow-purple-500/10"
                                 : "border-neutral-800"
@@ -418,12 +317,12 @@ export default function RevendedoresPage() {
                             {/* Plan Header */}
                             <button
                               onClick={() => togglePlan(plan.id)}
-                              className="w-full px-6 py-4 flex items-center justify-between hover:bg-neutral-800/50 transition-colors"
+                              className="w-full px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 hover:bg-neutral-800/50 transition-colors"
                             >
-                              <div className="flex items-center gap-4">
-                                <div className="text-left">
+                              <div className="flex items-center gap-4 flex-1 min-w-0">
+                                <div className="text-left flex-1 min-w-0">
                                   <div
-                                    className={`text-sm font-semibold transition-colors ${
+                                    className={`text-sm font-semibold transition-colors break-words ${
                                       activeSection === `plan-${plan.id}`
                                         ? "text-purple-300"
                                         : "text-neutral-200"
@@ -431,7 +330,7 @@ export default function RevendedoresPage() {
                                   >
                                     {plan.nombre}
                                   </div>
-                                  <div className="text-xs text-neutral-500">
+                                  <div className="text-xs text-neutral-500 break-words">
                                     {plan.account_type === "credit"
                                       ? `Equivale a ${creditMonths(plan)} mes${
                                           creditMonths(plan) > 1 ? "es" : ""
@@ -441,8 +340,8 @@ export default function RevendedoresPage() {
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-4">
-                                <div className="text-right">
+                              <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                                <div className="text-right hidden sm:block">
                                   <div className="text-2xl font-bold text-emerald-400">
                                     ${plan.precio.toLocaleString("es-AR")}
                                   </div>
@@ -465,12 +364,29 @@ export default function RevendedoresPage() {
                                   }`}
                                 />
                               </div>
+
+                              {/* Mobile Price - Shown below on small screens */}
+                              <div className="text-center sm:hidden mt-2 pt-2 border-t border-neutral-800">
+                                <div className="text-xl font-bold text-emerald-400">
+                                  ${plan.precio.toLocaleString("es-AR")}
+                                </div>
+                                <div className="text-xs text-neutral-500">
+                                  $
+                                  {(
+                                    plan.precio / (plan.max_users || 1)
+                                  ).toFixed(0)}{" "}
+                                  por{" "}
+                                  {plan.account_type === "credit"
+                                    ? "crédito"
+                                    : "usuario"}
+                                </div>
+                              </div>
                             </button>
 
                             {/* Expanded Content */}
                             {expandedPlanId === plan.id && (
                               <div className="border-t border-neutral-800 bg-neutral-900/50">
-                                <div className="p-6 space-y-6">
+                                <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden">
                                   {/* Features */}
                                   <div>
                                     <h4 className="text-sm font-semibold text-neutral-200 mb-3">
@@ -483,7 +399,7 @@ export default function RevendedoresPage() {
                                             <CreditCard
                                               className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
                                             />
-                                            <span>
+                                            <span className="break-words">
                                               <strong>
                                                 {plan.max_users} créditos
                                               </strong>{" "}
@@ -494,7 +410,7 @@ export default function RevendedoresPage() {
                                             <Calendar
                                               className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
                                             />
-                                            <span>
+                                            <span className="break-words">
                                               Equivale a{" "}
                                               <strong>
                                                 {creditMonths(plan)}{" "}
@@ -509,7 +425,7 @@ export default function RevendedoresPage() {
                                             <Zap
                                               className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
                                             />
-                                            <span>
+                                            <span className="break-words">
                                               Crea cuentas de{" "}
                                               <strong>30 días o más</strong>
                                             </span>
@@ -518,7 +434,7 @@ export default function RevendedoresPage() {
                                             <Users
                                               className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
                                             />
-                                            <span>
+                                            <span className="break-words">
                                               Acumula créditos y úsalos cuando
                                               necesites
                                             </span>
@@ -530,7 +446,7 @@ export default function RevendedoresPage() {
                                             <Calendar
                                               className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
                                             />
-                                            <span>
+                                            <span className="break-words">
                                               <strong>30 días</strong> totales
                                               para crear cuentas
                                             </span>
@@ -539,7 +455,7 @@ export default function RevendedoresPage() {
                                             <Gift
                                               className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
                                             />
-                                            <span>
+                                            <span className="break-words">
                                               Flexibilidad: cada plan
                                               corresponde a{" "}
                                               <strong>30 días</strong>
@@ -549,7 +465,7 @@ export default function RevendedoresPage() {
                                             <TrendingUp
                                               className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
                                             />
-                                            <span>
+                                            <span className="break-words">
                                               Ejemplo: 1×30 días, 2×15 días, o
                                               combina
                                             </span>
@@ -558,7 +474,7 @@ export default function RevendedoresPage() {
                                             <RefreshCw
                                               className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
                                             />
-                                            <span>
+                                            <span className="break-words">
                                               Al expirar,{" "}
                                               <strong>se libera el cupo</strong>{" "}
                                               automáticamente
@@ -570,24 +486,24 @@ export default function RevendedoresPage() {
                                   </div>
 
                                   {/* Costo por unidad */}
-                                  <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
+                                  <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4">
                                     <h4 className="text-sm font-semibold text-neutral-200 mb-2">
                                       Costo por unidad:
                                     </h4>
-                                    <div className="text-lg font-bold text-emerald-400">
+                                    <div className="text-base sm:text-lg font-bold text-emerald-400">
                                       $
                                       {(
                                         plan.precio / (plan.max_users || 1)
                                       ).toFixed(0)}{" "}
                                       ARS
-                                      <span className="text-sm font-normal text-neutral-400 ml-1">
+                                      <span className="text-xs sm:text-sm font-normal text-neutral-400 ml-1">
                                         por{" "}
                                         {plan.account_type === "credit"
                                           ? "crédito"
                                           : "usuario"}
                                       </span>
                                     </div>
-                                    <p className="text-xs text-neutral-500 mt-1">
+                                    <p className="text-xs text-neutral-500 mt-1 break-words">
                                       {plan.account_type === "credit"
                                         ? "Cada crédito te permite crear una cuenta VPN de 30 días"
                                         : "Cada usuario corresponde a una cuenta VPN individual"}
@@ -595,11 +511,11 @@ export default function RevendedoresPage() {
                                   </div>
 
                                   {/* Use Case */}
-                                  <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4">
+                                  <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4">
                                     <h4 className="text-sm font-semibold text-neutral-200 mb-2">
                                       Caso de uso ideal:
                                     </h4>
-                                    <p className="text-sm text-neutral-400 leading-relaxed">
+                                    <p className="text-sm text-neutral-400 leading-relaxed break-words">
                                       {plan.account_type === "credit"
                                         ? "Perfecto si quieres ofrecer planes estándar mensuales. Tus clientes reciben acceso consistente cada 30 días. Ideal para construir una base de clientes leales."
                                         : "Perfecto si necesitas flexibilidad máxima. Crea pruebas gratis de 3-7 días, o combina diferentes duraciones para optimizar tu inventario."}
@@ -690,135 +606,99 @@ export default function RevendedoresPage() {
       </main>
 
       {/* Mobile Bottom Sheet */}
-      <>
-        {/* Backdrop */}
-        {isMobileMenuOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-        )}
-
-        {/* Bottom Sheet */}
-        <div
-          className={`fixed bottom-0 left-0 right-0 bg-neutral-900 text-white z-50 transform transition-transform duration-300 ease-in-out lg:hidden ${
-            isMobileMenuOpen ? "translate-y-0" : "translate-y-full"
-          } max-h-[80vh] rounded-t-lg overflow-hidden`}
-        >
-          {/* Header */}
-          <div className="p-4 border-b border-neutral-700 flex justify-between items-center">
-            <div>
-              <h2 className="text-lg font-semibold">Planes Revendedor</h2>
-              <p className="text-sm text-gray-400">Elige tu sistema</p>
-            </div>
+      <BottomSheet
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        title="Planes Revendedor"
+        subtitle="Elige tu sistema"
+      >
+        {revendedorSections.map((section) =>
+          section.isGroup ? (
+            // Grupo colapsable
             <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-gray-400 hover:text-white p-2"
+              key={section.id}
+              onClick={section.onToggle}
+              className={`w-full flex items-center gap-3 px-4 py-4 border-b border-neutral-800/30 ${
+                activeSection === section.id
+                  ? "bg-purple-600/10 border-l-4 border-purple-500"
+                  : "hover:bg-neutral-800"
+              }`}
             >
-              ✕
+              {section.icon}
+              <div className="text-left flex-1">
+                <div className="font-medium">{section.label}</div>
+                <div className="text-xs text-gray-400">{section.subtitle}</div>
+              </div>
+              <ChevronDown
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  section.isExpanded ? "rotate-180" : ""
+                }`}
+              />
             </button>
-          </div>
+          ) : section.isPlan ? (
+            // Plan individual
+            <button
+              key={section.id}
+              onClick={() => {
+                setActiveSection(section.id);
+                const element = document.getElementById(
+                  `plan-${section.planId}`
+                );
+                if (element) {
+                  element.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                  });
+                }
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 ml-8 border-b border-neutral-800/20 ${
+                activeSection === section.id
+                  ? "bg-purple-600/5 border-l-2 border-purple-500"
+                  : "hover:bg-neutral-800/50"
+              }`}
+            >
+              {section.icon}
+              <div className="text-left">
+                <div className="font-medium text-sm">{section.label}</div>
+                <div className="text-xs text-gray-500">{section.subtitle}</div>
+              </div>
+            </button>
+          ) : (
+            // Sección regular
+            <button
+              key={section.id}
+              onClick={() => {
+                setActiveSection(section.id);
+                const element = document.getElementById(`plan-${section.id}`);
+                if (element) {
+                  const headerOffset = 120; // Offset para móvil (sin sidebar)
+                  const elementPosition = element.getBoundingClientRect().top;
+                  const offsetPosition =
+                    elementPosition + window.pageYOffset - headerOffset;
 
-          {/* Navigation Items */}
-          <div className="flex-1 overflow-y-auto max-h-[60vh]">
-            {revendedorSections.map((section) =>
-              section.isGroup ? (
-                // Grupo colapsable
-                <button
-                  key={section.id}
-                  onClick={section.onToggle}
-                  className={`w-full flex items-center gap-3 px-4 py-4 border-b border-neutral-800/30 ${
-                    activeSection === section.id
-                      ? "bg-purple-600/10 border-l-4 border-purple-500"
-                      : "hover:bg-neutral-800"
-                  }`}
-                >
-                  {section.icon}
-                  <div className="text-left flex-1">
-                    <div className="font-medium">{section.label}</div>
-                    <div className="text-xs text-gray-400">
-                      {section.subtitle}
-                    </div>
-                  </div>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                      section.isExpanded ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-              ) : section.isPlan ? (
-                // Plan individual
-                <button
-                  key={section.id}
-                  onClick={() => {
-                    setActiveSection(section.id);
-                    const element = document.getElementById(
-                      `plan-${section.planId}`
-                    );
-                    if (element) {
-                      element.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center",
-                      });
-                    }
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 ml-8 border-b border-neutral-800/20 ${
-                    activeSection === section.id
-                      ? "bg-purple-600/5 border-l-2 border-purple-500"
-                      : "hover:bg-neutral-800/50"
-                  }`}
-                >
-                  {section.icon}
-                  <div className="text-left">
-                    <div className="font-medium text-sm">{section.label}</div>
-                    <div className="text-xs text-gray-500">
-                      {section.subtitle}
-                    </div>
-                  </div>
-                </button>
-              ) : (
-                // Sección regular
-                <button
-                  key={section.id}
-                  onClick={() => {
-                    setActiveSection(section.id);
-                    const element = document.getElementById(
-                      `plan-${section.id}`
-                    );
-                    if (element) {
-                      const headerOffset = 120; // Offset para móvil (sin sidebar)
-                      const elementPosition =
-                        element.getBoundingClientRect().top;
-                      const offsetPosition =
-                        elementPosition + window.pageYOffset - headerOffset;
-
-                      window.scrollTo({
-                        top: offsetPosition,
-                        behavior: "smooth",
-                      });
-                    }
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-4 border-b border-neutral-800/30 ${
-                    activeSection === section.id
-                      ? "bg-purple-600/10 border-l-4 border-purple-500"
-                      : "hover:bg-neutral-800"
-                  }`}
-                >
-                  {section.icon}
-                  <div className="text-left">
-                    <div className="font-medium">{section.label}</div>
-                    <div className="text-xs text-gray-400">
-                      {section.subtitle}
-                    </div>
-                  </div>
-                </button>
-              )
-            )}
-          </div>
-        </div>
-      </>
+                  window.scrollTo({
+                    top: offsetPosition,
+                    behavior: "smooth",
+                  });
+                }
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-4 border-b border-neutral-800/30 ${
+                activeSection === section.id
+                  ? "bg-purple-600/10 border-l-4 border-purple-500"
+                  : "hover:bg-neutral-800"
+              }`}
+            >
+              {section.icon}
+              <div className="text-left">
+                <div className="font-medium">{section.label}</div>
+                <div className="text-xs text-gray-400">{section.subtitle}</div>
+              </div>
+            </button>
+          )
+        )}
+      </BottomSheet>
 
       {/* Modals */}
       {planSeleccionado && (

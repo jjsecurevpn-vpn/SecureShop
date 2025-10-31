@@ -16,14 +16,18 @@ import {
   Smartphone,
   Gauge,
   Sparkles,
-  Menu,
 } from "lucide-react";
 import CheckoutModal from "../components/CheckoutModal";
 import RenovacionModal from "../components/RenovacionModal";
 import DemoModal from "../components/DemoModal";
+import MobilePageHeader from "../components/MobilePageHeader";
+import BottomSheet from "../components/BottomSheet";
+import NavigationSidebar from "../components/NavigationSidebar";
+import { PromoTimer } from "../components/PromoTimer";
 import { Plan, CompraRequest } from "../types";
 import { apiService } from "../services/api.service";
 import { useServerStats } from "../hooks/useServerStats";
+import { useHeroConfig } from "../hooks/useHeroConfig";
 
 export default function PlanesPage() {
   const [planSeleccionado, setPlanSeleccionado] = useState<Plan | null>(null);
@@ -37,6 +41,7 @@ export default function PlanesPage() {
   const [activeSection, setActiveSection] = useState("3-días");
 
   const { totalUsers, onlineServers } = useServerStats(10000);
+  const { config: heroConfig } = useHeroConfig();
 
   const planSections = [
     {
@@ -84,6 +89,12 @@ export default function PlanesPage() {
   const cargarPlanes = async () => {
     try {
       const planesObtenidos = await apiService.obtenerPlanes();
+      console.log("Planes obtenidos:", planesObtenidos.length, "planes");
+      planesObtenidos.forEach((plan) => {
+        console.log(
+          `Plan ID ${plan.id}: ${plan.nombre} - ${plan.dias} días - $${plan.precio}`
+        );
+      });
       setPlanes(planesObtenidos);
     } catch (err: any) {
       console.error("Error cargando planes:", err);
@@ -166,81 +177,59 @@ export default function PlanesPage() {
   return (
     <div className="min-h-screen bg-[#181818]">
       {/* Mobile Header */}
-      <div className="md:hidden bg-neutral-900 border-b border-neutral-800 px-4 py-3 flex items-center justify-between fixed top-12 left-0 right-0 z-30">
-        <h1 className="text-lg font-semibold text-white">Planes VPN</h1>
-
-        <button
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="p-2 hover:bg-neutral-800 rounded-lg transition-colors"
-          aria-label="Abrir menú de navegación"
-        >
-          <Menu className="w-5 h-5 text-neutral-400" />
-        </button>
-      </div>
+      <MobilePageHeader
+        title="Planes VPN"
+        onMenuClick={() => setIsMobileMenuOpen(true)}
+      />
 
       {/* Sidebar */}
-      <aside className="hidden lg:block w-72 border-r border-neutral-800 bg-neutral-900/50 fixed left-14 top-12 bottom-0 overflow-y-auto z-10 transition-all duration-300">
-        <div className="p-6 border-b border-neutral-800">
-          <h2 className="text-2xl font-bold text-white mb-2">Planes VPN</h2>
-          <p className="text-sm text-neutral-400">Elige tu plan</p>
-        </div>
-
-        <nav className="flex-1 p-4">
-          <ul className="space-y-1">
-            {planSections.map((section) => (
-              <li key={section.id}>
-                <button
-                  onClick={() => {
-                    setActiveSection(section.id);
-                    const element = document.getElementById(
-                      `plan-${section.id}`
-                    );
-                    if (element) {
-                      element.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center",
-                      });
-                    }
-                  }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    activeSection === section.id
-                      ? "bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/10"
-                      : "text-neutral-400 hover:text-white hover:bg-neutral-800/50 border border-transparent"
-                  }`}
-                >
-                  {section.icon}
-                  <div className="text-left">
-                    <div>{section.label}</div>
-                    <div className="text-xs opacity-70">{section.subtitle}</div>
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </aside>
+      <NavigationSidebar
+        title="Planes VPN"
+        subtitle="Elige tu plan"
+        sections={planSections}
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+        sectionIdPrefix="plan-"
+      />
 
       <DemoModal isOpen={isDemoOpen} onClose={() => setIsDemoOpen(false)} />
 
       {/* Main Content */}
-      <main className="lg:ml-72">
+      <main className="md:ml-[312px]">
         {/* Hero Section */}
-        <section className="relative pt-32 pb-16 md:pt-32 md:pb-20">
+        <section className="relative pt-36 pb-16 md:pt-36 md:pb-20">
           <div className="max-w-[1400px] mx-auto px-6 md:px-8">
             <div className="max-w-3xl mx-auto text-center">
+              {/* Banner de Promoción - Más prominente */}
+              {heroConfig?.promocion?.habilitada && (
+                <div className="mb-8">
+                  <div className="inline-flex items-center gap-3 bg-gradient-to-r from-rose-600/20 to-pink-600/20 border border-rose-500/30 text-rose-300 rounded-full px-6 py-3 shadow-lg shadow-rose-500/20">
+                    <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
+                    <span className="text-sm font-semibold">
+                      {heroConfig.promocion.texto}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-full px-4 py-2 mb-6">
                 <Sparkles className="w-4 h-4" />
                 <span className="text-sm font-medium">VPN Premium</span>
               </div>
 
               <h1 className="text-4xl md:text-6xl font-bold text-neutral-200 mb-6">
-                Planes VPN Premium
+                {heroConfig?.titulo || "Planes VPN Premium"}
               </h1>
 
-              <p className="text-lg text-neutral-400 mb-12">
-                Conecta de forma segura y privada. Elige el plan perfecto para
-                ti.
+              <p className="text-lg text-neutral-400 mb-8">
+                {heroConfig?.descripcion ||
+                  "Conecta de forma segura y privada. Elige el plan perfecto para ti."}
               </p>
+
+              {/* Temporizador de Promoción - Más prominente */}
+              <div className="mb-8">
+                <PromoTimer />
+              </div>
 
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
@@ -631,70 +620,40 @@ export default function PlanesPage() {
         onClose={() => setMostrarRenovacion(false)}
       />
 
-      {/* Mobile Bottom Sheet */}
-      <>
-        {/* Backdrop */}
-        {isMobileMenuOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-        )}
-
-        {/* Bottom Sheet */}
-        <div
-          className={`fixed bottom-0 left-0 right-0 bg-neutral-900 text-white z-50 transform transition-transform duration-300 ease-in-out lg:hidden ${
-            isMobileMenuOpen ? "translate-y-0" : "translate-y-full"
-          } max-h-[80vh] rounded-t-lg overflow-hidden`}
-        >
-          {/* Header */}
-          <div className="p-4 border-b border-neutral-700 flex justify-between items-center">
-            <div>
-              <h2 className="text-lg font-semibold">Planes VPN</h2>
-              <p className="text-sm text-gray-400">Elige tu duración</p>
+      <BottomSheet
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        title="Planes VPN"
+        subtitle="Elige tu duración"
+      >
+        {planSections.map((section) => (
+          <button
+            key={section.id}
+            onClick={() => {
+              setActiveSection(section.id);
+              const element = document.getElementById(`plan-${section.id}`);
+              if (element) {
+                element.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              }
+              setIsMobileMenuOpen(false);
+            }}
+            className={`w-full flex items-center gap-3 px-4 py-4 border-b border-neutral-800/30 ${
+              activeSection === section.id
+                ? "bg-purple-600/10 border-l-4 border-purple-500"
+                : "hover:bg-neutral-800"
+            }`}
+          >
+            {section.icon}
+            <div className="text-left">
+              <div className="font-medium">{section.label}</div>
+              <div className="text-xs text-gray-400">{section.subtitle}</div>
             </div>
-            <button
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-gray-400 hover:text-white p-2"
-            >
-              ✕
-            </button>
-          </div>
-
-          {/* Navigation Items */}
-          <div className="flex-1 overflow-y-auto max-h-[60vh]">
-            {planSections.map((section) => (
-              <button
-                key={section.id}
-                onClick={() => {
-                  setActiveSection(section.id);
-                  const element = document.getElementById(`plan-${section.id}`);
-                  if (element) {
-                    element.scrollIntoView({
-                      behavior: "smooth",
-                      block: "center",
-                    });
-                  }
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-4 border-b border-neutral-800/30 ${
-                  activeSection === section.id
-                    ? "bg-purple-600/10 border-l-4 border-purple-500"
-                    : "hover:bg-neutral-800"
-                }`}
-              >
-                {section.icon}
-                <div className="text-left">
-                  <div className="font-medium">{section.label}</div>
-                  <div className="text-xs text-gray-400">
-                    {section.subtitle}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </>
+          </button>
+        ))}
+      </BottomSheet>
     </div>
   );
 }

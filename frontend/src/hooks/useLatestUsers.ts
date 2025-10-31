@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Usuario } from '../types';
-import { apiService } from '../services/api.service';
+import { useEffect, useState } from "react";
+import { Usuario } from "../types";
+import { apiService } from "../services/api.service";
 
 interface LatestUsersData {
   usuarios: Usuario[];
@@ -8,7 +8,10 @@ interface LatestUsersData {
   error: string | null;
 }
 
-export function useLatestUsers(limit: number = 10, refreshInterval: number = 30000): LatestUsersData {
+export function useLatestUsers(
+  limit: number = 10,
+  refreshInterval: number = 30000
+): LatestUsersData {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,8 +24,7 @@ export function useLatestUsers(limit: number = 10, refreshInterval: number = 300
         setUsuarios(data);
         setLoading(false);
       } catch (err: any) {
-        console.error('Error fetching latest users:', err);
-        setError(err.message || 'Error cargando usuarios');
+        setError(err.message || "Error cargando usuarios");
         setLoading(false);
       }
     };
@@ -35,6 +37,6 @@ export function useLatestUsers(limit: number = 10, refreshInterval: number = 300
   return {
     usuarios,
     loading,
-    error
+    error,
   };
 }

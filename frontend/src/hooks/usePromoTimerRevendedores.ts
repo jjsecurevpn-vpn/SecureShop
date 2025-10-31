@@ -36,8 +36,8 @@ export function usePromoTimerRevendedores(): UsePromoTimerReturn {
     const ahora = new Date();
     const activadaEn = new Date(promoConfig.activada_en);
     const duracionMs = promoConfig.duracion_horas * 60 * 60 * 1000;
-    const tiempoRestanteMs =
-      duracionMs - (ahora.getTime() - activadaEn.getTime());
+    const expiracion = activadaEn.getTime() + duracionMs;
+    const tiempoRestanteMs = expiracion - ahora.getTime();
 
     if (tiempoRestanteMs <= 0) {
       return { segundos: 0, formateado: "00:00:00", porcentaje: 0 };

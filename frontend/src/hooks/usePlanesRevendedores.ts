@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export interface PlanRevendedor {
   id: number;
@@ -6,7 +6,7 @@ export interface PlanRevendedor {
   descripcion: string;
   precio: number;
   max_users: number;
-  account_type: 'validity' | 'credit';
+  account_type: "validity" | "credit";
   dias: number;
   activo: boolean;
 }
@@ -28,15 +28,17 @@ export function usePlanesRevendedores(): UsePlanesRevendedoresData {
     const fetchPlanes = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/planes-revendedores`);
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/planes-revendedores`
+        );
         const data = await response.json();
 
         if (data.success && data.data) {
           const planes = data.data as PlanRevendedor[];
-          
+
           // Separar por tipo
-          const validity = planes.filter(p => p.account_type === 'validity');
-          const credit = planes.filter(p => p.account_type === 'credit');
+          const validity = planes.filter((p) => p.account_type === "validity");
+          const credit = planes.filter((p) => p.account_type === "credit");
 
           // Ordenar por max_users para que se muestren lógicamente
           validity.sort((a, b) => a.max_users - b.max_users);
@@ -46,11 +48,10 @@ export function usePlanesRevendedores(): UsePlanesRevendedoresData {
           setPlanesCredit(credit);
           setError(null);
         } else {
-          setError('Error al obtener los planes');
+          setError("Error al obtener los planes");
         }
       } catch (err: any) {
-        console.error('Error fetching revendedor plans:', err);
-        setError(err.message || 'Error al cargar los planes');
+        setError(err.message || "Error al cargar los planes");
       } finally {
         setLoading(false);
       }
@@ -63,6 +64,6 @@ export function usePlanesRevendedores(): UsePlanesRevendedoresData {
     planesValidity,
     planesCredit,
     loading,
-    error
+    error,
   };
 }

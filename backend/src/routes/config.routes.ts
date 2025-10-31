@@ -174,8 +174,52 @@ router.post("/sync-precios-revendedores", (_req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/config/sync-todo
+ * Limpia caché y sincroniza todos los precios (planes + revendedores)
+ * Útil después de modificar manualmente los archivos JSON
+ */
+router.post("/sync-todo", (_req: Request, res: Response) => {
+  try {
+    console.log("[CONFIG-ROUTE] 🔄 Iniciando sincronización completa...");
+
+    // Limpiar caché primero
+    configService.limpiarCache();
+    console.log("[CONFIG-ROUTE] ✅ Caché limpiado");
+
+    // Sincronizar precios de planes
+    const resultPlanes = preciosSyncService.sincronizarPreciosDesdeConfig();
+    console.log(
+      `[CONFIG-ROUTE] ✅ Precios de planes sincronizados: ${resultPlanes.updated} actualizados`
+    );
+
+    // Sincronizar precios de revendedores
+    const resultRevendedores =
+      preciosSyncService.sincronizarPreciosRevendedoresDesdeConfig();
+    console.log(
+      `[CONFIG-ROUTE] ✅ Precios de revendedores sincronizados: ${resultRevendedores.updated} actualizados`
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Sincronización completa realizada",
+      data: {
+        cache: "limpiado",
+        planes: resultPlanes,
+        revendedores: resultRevendedores,
+      },
+    });
+  } catch (error: any) {
+    console.error("Error en sincronización completa:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Error en sincronización completa",
+      detalles: error.message || String(error),
+    });
+  }
+});
+
+/**
  * GET /api/config/promo-status
- * Obtiene el estado actual de la promoción y tiempo restante
  */
 router.get("/promo-status", (_req: Request, res: Response) => {
   try {
@@ -229,6 +273,43 @@ router.get("/promo-status-revendedores", (_req: Request, res: Response) => {
     console.error("Error obteniendo status promo revendedores:", error);
     return res.status(500).json({
       error: "Error al obtener estado de la promoción para revendedores",
+      detalles: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+/**
+ * GET /api/config/hero
+ * Obtiene la configuración del hero para la página principal
+ */
+router.get("/hero", (_req: Request, res: Response) => {
+  try {
+    const config = configService.leerConfigPlanes();
+
+    return res.json({
+      success: true,
+      data: {
+        titulo: config.hero?.titulo || "Conecta sin Límites",
+        descripcion:
+          config.hero?.descripcion ||
+          "Planes flexibles y velocidad premium para tu estilo de vida digital",
+        promocion: config.hero?.promocion || {
+          habilitada: false,
+          texto: "",
+          textColor: "text-white",
+          bgColor: "bg-gradient-to-r from-blue-600 to-cyan-600",
+          borderColor: "border-blue-500/40",
+          iconColor: "text-blue-400",
+          shadowColor: "shadow-blue-500/30",
+          comentario: "Configuración por defecto",
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error obteniendo config hero:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Error al obtener configuración del hero",
       detalles: error instanceof Error ? error.message : "Unknown error",
     });
   }

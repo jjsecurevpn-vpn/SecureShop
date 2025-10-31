@@ -27,7 +27,7 @@ export default function HeroSection() {
 
       <section
         id="hero-section"
-        className="relative min-h-screen pt-16 overflow-hidden"
+        className="relative min-h-screen pt-20 overflow-hidden"
       >
         {/* Efecto de luz sutil */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/5 blur-3xl rounded-full"></div>
@@ -75,7 +75,7 @@ export default function HeroSection() {
               <div className="flex flex-col sm:flex-row gap-2 justify-center lg:justify-start pt-2">
                 <button
                   onClick={goToPlans}
-                  className="group px-6 py-2.5 bg-purple-600 hover:bg-purple-500 rounded-lg text-sm font-medium text-white transition-colors"
+                  className="group px-6 py-2.5 bg-purple-900/20 hover:bg-purple-900/30 border border-purple-400/30 rounded-lg text-sm font-medium text-purple-300 hover:text-purple-200 transition-all"
                 >
                   <span className="flex items-center justify-center gap-1.5">
                     Ver Planes
@@ -85,14 +85,14 @@ export default function HeroSection() {
 
                 <button
                   onClick={() => setIsDemoOpen(true)}
-                  className="px-6 py-2.5 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm font-medium text-white transition-colors"
+                  className="px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium text-gray-300 hover:text-white transition-all"
                 >
                   🎁 Prueba Gratis
                 </button>
 
                 <button
                   onClick={goToPlayStore}
-                  className="px-6 py-2.5 bg-green-600 hover:bg-green-500 border border-green-600 rounded-lg text-sm font-medium text-white transition-colors"
+                  className="px-6 py-2.5 bg-emerald-900/20 hover:bg-emerald-900/30 border border-emerald-400/30 rounded-lg text-sm font-medium text-emerald-300 hover:text-emerald-200 transition-all"
                 >
                   <span className="flex items-center justify-center gap-1.5">
                     <Smartphone className="w-3.5 h-3.5" />
@@ -105,14 +105,14 @@ export default function HeroSection() {
               <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2 text-xs">
                 <button
                   onClick={goToResellers}
-                  className="flex items-center gap-1.5 text-neutral-500 hover:text-purple-400 transition-colors"
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-purple-400 transition-colors"
                 >
                   <Users className="w-3.5 h-3.5" />
                   <span>Revendedores</span>
                 </button>
                 <button
                   onClick={goToAbout}
-                  className="text-neutral-500 hover:text-purple-400 transition-colors"
+                  className="text-gray-400 hover:text-purple-400 transition-colors"
                 >
                   ¿Cómo funciona?
                 </button>

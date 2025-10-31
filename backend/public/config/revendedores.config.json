@@ -8,12 +8,12 @@
     "titulo": "Sé Revendedor VPN",
     "descripcion": "Gana dinero vendiendo acceso VPN premium a tus clientes",
     "promocion": {
-      "habilitada": false,
-      "texto": "💼 PROMOCIÓN ESPECIAL - 10% OFF EN TODOS LOS PLANES DE REVENTA",
+      "habilitada": true,
+      "texto": "💼 PROMOCIÓN ESPECIAL - 20% OFF EN TODOS LOS PLANES DE REVENTA",
       "estilo": "from-blue-500 to-cyan-500",
       "textColor": "text-white",
       "bgColor": "bg-gradient-to-r from-blue-600 to-cyan-600",
-      "comentario": "Descuento del 10% en todos los planes - Válido por tiempo limitado"
+      "comentario": "Descuento del 20% en todos los planes - Válido por tiempo limitado"
     }
   },
   "tipos_cuenta": {
@@ -65,30 +65,30 @@
     "19": 120000
   },
   "overrides": {
-    "_comentario": "Precios con 10% descuento para promoción de revendedores - Solo se aplican si promo_config.activa === true",
-    "1": { "precio": 14400 },
-    "2": { "precio": 23850 },
-    "3": { "precio": 43200 },
-    "4": { "precio": 61200 },
-    "5": { "precio": 76500 },
-    "6": { "precio": 90000 },
-    "7": { "precio": 100800 },
-    "8": { "precio": 124200 },
-    "9": { "precio": 131400 },
-    "10": { "precio": 180000 },
-    "11": { "precio": 225000 },
-    "12": { "precio": 12150 },
-    "13": { "precio": 21600 },
-    "14": { "precio": 38250 },
-    "15": { "precio": 50400 },
-    "16": { "precio": 66600 },
-    "17": { "precio": 83700 },
-    "18": { "precio": 95400 },
-    "19": { "precio": 108000 }
+    "_comentario": "Precios con 20% descuento para promoción de revendedores - Solo se aplican si promo_config.activa === true",
+    "1": { "precio": 12800 },
+    "2": { "precio": 21200 },
+    "3": { "precio": 38400 },
+    "4": { "precio": 54400 },
+    "5": { "precio": 68000 },
+    "6": { "precio": 80000 },
+    "7": { "precio": 89600 },
+    "8": { "precio": 110400 },
+    "9": { "precio": 116800 },
+    "10": { "precio": 160000 },
+    "11": { "precio": 200000 },
+    "12": { "precio": 10800 },
+    "13": { "precio": 19200 },
+    "14": { "precio": 34000 },
+    "15": { "precio": 44800 },
+    "16": { "precio": 59200 },
+    "17": { "precio": 74400 },
+    "18": { "precio": 84800 },
+    "19": { "precio": 96000 }
   },
   "promo_config": {
-    "activa": false,
-    "activada_en": "2025-10-29T15:00:00Z",
+    "activa": true,
+    "activada_en": "2025-10-31T20:13:00Z",
     "duracion_horas": 12,
     "auto_desactivar": true,
     "_instrucciones": "POST /api/config/activar-promo { duracion_horas: number }"

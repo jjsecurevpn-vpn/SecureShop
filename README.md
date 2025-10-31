@@ -5,6 +5,7 @@ Sistema completo de tienda online para venta de cuentas VPN individuales y plane
 ## 📋 Características Principales
 
 ### 👥 Sistema de Clientes (VPN Individual)
+
 - ✅ **Catálogo de Planes VPN**: Planes de 7, 15 y 30 días con diferentes límites de conexión
 - 💳 **Pagos con MercadoPago**: Integración completa con webhooks automáticos
 - 🔐 **Creación Automática**: Cuentas VPN creadas automáticamente en Servex al confirmar pago
@@ -13,6 +14,7 @@ Sistema completo de tienda online para venta de cuentas VPN individuales y plane
 - 🎯 **Filtrado de Categorías**: Solo categorías activas (no expiradas) de Servex
 
 ### 🏪 Sistema de Revendedores
+
 - 👑 **Programa de Revendedores**: Dos tipos de cuentas (Validez y Créditos)
 - 📊 **11 Planes de Créditos**: De 5 a 200 créditos con duraciones de 1 a 5 meses
 - 📅 **7 Planes Mensuales**: De 5 a 100 usuarios con renovación mensual (30 días)
@@ -22,6 +24,7 @@ Sistema completo de tienda online para venta de cuentas VPN individuales y plane
 - 📈 **Control de Usuarios**: Límites configurables según el plan adquirido
 
 ### 🛡️ Seguridad y Estabilidad
+
 - 🔒 **Rate Limiting**: Protección contra ataques de fuerza bruta
 - 🌐 **CORS Configurado**: Control de acceso desde dominios autorizados
 - 🛡️ **Helmet.js**: Headers de seguridad HTTP
@@ -105,6 +108,7 @@ secureshop-vpn/
 ## 🚀 Instalación Rápida
 
 ### Requisitos Previos
+
 - Node.js 18+ y npm
 - Cuenta de MercadoPago con Access Token
 - API Key de Servex
@@ -164,7 +168,9 @@ RATE_LIMIT_MAX_REQUESTS=100
 ## 📊 Estructura de Base de Datos
 
 ### Tabla: planes
+
 Almacena los planes para clientes VPN individuales
+
 - `id`: INTEGER PRIMARY KEY
 - `nombre`: TEXT (ej: "VPN 7 Días - 2 Conexiones")
 - `descripcion`: TEXT
@@ -175,7 +181,9 @@ Almacena los planes para clientes VPN individuales
 - `fecha_creacion`: DATETIME
 
 ### Tabla: pagos
+
 Registra todas las transacciones de clientes
+
 - `id`: TEXT PRIMARY KEY (UUID)
 - `plan_id`: INTEGER
 - `monto`: REAL
@@ -193,7 +201,9 @@ Registra todas las transacciones de clientes
 - `servex_connection_limit`: INTEGER
 
 ### Tabla: planes_revendedores
+
 Almacena los planes para revendedores
+
 - `id`: INTEGER PRIMARY KEY
 - `nombre`: TEXT (ej: "50 Créditos", "Mensual 10 Usuarios")
 - `descripcion`: TEXT
@@ -205,7 +215,9 @@ Almacena los planes para revendedores
 - `fecha_creacion`: DATETIME
 
 ### Tabla: pagos_revendedores
+
 Registra todas las transacciones de revendedores
+
 - `id`: TEXT PRIMARY KEY (UUID)
 - `plan_revendedor_id`: INTEGER
 - `monto`: REAL
@@ -227,27 +239,27 @@ Registra todas las transacciones de revendedores
 
 ### Endpoints de Clientes VPN
 
-| Método | Endpoint | Descripción | Body |
-|--------|----------|-------------|------|
-| GET | `/api/planes` | Lista de planes VPN activos | - |
-| POST | `/api/comprar` | Iniciar compra de plan | `{ planId, clienteEmail, clienteNombre }` |
-| GET | `/api/pago/:id` | Consultar estado de pago | - |
-| POST | `/api/webhook` | Webhook de MercadoPago (clientes) | Auto (MP) |
+| Método | Endpoint        | Descripción                       | Body                                      |
+| ------ | --------------- | --------------------------------- | ----------------------------------------- |
+| GET    | `/api/planes`   | Lista de planes VPN activos       | -                                         |
+| POST   | `/api/comprar`  | Iniciar compra de plan            | `{ planId, clienteEmail, clienteNombre }` |
+| GET    | `/api/pago/:id` | Consultar estado de pago          | -                                         |
+| POST   | `/api/webhook`  | Webhook de MercadoPago (clientes) | Auto (MP)                                 |
 
 ### Endpoints de Revendedores
 
-| Método | Endpoint | Descripción | Body |
-|--------|----------|-------------|------|
-| GET | `/api/revendedores/planes` | Lista de planes de revendedores | - |
-| POST | `/api/revendedores/comprar` | Iniciar compra plan revendedor | `{ planRevendedorId, clienteEmail, clienteNombre }` |
-| GET | `/api/revendedores/pago/:id` | Consultar estado de pago revendedor | - |
-| POST | `/api/revendedores/webhook` | Webhook MercadoPago (revendedores) | Auto (MP) |
+| Método | Endpoint                     | Descripción                         | Body                                                |
+| ------ | ---------------------------- | ----------------------------------- | --------------------------------------------------- |
+| GET    | `/api/revendedores/planes`   | Lista de planes de revendedores     | -                                                   |
+| POST   | `/api/revendedores/comprar`  | Iniciar compra plan revendedor      | `{ planRevendedorId, clienteEmail, clienteNombre }` |
+| GET    | `/api/revendedores/pago/:id` | Consultar estado de pago revendedor | -                                                   |
+| POST   | `/api/revendedores/webhook`  | Webhook MercadoPago (revendedores)  | Auto (MP)                                           |
 
 ### Endpoints Generales
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/health` | Health check del servidor |
+| Método | Endpoint  | Descripción               |
+| ------ | --------- | ------------------------- |
+| GET    | `/health` | Health check del servidor |
 
 ## 🔄 Flujos de Negocio
 
@@ -301,6 +313,7 @@ Registra todas las transacciones de revendedores
 ## 🎨 Características del Frontend
 
 ### Páginas Principales
+
 - **HomePage**: Hero section con call-to-action para Clientes y Revendedores
 - **PlanesPage**: Catálogo de planes VPN con filtros por duración (7/15/30 días)
 - **RevendedoresPage**: Dos categorías (Créditos y Mensuales) con diseño unificado
@@ -308,6 +321,7 @@ Registra todas las transacciones de revendedores
 - **TermsPage** y **PrivacyPage**: Páginas legales
 
 ### Componentes Reutilizables
+
 - **Header**: Menu hamburger responsive (desktop y mobile)
 - **Footer**: Enlaces a páginas, redes sociales y legal
 - **CheckoutModal**: Modal de pago para clientes VPN
@@ -316,6 +330,7 @@ Registra todas las transacciones de revendedores
 - **ErrorMessage**: Notificaciones de error estilizadas
 
 ### Tecnologías Frontend
+
 - **React 18**: Framework principal
 - **TypeScript**: Tipado estático
 - **Vite**: Build tool y dev server
@@ -327,6 +342,7 @@ Registra todas las transacciones de revendedores
 ## 🛠️ Scripts Disponibles
 
 ### Backend
+
 ```bash
 npm run dev       # Desarrollo con hot reload (ts-node-dev)
 npm run build     # Compilar TypeScript a JavaScript
@@ -336,6 +352,7 @@ npm test          # Ejecutar tests (Jest)
 ```
 
 ### Frontend
+
 ```bash
 npm run dev       # Servidor desarrollo Vite (puerto 5173)
 npm run build     # Build de producción (tsc + vite build)
@@ -346,6 +363,7 @@ npm run lint      # ESLint para React/TypeScript
 ## 🌐 Despliegue en VPS (149.50.148.6)
 
 ### Información del Servidor
+
 - **IP**: 149.50.148.6
 - **OS**: Ubuntu/Debian
 - **Dominio**: shop.jhservices.com.ar
@@ -443,7 +461,7 @@ server {
     location / {
         root /home/secureshop/secureshop-vpn/frontend/dist;
         try_files $uri $uri/ /index.html;
-        
+
         # Cache static assets
         location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
             expires 1y;
@@ -454,6 +472,7 @@ server {
 ```
 
 Activar configuración:
+
 ```bash
 sudo ln -s /etc/nginx/sites-available/shop.jhservices.com.ar /etc/nginx/sites-enabled/
 sudo nginx -t
@@ -484,50 +503,101 @@ npm run build
 echo "✅ Despliegue completado"
 ```
 
+## 🚀 Deploy de Dists a VPS
+
+Para subir las builds compiladas (dists) directamente a la VPS sin necesidad de compilar en el servidor:
+
+### Información de la VPS
+
+- **Usuario**: root
+- **Host**: 149.50.148.6
+- **Ruta**: /home/secureshop/secureshop-vpn
+
+### Pasos para Deploy
+
+1. **Build del Backend**:
+
+   ```bash
+   cd backend
+   npm run build
+   ```
+
+2. **Build del Frontend**:
+
+   ```bash
+   cd ../frontend
+   npm run build
+   ```
+
+3. **Subir Backend Dist**:
+
+   ```bash
+   scp -r ./backend/dist root@149.50.148.6:/home/secureshop/secureshop-vpn/backend/
+   ```
+
+4. **Subir Frontend Dist**:
+   ```bash
+   scp -r ./frontend/dist root@149.50.148.6:/home/secureshop/secureshop-vpn/frontend/
+   ```
+
+### Reinicio en VPS (opcional)
+
+Después de subir los dists, conectar por SSH y reiniciar servicios:
+
+```bash
+ssh root@149.50.148.6
+cd /home/secureshop/secureshop-vpn
+pm2 restart all
+```
+
+## 📄 Licencia
+
+````
+
 Uso:
 ```bash
 chmod +x deploy.sh
 ./deploy.sh
-```
+````
 
 ## 📊 Planes Actuales
 
 ### Planes VPN Clientes
 
-| Plan | Duración | Conexiones | Precio |
-|------|----------|------------|--------|
-| VPN Básico | 7 días | 2 | $1.500 |
-| VPN Estándar | 15 días | 2 | $2.500 |
-| VPN Premium | 30 días | 2 | $4.000 |
-| VPN Plus | 30 días | 4 | $6.000 |
+| Plan         | Duración | Conexiones | Precio |
+| ------------ | -------- | ---------- | ------ |
+| VPN Básico   | 7 días   | 2          | $1.500 |
+| VPN Estándar | 15 días  | 2          | $2.500 |
+| VPN Premium  | 30 días  | 2          | $4.000 |
+| VPN Plus     | 30 días  | 4          | $6.000 |
 
 ### Planes Revendedores - Créditos
 
-| Plan | Créditos | Duración Cuenta | Precio | Descuento |
-|------|----------|-----------------|--------|-----------|
-| 5 Créditos | 5 | 30 días (1 mes) | $12.000 | - |
-| 10 Créditos | 10 | 60 días (2 meses) | $20.000 | 17% |
-| 20 Créditos | 20 | 90 días (3 meses) | $36.000 | 25% |
-| 30 Créditos | 30 | 120 días (4 meses) | $51.000 | 29% |
-| 40 Créditos | 40 | 150 días (5 meses) | $64.000 | 33% |
-| 50 Créditos | 50 | 150 días (5 meses) | $75.000 | 38% |
-| 60 Créditos | 60 | 150 días (5 meses) | $84.000 | 42% |
-| 80 Créditos | 80 | 150 días (5 meses) | $104.000 | 46% |
-| 100 Créditos | 100 | 150 días (5 meses) | $110.000 | 54% |
-| 150 Créditos | 150 | 150 días (5 meses) | $150.000 | 58% |
-| 200 Créditos | 200 | 150 días (5 meses) | $190.000 | 60% |
+| Plan         | Créditos | Duración Cuenta    | Precio   | Descuento |
+| ------------ | -------- | ------------------ | -------- | --------- |
+| 5 Créditos   | 5        | 30 días (1 mes)    | $12.000  | -         |
+| 10 Créditos  | 10       | 60 días (2 meses)  | $20.000  | 17%       |
+| 20 Créditos  | 20       | 90 días (3 meses)  | $36.000  | 25%       |
+| 30 Créditos  | 30       | 120 días (4 meses) | $51.000  | 29%       |
+| 40 Créditos  | 40       | 150 días (5 meses) | $64.000  | 33%       |
+| 50 Créditos  | 50       | 150 días (5 meses) | $75.000  | 38%       |
+| 60 Créditos  | 60       | 150 días (5 meses) | $84.000  | 42%       |
+| 80 Créditos  | 80       | 150 días (5 meses) | $104.000 | 46%       |
+| 100 Créditos | 100      | 150 días (5 meses) | $110.000 | 54%       |
+| 150 Créditos | 150      | 150 días (5 meses) | $150.000 | 58%       |
+| 200 Créditos | 200      | 150 días (5 meses) | $190.000 | 60%       |
 
 ### Planes Revendedores - Mensuales (Validez)
 
-| Plan | Usuarios | Duración | Precio Mensual | Costo/Usuario |
-|------|----------|----------|----------------|---------------|
-| Mensual 5 Usuarios | 5 | 30 días | $10.000 | $2.000 |
-| Mensual 10 Usuarios | 10 | 30 días | $18.000 | $1.800 |
-| Mensual 20 Usuarios | 20 | 30 días | $32.000 | $1.600 |
-| Mensual 30 Usuarios | 30 | 30 días | $42.000 | $1.400 |
-| Mensual 50 Usuarios | 50 | 30 días | $60.000 | $1.200 |
-| Mensual 75 Usuarios | 75 | 30 días | $78.000 | $1.040 |
-| Mensual 100 Usuarios | 100 | 30 días | $90.000 | $900 |
+| Plan                 | Usuarios | Duración | Precio Mensual | Costo/Usuario |
+| -------------------- | -------- | -------- | -------------- | ------------- |
+| Mensual 5 Usuarios   | 5        | 30 días  | $10.000        | $2.000        |
+| Mensual 10 Usuarios  | 10       | 30 días  | $18.000        | $1.800        |
+| Mensual 20 Usuarios  | 20       | 30 días  | $32.000        | $1.600        |
+| Mensual 30 Usuarios  | 30       | 30 días  | $42.000        | $1.400        |
+| Mensual 50 Usuarios  | 50       | 30 días  | $60.000        | $1.200        |
+| Mensual 75 Usuarios  | 75       | 30 días  | $78.000        | $1.040        |
+| Mensual 100 Usuarios | 100      | 30 días  | $90.000        | $900          |
 
 ## 🐛 Debugging y Monitoreo
 
@@ -571,8 +641,8 @@ SELECT id, cliente_nombre, estado, monto FROM pagos ORDER BY fecha_creacion DESC
 SELECT * FROM pagos WHERE estado = 'aprobado';
 
 # Ver revendedores creados
-SELECT cliente_nombre, servex_username, servex_max_users, servex_account_type 
-FROM pagos_revendedores 
+SELECT cliente_nombre, servex_username, servex_max_users, servex_account_type
+FROM pagos_revendedores
 WHERE estado = 'aprobado';
 
 # Salir
@@ -620,8 +690,10 @@ https://www.mercadopago.com.ar/developers/panel/webhooks
 ## 🚦 Solución de Problemas
 
 ### Error: "No hay categorías activas disponibles"
+
 **Causa**: Todas las categorías en Servex están expiradas
-**Solución**: 
+**Solución**:
+
 ```bash
 # Ver categorías disponibles
 curl -H "Authorization: Bearer [API_KEY]" https://servex.ws/api/categories
@@ -631,15 +703,19 @@ curl -H "Authorization: Bearer [API_KEY]" https://servex.ws/api/categories
 ```
 
 ### Error: "Payment not found" en webhook
+
 **Causa**: MercadoPago envió webhook antes de crear el pago en DB
 **Solución**: El sistema reintenta automáticamente. Verificar logs:
+
 ```bash
 pm2 logs secureshop-backend | grep "Pago no encontrado"
 ```
 
 ### Frontend no carga después de deployment
+
 **Causa**: Archivos no copiados correctamente a dist/
 **Solución**:
+
 ```bash
 cd /home/secureshop/secureshop-vpn/frontend
 npm run build
@@ -647,8 +723,10 @@ ls -la dist/  # Verificar que existan archivos
 ```
 
 ### Backend no inicia con PM2
+
 **Causa**: Error en variables de entorno o dependencias
 **Solución**:
+
 ```bash
 pm2 logs secureshop-backend --err
 cd /home/secureshop/secureshop-vpn/backend
@@ -668,12 +746,14 @@ pm2 restart secureshop-backend
 ## 🤝 Soporte y Contacto
 
 Para problemas técnicos:
+
 1. Revisar logs: `pm2 logs secureshop-backend`
 2. Verificar estado: `pm2 status`
 3. Comprobar base de datos
 4. Verificar conectividad con APIs externas
 
 Contacto:
+
 - Telegram: @JHServicesAR
 - WhatsApp: +54 9 11 XXXX-XXXX
 - Email: soporte@jhservices.com.ar

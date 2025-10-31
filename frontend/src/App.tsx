@@ -6,6 +6,7 @@ import AboutPage from "./pages/AboutPage";
 import SuccessPage from "./pages/SuccessPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import DownloadPage from "./pages/DownloadPage";
 import Header from "./components/Header";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -23,6 +24,7 @@ const App = () => {
           <Route path="/success" element={<SuccessPage />} />
           <Route path="/terminos" element={<TermsPage />} />
           <Route path="/privacidad" element={<PrivacyPage />} />
+          <Route path="/descargar" element={<DownloadPage />} />
         </Routes>
       </main>
     </div>
