@@ -317,7 +317,7 @@ export default function RevendedoresPage() {
                             {/* Plan Header */}
                             <button
                               onClick={() => togglePlan(plan.id)}
-                              className="w-full px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 hover:bg-neutral-800/50 transition-colors"
+                              className="w-full px-4 sm:px-6 py-4 flex items-center justify-between gap-4 hover:bg-neutral-800/50 transition-colors"
                             >
                               <div className="flex items-center gap-4 flex-1 min-w-0">
                                 <div className="text-left flex-1 min-w-0">
@@ -341,8 +341,8 @@ export default function RevendedoresPage() {
                               </div>
 
                               <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-                                <div className="text-right hidden sm:block">
-                                  <div className="text-2xl font-bold text-emerald-400">
+                                <div className="text-right">
+                                  <div className="text-xl sm:text-2xl font-bold text-emerald-400">
                                     ${plan.precio.toLocaleString("es-AR")}
                                   </div>
                                   <div className="text-xs text-neutral-500">
@@ -363,23 +363,6 @@ export default function RevendedoresPage() {
                                       : ""
                                   }`}
                                 />
-                              </div>
-
-                              {/* Mobile Price - Shown below on small screens */}
-                              <div className="text-center sm:hidden mt-2 pt-2 border-t border-neutral-800">
-                                <div className="text-xl font-bold text-emerald-400">
-                                  ${plan.precio.toLocaleString("es-AR")}
-                                </div>
-                                <div className="text-xs text-neutral-500">
-                                  $
-                                  {(
-                                    plan.precio / (plan.max_users || 1)
-                                  ).toFixed(0)}{" "}
-                                  por{" "}
-                                  {plan.account_type === "credit"
-                                    ? "crédito"
-                                    : "usuario"}
-                                </div>
                               </div>
                             </button>
 
