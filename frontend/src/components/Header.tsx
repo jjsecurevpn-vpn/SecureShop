@@ -11,6 +11,7 @@ import {
   Download,
 } from "lucide-react";
 import Sidebar from "./Sidebar";
+import ContactButton from "./ContactButton";
 import { useNoticias } from "../hooks/useNoticias";
 
 const Header = () => {
@@ -84,6 +85,8 @@ const Header = () => {
 
         {/* Right side: Download button, Notifications and user info */}
         <div className="flex items-center gap-3">
+          {/* Contact Button */}
+          <ContactButton />
           {/* Download Button */}
           <Link
             to="/descargar"

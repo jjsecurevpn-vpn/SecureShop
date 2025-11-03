@@ -6,6 +6,9 @@ module.exports = {
       cwd: "/home/secureshop/secureshop-vpn/backend",
       instances: 1,
       exec_mode: "fork",
+      listen_timeout: 10000,
+      kill_timeout: 5000,
+      wait_ready: true,
       env: {
         NODE_ENV: "production",
         MP_ACCESS_TOKEN:
@@ -33,6 +36,7 @@ module.exports = {
       min_uptime: "10s",
       autorestart: true,
       watch: false,
+      force_kill: true,
     },
   ],
 };

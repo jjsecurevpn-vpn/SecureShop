@@ -6,7 +6,6 @@ import {
   Globe,
   ArrowRight,
   Users,
-  Smartphone,
 } from "lucide-react";
 import DemoModal from "../components/DemoModal";
 
@@ -16,8 +15,6 @@ export default function HeroSection() {
 
   const goToPlans = () => navigate("/planes");
   const goToResellers = () => navigate("/revendedores");
-  const goToPlayStore = () =>
-    window.open("https://play.google.com/store", "_blank");
 
   const goToAbout = () => navigate("/sobre-nosotros");
 
@@ -72,10 +69,10 @@ export default function HeroSection() {
               </div>
 
               {/* CTA Buttons compactos */}
-              <div className="flex flex-col sm:flex-row gap-2 justify-center lg:justify-start pt-2">
+              <div className="flex flex-col gap-2 justify-center lg:justify-start pt-2 w-48 mx-auto lg:mx-0">
                 <button
                   onClick={goToPlans}
-                  className="group px-6 py-2.5 bg-purple-900/20 hover:bg-purple-900/30 border border-purple-400/30 rounded-lg text-sm font-medium text-purple-300 hover:text-purple-200 transition-all"
+                  className="group w-full px-6 py-2.5 bg-purple-900/20 hover:bg-purple-900/30 border border-purple-400/30 rounded-lg text-sm font-medium text-purple-300 hover:text-purple-200 transition-all"
                 >
                   <span className="flex items-center justify-center gap-1.5">
                     Ver Planes
@@ -85,20 +82,23 @@ export default function HeroSection() {
 
                 <button
                   onClick={() => setIsDemoOpen(true)}
-                  className="px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium text-gray-300 hover:text-white transition-all"
+                  className="w-full px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-medium text-gray-300 hover:text-white transition-all"
                 >
                   🎁 Prueba Gratis
                 </button>
 
-                <button
-                  onClick={goToPlayStore}
-                  className="px-6 py-2.5 bg-emerald-900/20 hover:bg-emerald-900/30 border border-emerald-400/30 rounded-lg text-sm font-medium text-emerald-300 hover:text-emerald-200 transition-all"
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.jjsecure.pro"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block hover:opacity-90 transition-opacity"
                 >
-                  <span className="flex items-center justify-center gap-1.5">
-                    <Smartphone className="w-3.5 h-3.5" />
-                    Play Store
-                  </span>
-                </button>
+                  <img 
+                    src="/GetItOnGooglePlay_Badge_Web_color_Spanish.svg" 
+                    alt="Descargar en Google Play"
+                    className="h-16 w-full"
+                  />
+                </a>
               </div>
 
               {/* Links secundarios */}
