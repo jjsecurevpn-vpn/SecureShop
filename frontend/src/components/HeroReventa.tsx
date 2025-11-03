@@ -23,7 +23,7 @@ export default function HeroReventa() {
   };
 
   return (
-    <section className="relative pt-32 md:pt-36 pb-16 md:pb-20">
+    <section className="relative pt-4 md:pt-12 pb-16 md:pb-20">
       <div className="max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center px-2 md:px-0">
           {/* Banner de Promoción - Más prominente */}

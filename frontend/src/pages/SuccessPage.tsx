@@ -84,11 +84,14 @@ const SuccessPage: React.FC = () => {
           : await apiService.obtenerPago(pagoId);
       setPago(data);
 
-      if (data.estado !== "aprobado") {
+      // ✅ MEJORADO: Verificar tanto el estado como que los datos estén completos
+      const datosIncompletos = !data.servex_username || !data.servex_password;
+      
+      if (data.estado !== "aprobado" || datosIncompletos) {
         // 🔴 MEJORADO: Aumentar a 30 reintentos = 90+ segundos con backoff
         if (reintentos < 30) {
           // Estrategia de backoff: esperar más tiempo después de varios reintentos
-          const delay = reintentos < 5 ? 1000 : reintentos < 10 ? 2000 : 3000;
+          const delay = reintentos < 5 ? 500 : reintentos < 10 ? 1000 : 2000;
 
           setTimeout(() => {
             setReintentos((prev) => prev + 1);
@@ -102,7 +105,7 @@ const SuccessPage: React.FC = () => {
     } catch (err: any) {
       // Si hay un error HTTP y aún podemos reintentar, volver a intentar
       if (reintentos < 30) {
-        const delay = reintentos < 5 ? 1000 : reintentos < 10 ? 2000 : 3000;
+        const delay = reintentos < 5 ? 500 : reintentos < 10 ? 1000 : 2000;
 
         setTimeout(() => {
           setReintentos((prev) => prev + 1);

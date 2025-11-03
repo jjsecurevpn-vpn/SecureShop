@@ -175,7 +175,7 @@ export default function PlanesPage({ isMobileMenuOpen, setIsMobileMenuOpen }: Pl
       {/* Main Content */}
       <main className="md:ml-[312px] pt-16 md:pt-0">
         {/* Hero Section */}
-        <section className="relative pt-36 pb-16 md:pt-36 md:pb-20">
+        <section className="relative pt-4 pb-16 md:pt-12 md:pb-20">
           <div className="max-w-[1400px] mx-auto px-6 md:px-8">
             <div className="max-w-3xl mx-auto text-center">
               {/* Banner de Promoción - Más prominente */}

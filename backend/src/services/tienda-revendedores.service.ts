@@ -417,28 +417,49 @@ export class TiendaRevendedoresService {
    * Verifica y procesa un pago manualmente (para cuando el cliente vuelve de MP)
    */
   async verificarYProcesarPago(pagoId: string): Promise<PagoRevendedor | null> {
-    const pago = this.db.obtenerPagoRevendedorPorId(pagoId);
-    if (!pago) {
-      return null;
-    }
-
-    // Si el pago ya está aprobado, solo devolver la información
-    if (pago.estado === "aprobado") {
-      return pago;
-    }
-
-    // Si está pendiente, verificar en MercadoPago
-    if (pago.estado === "pendiente") {
-      const pagoMP = await this.mercadopago.verificarPagoPorReferencia(pagoId);
-
-      if (pagoMP && pagoMP.status === "approved") {
-        // Confirmar el pago y crear el revendedor
-        await this.confirmarPagoYCrearRevendedor(pagoId, pagoMP.id);
-        // Devolver el pago actualizado
-        return this.db.obtenerPagoRevendedorPorId(pagoId);
+    console.log(`[TiendaRevendedores] 🔍 verificarYProcesarPago: ${pagoId}`);
+    try {
+      const pago = this.db.obtenerPagoRevendedorPorId(pagoId);
+      console.log(`[TiendaRevendedores] ✅ Pago obtenido de BD:`, pago ? "SÍ" : "NO");
+      
+      if (!pago) {
+        console.log(`[TiendaRevendedores] ❌ Pago no encontrado`);
+        return null;
       }
-    }
 
-    return pago;
+      console.log(`[TiendaRevendedores] 📊 Estado del pago:`, pago.estado);
+
+      // Si el pago ya está aprobado, solo devolver la información
+      if (pago.estado === "aprobado") {
+        console.log(`[TiendaRevendedores] ✅ Pago ya aprobado, devolviendo...`);
+        return pago;
+      }
+
+      // Si está pendiente, verificar en MercadoPago
+      if (pago.estado === "pendiente") {
+        console.log(`[TiendaRevendedores] 🌐 Pago pendiente, verificando en MercadoPago...`);
+        const pagoMP = await this.mercadopago.verificarPagoPorReferencia(pagoId);
+        console.log(`[TiendaRevendedores] 📊 Respuesta MercadoPago:`, pagoMP ? "ENCONTRADO" : "NO ENCONTRADO");
+
+        if (pagoMP && pagoMP.status === "approved") {
+          console.log(`[TiendaRevendedores] ✅ MercadoPago aprobado, creando revendedor...`);
+          // Confirmar el pago y crear el revendedor
+          await this.confirmarPagoYCrearRevendedor(pagoId, pagoMP.id);
+          // Devolver el pago actualizado
+          const pagoActualizado = this.db.obtenerPagoRevendedorPorId(pagoId);
+          console.log(`[TiendaRevendedores] ✅ Revendedor creado, devolviendo pago actualizado`);
+          return pagoActualizado;
+        } else {
+          console.log(`[TiendaRevendedores] ⚠️ MercadoPago no aprobado`);
+        }
+      }
+
+      console.log(`[TiendaRevendedores] ℹ️ Devolviendo pago con estado:`, pago.estado);
+      return pago;
+    } catch (error: any) {
+      console.error(`[TiendaRevendedores] ❌ ERROR EN verificarYProcesarPago:`, error.message);
+      console.error(`[TiendaRevendedores] Stack:`, error.stack);
+      throw error;
+    }
   }
 }

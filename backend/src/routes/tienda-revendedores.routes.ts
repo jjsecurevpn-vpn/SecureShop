@@ -125,10 +125,13 @@ export function crearRutasRevendedores(
     async (req: Request, res: Response): Promise<void> => {
       try {
         const pagoId = req.params.id;
+        console.log(`[API] GET /pago-revendedor/${pagoId} - Iniciando...`);
 
         const pago = await tiendaRevendedores.verificarYProcesarPago(pagoId);
+        console.log(`[API] Pago obtenido:`, JSON.stringify(pago, null, 2));
 
         if (!pago) {
+          console.log(`[API] Pago no encontrado: ${pagoId}`);
           res.status(404).json({
             success: false,
             error: "Pago no encontrado",
@@ -166,6 +169,7 @@ export function crearRutasRevendedores(
         });
       } catch (error: any) {
         console.error("[API] Error obteniendo pago de revendedor:", error);
+        console.error("[API] Stack trace:", error.stack);
         res.status(500).json({
           success: false,
           error: error.message || "Error al obtener el pago",

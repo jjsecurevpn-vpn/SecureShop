@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS pagos_revendedores (
   servex_expiracion TEXT,
   fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+  servex_duracion_dias INTEGER DEFAULT 0,
   FOREIGN KEY (plan_revendedor_id) REFERENCES planes_revendedores(id)
 );
 

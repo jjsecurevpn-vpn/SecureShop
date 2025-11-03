@@ -118,7 +118,7 @@ const AboutPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: AboutPageProps) =>
       </NavigationSidebar>
 
       {/* Main Content */}
-      <main className="md:ml-[312px] pt-32 pb-20">
+      <main className="md:ml-[312px] pt-4 pb-20">
         <div className="max-w-4xl mx-auto px-6">
           {/* Hero */}
           <div className="mb-20 mt-16 md:mt-0">
