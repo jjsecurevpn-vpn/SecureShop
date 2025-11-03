@@ -10,6 +10,7 @@ import {
   Calendar,
   CreditCard,
 } from "lucide-react";
+import { useBodyOverflow } from "../hooks/useBodyOverflow";
 import { apiService } from "../services/api.service";
 
 interface RenovacionModalRevendedorProps {
@@ -55,6 +56,9 @@ export default function RenovacionModalRevendedor({
   const [planesValidity, setPlanesValidity] = useState<any[]>([]);
   const [planesLoading, setPlanesLoading] = useState(false);
 
+  // Bloquear scroll del body cuando el modal está abierto
+  useBodyOverflow(isOpen);
+
   useEffect(() => {
     if (tipoRenovacion === "validity" && planesValidity.length > 0) {
       setCreditosSeleccionados(planesValidity[0].max_users);
@@ -67,17 +71,6 @@ export default function RenovacionModalRevendedor({
     if (isOpen) {
       cargarPlanes();
     }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
   }, [isOpen]);
 
   const cargarPlanes = async () => {

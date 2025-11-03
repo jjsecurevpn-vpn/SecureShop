@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   Star,
@@ -14,24 +15,23 @@ import {
   TrendingUp,
   ChevronDown,
 } from "lucide-react";
-import CheckoutModalRevendedor from "../components/CheckoutModalRevendedor";
 import RenovacionModalRevendedor from "../components/RenovacionModalRevendedor";
 import HeroReventa from "../components/HeroReventa";
-import MobilePageHeader from "../components/MobilePageHeader";
 import BottomSheet from "../components/BottomSheet";
 import NavigationSidebar from "../components/NavigationSidebar";
-import { PlanRevendedor, CompraRevendedorRequest } from "../types";
+import { PlanRevendedor } from "../types";
 import { apiService } from "../services/api.service";
 
-export default function RevendedoresPage() {
-  const [planSeleccionado, setPlanSeleccionado] =
-    useState<PlanRevendedor | null>(null);
-  const [comprando, setComprando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface RevendedoresPageProps {
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (value: boolean) => void;
+}
+
+export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen }: RevendedoresPageProps) {
+  const navigate = useNavigate();
   const [planes, setPlanes] = useState<PlanRevendedor[]>([]);
   const [mostrarRenovacion, setMostrarRenovacion] = useState(false);
   const [expandedPlanId, setExpandedPlanId] = useState<number | null>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("creditos");
   const [expandedMenuSections, setExpandedMenuSections] = useState<string[]>(
     []
@@ -73,15 +73,6 @@ export default function RevendedoresPage() {
       console.error("Error cargando planes de revendedor:", err);
       setPlanes([]);
     }
-  };
-
-  const creditMonths = (plan: PlanRevendedor) => {
-    const credits = plan.max_users || 0;
-    if (credits <= 5) return 1;
-    if (credits <= 10) return 2;
-    if (credits <= 20) return 3;
-    if (credits <= 30) return 4;
-    return 5;
   };
 
   // Función para extraer el número de usuarios del nombre del plan
@@ -181,9 +172,7 @@ export default function RevendedoresPage() {
                 : `${extractUsersFromName(plan.nombre)} usuarios`,
             subtitle:
               plan.account_type === "credit"
-                ? `Equivale a ${creditMonths(plan)} mes${
-                    creditMonths(plan) > 1 ? "es" : ""
-                  }`
+                ? "Sistema de créditos"
                 : "30 días",
             icon: (
               <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
@@ -201,31 +190,13 @@ export default function RevendedoresPage() {
     return sections;
   }, [groupedPlans, expandedMenuSections]);
 
-  const handleConfirmarCompra = async (datos: CompraRevendedorRequest) => {
-    try {
-      setComprando(true);
-      setError(null);
-      const respuesta = await apiService.comprarPlanRevendedor(datos);
-      if (respuesta.linkPago) {
-        window.location.href = respuesta.linkPago;
-      } else {
-        throw new Error("No se recibió el enlace de pago");
-      }
-    } catch (err: any) {
-      console.error("Error en la compra:", err);
-      setError(err.message || "Error al procesar la compra");
-      setComprando(false);
-    }
+  const handleConfirmarCompra = (plan: PlanRevendedor) => {
+    // Navegar a la página de checkout con el ID del plan
+    navigate(`/checkout-revendedor?planId=${plan.id}`);
   };
 
   return (
     <div className="min-h-screen bg-[#181818]">
-      {/* Mobile Header */}
-      <MobilePageHeader
-        title="Revendedores"
-        onMenuClick={() => setIsMobileMenuOpen(true)}
-      />
-
       {/* Sidebar */}
       <NavigationSidebar
         title="Revendedores"
@@ -332,9 +303,7 @@ export default function RevendedoresPage() {
                                   </div>
                                   <div className="text-xs text-neutral-500 break-words">
                                     {plan.account_type === "credit"
-                                      ? `Equivale a ${creditMonths(plan)} mes${
-                                          creditMonths(plan) > 1 ? "es" : ""
-                                        }`
+                                      ? "Sistema de créditos"
                                       : "30 días"}
                                   </div>
                                 </div>
@@ -394,14 +363,14 @@ export default function RevendedoresPage() {
                                               className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
                                             />
                                             <span className="break-words">
-                                              Equivale a{" "}
+                                              Plan de{" "}
                                               <strong>
-                                                {creditMonths(plan)}{" "}
-                                                {creditMonths(plan) > 1
-                                                  ? "meses"
-                                                  : "mes"}
+                                                {plan.max_users}{" "}
+                                                {plan.account_type === "credit"
+                                                  ? "créditos"
+                                                  : "usuarios simultáneos"}
                                               </strong>{" "}
-                                              de acceso VPN
+                                              con máxima flexibilidad
                                             </span>
                                           </div>
                                           <div className="flex items-start gap-2 text-sm text-neutral-300">
@@ -507,7 +476,7 @@ export default function RevendedoresPage() {
 
                                   {/* CTA */}
                                   <button
-                                    onClick={() => setPlanSeleccionado(plan)}
+                                    onClick={() => handleConfirmarCompra(plan)}
                                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
                                   >
                                     Comprar ahora
@@ -684,49 +653,6 @@ export default function RevendedoresPage() {
       </BottomSheet>
 
       {/* Modals */}
-      {planSeleccionado && (
-        <CheckoutModalRevendedor
-          plan={planSeleccionado}
-          onClose={() => setPlanSeleccionado(null)}
-          onConfirm={handleConfirmarCompra}
-          loading={comprando}
-        />
-      )}
-
-      {mostrarRenovacion && (
-        <RenovacionModalRevendedor
-          isOpen={mostrarRenovacion}
-          onClose={() => setMostrarRenovacion(false)}
-        />
-      )}
-
-      {/* Error Toast */}
-      {error && (
-        <div className="fixed bottom-4 right-4 z-50 max-w-md">
-          <div className="bg-red-900/20 border border-red-800/50 rounded-lg p-4 backdrop-blur-sm">
-            <div className="flex items-start gap-3">
-              <div className="text-red-400">⚠️</div>
-              <p className="text-sm text-red-200 flex-1">{error}</p>
-              <button
-                onClick={() => setError(null)}
-                className="text-red-400 hover:text-red-300 transition-colors"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modals */}
-      {planSeleccionado && (
-        <CheckoutModalRevendedor
-          plan={planSeleccionado}
-          onClose={() => setPlanSeleccionado(null)}
-          onConfirm={handleConfirmarCompra}
-          loading={comprando}
-        />
-      )}
       <RenovacionModalRevendedor
         isOpen={mostrarRenovacion}
         onClose={() => setMostrarRenovacion(false)}

@@ -69,9 +69,12 @@ export class DatabaseService {
         servex_categoria TEXT,
         servex_expiracion TEXT,
         servex_connection_limit INTEGER,
+        cupon_id INTEGER,
+        descuento_aplicado REAL DEFAULT 0,
         fecha_creacion TEXT NOT NULL DEFAULT (datetime('now')),
         fecha_actualizacion TEXT NOT NULL DEFAULT (datetime('now')),
-        FOREIGN KEY (plan_id) REFERENCES planes(id)
+        FOREIGN KEY (plan_id) REFERENCES planes(id),
+        FOREIGN KEY (cupon_id) REFERENCES cupones(id)
       )
     `);
 
@@ -80,6 +83,30 @@ export class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_pagos_estado ON pagos(estado);
       CREATE INDEX IF NOT EXISTS idx_pagos_mp_payment ON pagos(mp_payment_id);
       CREATE INDEX IF NOT EXISTS idx_pagos_email ON pagos(cliente_email);
+    `);
+
+    // Tabla de cupones de descuento
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS cupones (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        codigo VARCHAR(50) UNIQUE NOT NULL,
+        tipo TEXT NOT NULL,
+        valor DECIMAL(10,2) NOT NULL,
+        limite_uso INTEGER DEFAULT NULL,
+        usos_actuales INTEGER DEFAULT 0,
+        fecha_expiracion DATETIME,
+        activo BOOLEAN DEFAULT TRUE,
+        planes_aplicables JSON,
+        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Índices para cupones
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_cupones_codigo ON cupones(codigo);
+      CREATE INDEX IF NOT EXISTS idx_cupones_activo ON cupones(activo);
+      CREATE INDEX IF NOT EXISTS idx_cupones_fecha_expiracion ON cupones(fecha_expiracion);
     `);
   }
 
@@ -129,8 +156,9 @@ export class DatabaseService {
     const stmt = this.db.prepare(`
       INSERT INTO pagos (
         id, plan_id, monto, estado, metodo_pago,
-        cliente_email, cliente_nombre, mp_payment_id, mp_preference_id
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        cliente_email, cliente_nombre, mp_payment_id, mp_preference_id,
+        cupon_id, descuento_aplicado
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run(
@@ -142,7 +170,9 @@ export class DatabaseService {
       pago.cliente_email,
       pago.cliente_nombre,
       pago.mp_payment_id || null,
-      pago.mp_preference_id || null
+      pago.mp_preference_id || null,
+      pago.cupon_id || null,
+      pago.descuento_aplicado || 0
     );
 
     const pagoBuscado = this.obtenerPagoPorId(pago.id);
@@ -240,6 +270,8 @@ export class DatabaseService {
       servex_categoria: row.servex_categoria || undefined,
       servex_expiracion: row.servex_expiracion || undefined,
       servex_connection_limit: row.servex_connection_limit || undefined,
+      cupon_id: row.cupon_id || undefined,
+      descuento_aplicado: row.descuento_aplicado || undefined,
       fecha_creacion: new Date(row.fecha_creacion),
       fecha_actualizacion: new Date(row.fecha_actualizacion),
     };
@@ -306,11 +338,13 @@ export class DatabaseService {
     metodo_pago: string;
     cliente_email: string;
     cliente_nombre: string;
+    cupon_id?: number;
+    descuento_aplicado?: number;
   }): PagoRevendedor {
     const stmt = this.db.prepare(`
       INSERT INTO pagos_revendedores 
-      (id, plan_revendedor_id, monto, estado, metodo_pago, cliente_email, cliente_nombre)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      (id, plan_revendedor_id, monto, estado, metodo_pago, cliente_email, cliente_nombre, cupon_id, descuento_aplicado)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     stmt.run(
@@ -320,7 +354,9 @@ export class DatabaseService {
       data.estado,
       data.metodo_pago,
       data.cliente_email,
-      data.cliente_nombre
+      data.cliente_nombre,
+      data.cupon_id || null,
+      data.descuento_aplicado || 0
     );
 
     const pago = this.obtenerPagoRevendedorPorId(data.id);
@@ -425,6 +461,8 @@ export class DatabaseService {
       servex_max_users: row.servex_max_users || undefined,
       servex_account_type: row.servex_account_type || undefined,
       servex_expiracion: row.servex_expiracion || undefined,
+      cupon_id: row.cupon_id || undefined,
+      descuento_aplicado: row.descuento_aplicado || undefined,
       fecha_creacion: new Date(row.fecha_creacion),
       fecha_actualizacion: new Date(row.fecha_actualizacion),
     };

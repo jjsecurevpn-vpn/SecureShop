@@ -106,6 +106,12 @@ export class PromoTimerService {
         promoConfig.activa = false;
         promoConfig.desactivada_en = ahora.toISOString();
 
+        // También desactivar el banner del hero en planes.config.json si existe
+        if (config.hero && config.hero.promocion && config.hero.promocion.habilitada) {
+          config.hero.promocion.habilitada = false;
+          console.log("[PromoTimerService] ✅ Hero promoción desactivada en planes.config.json");
+        }
+
         // Guardar cambios en el archivo principal
         fs.writeFileSync(
           this.configPath,

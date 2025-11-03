@@ -44,15 +44,18 @@ Los precios se almacenan en las tablas:
 
 #### `POST /api/config/sync-todo`
 
-**Sincronización completa** - Recomendado para uso general
+**Sincronización completa + refresco BD VPS** - Hace TODO automáticamente
 
-- Limpia el caché
-- Sincroniza precios de planes normales
-- Sincroniza precios de revendedores
+Hace automáticamente:
+- Limpieza de caché del backend
+- Sincronización completa de precios (planes + revendedores)
+- **Refresco de base de datos del VPS** (corrige valores max_users de planes)
 
 ```bash
 curl -X POST http://localhost:4001/api/config/sync-todo
 ```
+
+**⚠️ Importante**: Este endpoint debe ejecutarse desde el servidor local de desarrollo.
 
 #### `POST /api/config/sync-precios`
 
@@ -82,12 +85,12 @@ Modifica los precios en:
 ### 2. Sincronizar cambios
 
 ```bash
-# Opción 1: Sincronización completa (recomendado)
-curl -X POST http://tu-dominio:4001/api/config/sync-todo
+# Opción automática (recomendado): sincroniza precios + refresca BD del VPS
+curl -X POST http://localhost:4001/api/config/sync-todo
 
-# Opción 2: Sincronizaciones específicas
-curl -X POST http://tu-dominio:4001/api/config/sync-precios
-curl -X POST http://tu-dominio:4001/api/config/sync-precios-revendedores
+# Opciones específicas (solo si necesitas control granular)
+curl -X POST http://localhost:4001/api/config/sync-precios
+curl -X POST http://localhost:4001/api/config/sync-precios-revendedores
 ```
 
 ### 3. Verificar cambios
@@ -118,12 +121,16 @@ ssh root@149.50.148.6 "cd /home/secureshop/secureshop-vpn && pm2 restart all"
 ### Actualización de precios en producción
 
 ```bash
+# Método automático (recomendado): sincroniza precios + refresca BD del VPS
+curl -X POST http://localhost:4001/api/config/sync-todo
+
+# Método manual (si necesitas control específico):
 # 1. Editar JSON localmente
 # 2. Subir JSON actualizado
 scp backend/public/config/planes.config.json root@149.50.148.6:/home/secureshop/secureshop-vpn/backend/public/config/
 scp backend/public/config/revendedores.config.json root@149.50.148.6:/home/secureshop/secureshop-vpn/backend/public/config/
 
-# 3. Sincronizar precios
+# 3. Sincronizar precios en el VPS
 ssh root@149.50.148.6 "curl -X POST http://localhost:4001/api/config/sync-todo"
 ```
 

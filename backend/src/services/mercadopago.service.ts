@@ -12,6 +12,8 @@ export class MercadoPagoService {
 
   constructor(config: MercadoPagoConfig) {
     this.config = config;
+    // Los tokens de desarrollo (APP_USR) funcionan con api.mercadopago.com
+    // El endpoint detecta automáticamente si es sandbox basado en el token
     this.client = axios.create({
       baseURL: "https://api.mercadopago.com",
       headers: {
@@ -20,6 +22,8 @@ export class MercadoPagoService {
       },
       timeout: 30000,
     });
+
+    console.log(`[MercadoPago] 🔧 Inicializado con token: ${config.accessToken.substring(0, 20)}...`);
 
     // Interceptor para logging
     this.client.interceptors.response.use(

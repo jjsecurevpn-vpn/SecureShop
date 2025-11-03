@@ -4,6 +4,7 @@ import { ServexService } from "./servex.service";
 import { MercadoPagoService } from "./mercadopago.service";
 import { configService } from "./config.service";
 import emailService from "./email.service";
+import { cuponesService } from "./cupones.service";
 import {
   PlanRevendedor,
   PagoRevendedor,
@@ -28,17 +29,23 @@ export class TiendaRevendedoresService {
       planesBase.length,
       "planes"
     );
-    console.log(
-      "[TiendaRevendedores] 📊 Plan 34 precio base:",
-      planesBase.find((p: any) => p.id === 34)?.precio
-    );
+    
+    // Debug: ver plan 1
+    const plan1Base = planesBase.find((p: any) => p.id === 1);
+    if (plan1Base) {
+      console.log("[TiendaRevendedores] 🔍 Plan 1 base:", JSON.stringify(plan1Base));
+    }
+    
     // Aplicar overrides de configuración si existen
     const planesConOverrides =
       configService.aceptarOverridesAListaPlanesRevendedor(planesBase);
-    console.log(
-      "[TiendaRevendedores] ✨ Despúes de overrides - Plan 34 precio:",
-      planesConOverrides.find((p: any) => p.id === 34)?.precio
-    );
+    
+    // Debug: ver plan 1 después de overrides
+    const plan1Overrides = planesConOverrides.find((p: any) => p.id === 1);
+    if (plan1Overrides) {
+      console.log("[TiendaRevendedores] 🔍 Plan 1 después de overrides:", JSON.stringify(plan1Overrides));
+    }
+    
     return planesConOverrides;
   }
 
@@ -65,16 +72,47 @@ export class TiendaRevendedoresService {
       `[TiendaRevendedores] Plan ${plan!.id} - Precio final: $${plan!.precio}`
     );
 
-    // 3. Crear registro de pago en la base de datos
+    // 3. Validar cupón si se proporcionó uno
+    let precioFinal = plan!.precio;
+    let descuentoAplicado = 0;
+    let cuponId: number | undefined;
+
+    if (input.codigoCupon) {
+      console.log(`[TiendaRevendedores] Validando cupón: ${input.codigoCupon}`);
+      const validacion = await cuponesService.validarCupon(input.codigoCupon, input.planRevendedorId);
+
+      if (!validacion.valido) {
+        throw new Error(validacion.mensaje_error || "Cupón inválido");
+      }
+
+      // Validar que el cupón existe
+      if (!validacion.cupon) {
+        console.error('[TiendaRevendedores] ERROR: Cupón validado pero no encontrado!', validacion);
+        throw new Error("Error: Cupón validado pero no encontrado");
+      }
+
+      // Calcular el descuento basado en el precio del plan
+      descuentoAplicado = cuponesService.calcularDescuento(validacion.cupon, plan!.precio);
+      precioFinal = Math.max(0, plan!.precio - descuentoAplicado);
+      cuponId = validacion.cupon.id;
+
+      console.log(`[TiendaRevendedores] ✅ Cupón válido: ${validacion.cupon.codigo}`);
+      console.log(`[TiendaRevendedores] 📊 Descuento: $${descuentoAplicado} aplicado`);
+      console.log(`[TiendaRevendedores] 💰 Precio: $${plan!.precio} → $${precioFinal}`);
+    }
+
+    // 4. Crear registro de pago en la base de datos
     const pagoId = uuidv4();
     const pago = this.db.crearPagoRevendedor({
       id: pagoId,
       plan_revendedor_id: plan!.id,
-      monto: plan!.precio,
+      monto: precioFinal,
       estado: "pendiente",
       metodo_pago: "mercadopago",
       cliente_email: input.clienteEmail,
       cliente_nombre: input.clienteNombre,
+      cupon_id: cuponId,
+      descuento_aplicado: descuentoAplicado,
     });
 
     console.log("[TiendaRevendedores] Pago creado:", pagoId);
@@ -85,7 +123,7 @@ export class TiendaRevendedoresService {
         await this.mercadopago.crearPreferencia(
           pagoId,
           plan!.nombre,
-          plan!.precio,
+          precioFinal, // Usar precio con descuento aplicado
           input.clienteEmail,
           input.clienteNombre,
           "revendedor"
@@ -289,6 +327,17 @@ export class TiendaRevendedoresService {
         "[TiendaRevendedores] ✅ Revendedor creado exitosamente:",
         revendedorCreado.username
       );
+
+      // Aplicar cupón si se usó uno
+      if (pago.cupon_id) {
+        try {
+          await cuponesService.aplicarCupon(pago.cupon_id);
+          console.log(`[TiendaRevendedores] ✅ Cupón ${pago.cupon_id} aplicado (uso incrementado)`);
+        } catch (cuponError: any) {
+          console.error(`[TiendaRevendedores] ⚠️ Error aplicando cupón ${pago.cupon_id}:`, cuponError.message);
+          // No fallar la creación del revendedor por error en cupón
+        }
+      }
 
       // Enviar email con las credenciales
       try {

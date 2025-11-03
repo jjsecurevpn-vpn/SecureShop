@@ -146,13 +146,13 @@ export class PreciosSyncService {
     try {
       db.pragma("journal_mode = WAL");
       const updateStmt = db.prepare(
-        "UPDATE planes_revendedores SET precio = ? WHERE id = ?"
+        "UPDATE planes_revendedores SET precio = ?, nombre = ?, descripcion = ?, account_type = ?, max_users = ?, dias = ? WHERE id = ?"
       );
       const insertStmt = db.prepare(
         "INSERT OR IGNORE INTO planes_revendedores (id, nombre, descripcion, precio, max_users, account_type, dias, activo) VALUES (?, ?, ?, ?, ?, ?, ?, 1)"
       );
       const selectStmt = db.prepare(
-        "SELECT precio FROM planes_revendedores WHERE id = ?"
+        "SELECT precio, nombre FROM planes_revendedores WHERE id = ?"
       );
 
       const details: Array<{ id: string; from?: number; to: number }> = [];
@@ -188,6 +188,7 @@ export class PreciosSyncService {
 
           const row = selectStmt.get(idNum) as any;
           const from = row ? Number(row.precio) : undefined;
+          const nombreActual = row ? row.nombre : undefined;
 
           if (from === undefined) {
             // Plan no existe, insertarlo
@@ -202,9 +203,9 @@ export class PreciosSyncService {
             );
             updated++;
             details.push({ id, to: Number(precio) });
-          } else if (Number(from) !== Number(precio)) {
-            // Plan existe, actualizar precio
-            updateStmt.run(precio, idNum);
+          } else if (Number(from) !== Number(precio) || nombreActual !== nombre) {
+            // Plan existe, actualizar precio, nombre, descripción y tipo de cuenta
+            updateStmt.run(precio, nombre, descripcion, account_type, max_users, dias, idNum);
             updated++;
             details.push({ id, from, to: Number(precio) });
           }

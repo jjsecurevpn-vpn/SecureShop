@@ -1,9 +1,10 @@
 import { Router, Request, Response } from "express";
 import { TiendaService } from "../services/tienda.service";
+import { WebSocketService } from "../services/websocket.service";
 import { configService } from "../services/config.service";
 import { ApiResponse, CrearPagoInput } from "../types";
 
-export function crearRutasTienda(tiendaService: TiendaService): Router {
+export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSocketService): Router {
   const router = Router();
   console.log("[crearRutasTienda] 🚀 INICIALIZANDO RUTAS DE TIENDA...");
 
@@ -53,7 +54,7 @@ export function crearRutasTienda(tiendaService: TiendaService): Router {
    */
   router.post("/comprar", async (req: Request, res: Response) => {
     try {
-      const { planId, clienteEmail, clienteNombre } =
+      const { planId, clienteEmail, clienteNombre, codigoCupon } =
         req.body as CrearPagoInput;
 
       // Validaciones
@@ -80,6 +81,7 @@ export function crearRutasTienda(tiendaService: TiendaService): Router {
         planId,
         clienteEmail,
         clienteNombre,
+        codigoCupon,
       });
 
       const response: ApiResponse = {
@@ -572,7 +574,7 @@ export function crearRutasTienda(tiendaService: TiendaService): Router {
             categoria: pago.servex_categoria,
             expiracion: pago.servex_expiracion,
             conexiones: pago.servex_connection_limit,
-            servidores: ["JJSecureARG1 (Argentina)", "JJSecureBR1 (Brasil)"],
+            servidores: wsService.obtenerEstadisticas().map((s: any) => `${s.serverName} (${s.location})`),
           },
         } as ApiResponse);
       } catch (error: any) {

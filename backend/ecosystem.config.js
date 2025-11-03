@@ -17,7 +17,7 @@ module.exports = {
         SERVEX_BASE_URL: "https://servex.ws/api",
         DATABASE_PATH:
           "/home/secureshop/secureshop-vpn/backend/database/secureshop.db",
-        CORS_ORIGIN: "http://149.50.148.6",
+        CORS_ORIGIN: "https://shop.jhservices.com.ar",
         PORT: "4001",
         RATE_LIMIT_WINDOW_MS: "900000",
         RATE_LIMIT_MAX_REQUESTS: "100",

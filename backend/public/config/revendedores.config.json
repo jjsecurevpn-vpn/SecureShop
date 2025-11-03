@@ -8,7 +8,7 @@
     "titulo": "Sé Revendedor VPN",
     "descripcion": "Gana dinero vendiendo acceso VPN premium a tus clientes",
     "promocion": {
-      "habilitada": true,
+      "habilitada": false,
       "texto": "💼 PROMOCIÓN ESPECIAL - 20% OFF EN TODOS LOS PLANES DE REVENTA",
       "estilo": "from-blue-500 to-cyan-500",
       "textColor": "text-white",
@@ -87,7 +87,7 @@
     "19": { "precio": 96000 }
   },
   "promo_config": {
-    "activa": true,
+    "activa": false,
     "activada_en": "2025-10-31T20:13:00Z",
     "duracion_horas": 12,
     "auto_desactivar": true,

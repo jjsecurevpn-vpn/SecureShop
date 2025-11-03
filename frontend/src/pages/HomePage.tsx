@@ -5,13 +5,16 @@ import { apiService } from "../services/api.service";
 import HeroSection from "../sections/HeroSection";
 import ServerStatsSection from "../sections/ServerStatsSection";
 import LatestUsersSection from "../sections/LatestUsersSection";
-import MobilePageHeader from "../components/MobilePageHeader";
 import BottomSheet from "../components/BottomSheet";
 import NavigationSidebar from "../components/NavigationSidebar";
 
-const HomePage = () => {
+interface HomePageProps {
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (value: boolean) => void;
+}
+
+const HomePage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: HomePageProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");
 
   // Verificar si el usuario vuelve de MercadoPago
@@ -62,12 +65,6 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-[#181818]">
-      {/* Mobile Header */}
-      <MobilePageHeader
-        title="JJSecure VPN"
-        onMenuClick={() => setIsMobileMenuOpen(true)}
-      />
-
       {/* Sidebar */}
       <NavigationSidebar
         title="JJSecure VPN"

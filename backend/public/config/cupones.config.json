@@ -1,0 +1,62 @@
+{
+  "enabled": true,
+  "version": "1.0.0",
+  "ultima_actualizacion": "2025-11-01T22:45:00Z",
+  "descripcion": "Configuración de cupones de descuento. Los cupones se cargan automáticamente al iniciar el servidor.",
+  "cupones": [
+    {
+      "codigo": "BIENVENIDO",
+      "tipo": "porcentaje",
+      "valor": 50,
+      "limite_uso": 10,
+      "fecha_expiracion": "2025-12-31",
+      "activo": true,
+      "descripcion": "Descuento de bienvenida para nuevos clientes"
+    },
+    {
+      "codigo": "FIJO500",
+      "tipo": "monto_fijo",
+      "valor": 500,
+      "limite_uso": 200,
+      "fecha_expiracion": "2025-12-31",
+      "activo": true,
+      "descripcion": "Descuento fijo de $500"
+    },
+    {
+      "codigo": "BLACKFRIDAY",
+      "tipo": "porcentaje",
+      "valor": 25,
+      "limite_uso": 1000,
+      "fecha_expiracion": "2025-11-30",
+      "activo": true,
+      "descripcion": "Promoción especial Black Friday"
+    },
+    {
+      "codigo": "VIP20",
+      "tipo": "porcentaje",
+      "valor": 20,
+      "limite_uso": 50,
+      "fecha_expiracion": "2025-12-31",
+      "activo": false,
+      "descripcion": "Cupón VIP exclusivo (desactivado por defecto)"
+    },
+    {
+      "codigo": "FLASH500",
+      "tipo": "monto_fijo",
+      "valor": 500,
+      "limite_uso": 10,
+      "fecha_expiracion": "2025-11-15",
+      "activo": true,
+      "descripcion": "Promoción flash limitada"
+    }
+  ],
+  "configuracion": {
+    "auto_cargar": true,
+    "sobrescribir_existentes": true,
+    "validar_codigos_unicos": true,
+    "notificaciones": {
+      "expiracion_dias": 7,
+      "limite_uso_alerta": 80
+    }
+  }
+}

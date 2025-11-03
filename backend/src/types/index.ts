@@ -1,4 +1,17 @@
 // ============================================
+// TIPOS PARA CUPONES
+// ============================================
+
+export interface InformacionCupon {
+  codigo: string;
+  tipo: 'porcentaje' | 'fijo';
+  valor: number;
+  descuentoAplicado: number;
+  montoOriginal: number;
+  montoFinal: number;
+}
+
+// ============================================
 // TIPOS PARA PLANES
 // ============================================
 
@@ -80,6 +93,8 @@ export interface Pago {
   servex_categoria?: string;
   servex_expiracion?: string;
   servex_connection_limit?: number;
+  cupon_id?: number;
+  descuento_aplicado?: number;
   fecha_creacion: Date;
   fecha_actualizacion: Date;
 }
@@ -88,6 +103,7 @@ export interface CrearPagoInput {
   planId: number;
   clienteEmail: string;
   clienteNombre: string;
+  codigoCupon?: string;
 }
 
 export interface PagoRevendedor {
@@ -106,6 +122,8 @@ export interface PagoRevendedor {
   servex_max_users?: number;
   servex_account_type?: string;
   servex_expiracion?: string;
+  cupon_id?: number;
+  descuento_aplicado?: number;
   fecha_creacion: Date;
   fecha_actualizacion: Date;
 }
@@ -114,6 +132,7 @@ export interface CrearPagoRevendedorInput {
   planRevendedorId: number;
   clienteEmail: string;
   clienteNombre: string;
+  codigoCupon?: string;
 }
 
 export interface PagoRevendedorRow {
@@ -132,6 +151,8 @@ export interface PagoRevendedorRow {
   servex_max_users: number | null;
   servex_account_type: string | null;
   servex_expiracion: string | null;
+  cupon_id: number | null;
+  descuento_aplicado: number | null;
   fecha_creacion: string;
   fecha_actualizacion: string;
 }
@@ -302,6 +323,8 @@ export interface PagoRow {
   servex_categoria: string | null;
   servex_expiracion: string | null;
   servex_connection_limit: number | null;
+  cupon_id: number | null;
+  descuento_aplicado: number | null;
   fecha_creacion: string;
   fecha_actualizacion: string;
 }
@@ -337,4 +360,54 @@ export interface AppConfig {
     max: number;
   };
   logLevel: string;
+}
+
+// ============================================
+// TIPOS PARA CUPONES DE DESCUENTO
+// ============================================
+
+export interface Cupon {
+  id?: number;
+  codigo: string;
+  tipo: 'porcentaje' | 'monto_fijo';
+  valor: number;
+  limite_uso?: number;
+  usos_actuales?: number;
+  fecha_expiracion?: Date;
+  activo?: boolean;
+  planes_aplicables?: number[];
+  creado_en?: Date;
+  actualizado_en?: Date;
+}
+
+export interface CuponRow {
+  id: number;
+  codigo: string;
+  tipo: 'porcentaje' | 'monto_fijo';
+  valor: number;
+  limite_uso: number | null;
+  usos_actuales: number;
+  fecha_expiracion: string | null;
+  activo: number;
+  planes_aplicables: string | null;
+  creado_en: string;
+  actualizado_en: string;
+}
+
+export interface CrearCuponInput {
+  codigo: string;
+  tipo: 'porcentaje' | 'monto_fijo';
+  valor: number;
+  limite_uso?: number;
+  fecha_expiracion?: Date;
+  planes_aplicables?: number[];
+  activo?: boolean;
+}
+
+export interface ValidacionCupon {
+  valido: boolean;
+  descuento?: number;
+  tipo_descuento?: 'porcentaje' | 'monto_fijo';
+  mensaje_error?: string;
+  cupon?: Cupon;
 }

@@ -10,7 +10,7 @@ export default function MobilePageHeader({
   onMenuClick,
 }: MobilePageHeaderProps) {
   return (
-    <div className="md:hidden fixed top-14 left-0 right-0 z-30 bg-[#171717] border-b border-white/5 px-5 py-3 flex items-center justify-between">
+    <div className="sticky top-0 left-0 right-0 z-30 bg-[#171717] border-b border-white/5 px-5 py-3 flex items-center justify-between md:hidden">
       <h1 className="text-lg font-medium">{title}</h1>
       <button
         onClick={onMenuClick}

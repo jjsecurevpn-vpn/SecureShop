@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { apiService } from "../services/api.service";
+import { useBodyOverflow } from "../hooks/useBodyOverflow";
 import Loading from "./Loading";
 import {
   X,
@@ -27,6 +28,9 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
     horas_validas: number;
   } | null>(null);
   const [bloqueado, setBloqueado] = useState(false);
+
+  // Bloquear scroll del body cuando el modal está abierto
+  useBodyOverflow(isOpen);
 
   if (!isOpen) return null;
 

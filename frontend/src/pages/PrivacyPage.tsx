@@ -8,9 +8,13 @@ import {
   MessageCircle,
   Phone,
 } from "lucide-react";
-import MobilePageHeader from "../components/MobilePageHeader";
 import BottomSheet from "../components/BottomSheet";
 import NavigationSidebar from "../components/NavigationSidebar";
+
+interface PrivacyPageProps {
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (value: boolean) => void;
+}
 
 const sectionsData = [
   {
@@ -109,11 +113,10 @@ const sectionsData = [
   },
 ];
 
-const PrivacyPage = () => {
+const PrivacyPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: PrivacyPageProps) => {
   const [activeSection, setActiveSection] = useState(
     "información-que-recopilamos"
   );
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const sections = [
     {
@@ -149,12 +152,6 @@ const PrivacyPage = () => {
   ];
   return (
     <div className="min-h-screen bg-[#181818]">
-      {/* Mobile Header */}
-      <MobilePageHeader
-        title="Política de Privacidad"
-        onMenuClick={() => setIsMobileMenuOpen(true)}
-      />
-
       {/* Sidebar */}
       <NavigationSidebar
         title="Política de Privacidad"

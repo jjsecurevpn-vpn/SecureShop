@@ -9,6 +9,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Plan } from "../types";
+import { useBodyOverflow } from "../hooks/useBodyOverflow";
 import { apiService } from "../services/api.service";
 
 interface RenovacionModalProps {
@@ -51,16 +52,13 @@ export default function RenovacionModal({
   const [emailCliente, setEmailCliente] = useState("");
   const [planes, setPlanes] = useState<Plan[]>([]);
 
+  // Bloquear scroll del body cuando el modal está abierto
+  useBodyOverflow(isOpen);
+
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = "hidden";
       cargarPlanes();
-    } else {
-      document.body.style.overflow = "unset";
     }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
   }, [isOpen]);
 
   const cargarPlanes = async () => {

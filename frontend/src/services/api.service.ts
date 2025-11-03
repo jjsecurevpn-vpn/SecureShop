@@ -10,6 +10,19 @@ import {
   Usuario,
 } from "../types";
 
+export interface ValidacionCupon {
+  valido: boolean;
+  descuento?: number;
+  precio_final?: number;
+  mensaje?: string;
+  cupon?: {
+    id: number;
+    codigo: string;
+    tipo: "porcentaje" | "monto_fijo";
+    valor: number;
+  };
+}
+
 class ApiService {
   private client: AxiosInstance;
 
@@ -236,15 +249,84 @@ class ApiService {
    * Obtiene la configuración de MercadoPago
    */
   async obtenerConfigMercadoPago(): Promise<{ publicKey: string }> {
-    const response = await this.client.get<ApiResponse<{ publicKey: string }>>(
-      "/config/mercadopago"
-    );
+    const response = await this.client.get<{
+      success: boolean;
+      publicKey: string;
+      error?: string;
+    }>("/config/mercadopago");
+
     if (!response.data.success) {
       throw new Error(
         response.data.error || "Error obteniendo configuración de MercadoPago"
       );
     }
-    return response.data.data!;
+    return { publicKey: response.data.publicKey };
+  }
+
+  /**
+   * Valida un cupón de descuento
+   */
+  async validarCupon(codigo: string, planId?: number, precioPlan?: number): Promise<ValidacionCupon> {
+    try {
+      const response = await this.client.post<{
+        success: boolean;
+        data?: any;
+        error?: string;
+      }>("/cupones/validar", {
+        codigo: codigo.trim().toUpperCase(),
+        planId,
+        precioPlan,
+      });
+
+      if (!response.data.success) {
+        return {
+          valido: false,
+          mensaje: response.data.error || "Error validando cupón",
+        };
+      }
+
+      // El backend devuelve success: true cuando el cupón es válido
+      // Mapear la respuesta del backend a la interfaz ValidacionCupon
+      const data = response.data.data;
+      if (data && data.cupon) {
+        return {
+          valido: true,
+          descuento: data.descuento,
+          precio_final: data.precio_final,
+          cupon: data.cupon,
+        };
+      } else {
+        return {
+          valido: false,
+          mensaje: "Respuesta inválida del servidor",
+        };
+      }
+    } catch (error: any) {
+      console.error("[ApiService] Error validando cupón:", error);
+      return {
+        valido: false,
+        mensaje: error.mensaje || "Error de conexión. Intenta nuevamente.",
+      };
+    }
+  }
+
+  /**
+   * Aplica un cupón a una compra (se llama automáticamente en el backend)
+   */
+  async aplicarCupon(cuponId: number): Promise<boolean> {
+    try {
+      const response = await this.client.post<{
+        success: boolean;
+        error?: string;
+      }>("/cupones/aplicar", {
+        cuponId,
+      });
+
+      return response.data.success;
+    } catch (error: any) {
+      console.error("[ApiService] Error aplicando cupón:", error);
+      return false;
+    }
   }
 }
 

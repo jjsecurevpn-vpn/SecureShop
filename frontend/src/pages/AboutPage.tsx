@@ -14,13 +14,16 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import MobilePageHeader from "../components/MobilePageHeader";
 import BottomSheet from "../components/BottomSheet";
 import NavigationSidebar from "../components/NavigationSidebar";
 
-const AboutPage = () => {
+interface AboutPageProps {
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (value: boolean) => void;
+}
+
+const AboutPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: AboutPageProps) => {
   const [activeSection, setActiveSection] = useState("mision");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const sections = [
     { id: "mision", label: "Misión", icon: <Target className="w-4 h-4" /> },
@@ -85,12 +88,6 @@ const AboutPage = () => {
 
   return (
     <div className="min-h-screen text-white font-sans">
-      {/* Mobile Header */}
-      <MobilePageHeader
-        title="Sobre Nosotros"
-        onMenuClick={() => setIsMobileMenuOpen(true)}
-      />
-
       {/* Sidebar - Desktop */}
       <NavigationSidebar
         title="Sobre JJSecure"

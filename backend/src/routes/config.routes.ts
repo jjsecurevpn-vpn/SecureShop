@@ -39,6 +39,11 @@ router.post("/activar-promo", async (req: Request, res: Response) => {
     configPlanes.promo_config.auto_desactivar = true;
     configPlanes.ultima_actualizacion = now;
 
+    // Habilitar el banner del hero en PLANES si existe la configuración
+    if (configPlanes.hero && configPlanes.hero.promocion) {
+      configPlanes.hero.promocion.habilitada = true;
+    }
+
     // Actualizar promo_config en REVENDEDORES
     if (!configRevendedores.promo_config) {
       configRevendedores.promo_config = {
@@ -53,6 +58,11 @@ router.post("/activar-promo", async (req: Request, res: Response) => {
     configRevendedores.promo_config.duracion_horas = duracion_horas;
     configRevendedores.promo_config.auto_desactivar = true;
     configRevendedores.ultima_actualizacion = now;
+
+    // Habilitar el banner del hero en REVENDEDORES si existe la configuración
+    if (configRevendedores.hero && configRevendedores.hero.promocion) {
+      configRevendedores.hero.promocion.habilitada = true;
+    }
 
     // Guardar cambios en ambos archivos
     console.log("[CONFIG-ROUTE] 💾 Guardando config de planes...");
@@ -102,6 +112,11 @@ router.post("/desactivar-promo", (_req: Request, res: Response) => {
     config.promo_config.activada_en = null;
     config.ultima_actualizacion = new Date().toISOString();
 
+    // Desactivar el banner del hero si existe
+    if (config.hero && config.hero.promocion) {
+      config.hero.promocion.habilitada = false;
+    }
+
     configService.guardarConfigPlanes(config);
     configService.limpiarCache();
 
@@ -150,17 +165,18 @@ router.post("/sync-precios", (_req: Request, res: Response) => {
  * POST /api/config/sync-precios-revendedores
  * Sincroniza los precios de revendedores en la base de datos con `precios_normales` del config
  */
-router.post("/sync-precios-revendedores", (_req: Request, res: Response) => {
+router.post("/sync-precios-revendedores", (req: Request, res: Response) => {
   try {
+    const force = req.query.force === "true" || req.body.force === true;
     const result =
-      preciosSyncService.sincronizarPreciosRevendedoresDesdeConfig();
+      preciosSyncService.sincronizarPreciosRevendedoresDesdeConfig(force);
 
     // Limpiar caché para que la app lea los nuevos valores
     configService.limpiarCache();
 
     return res.status(200).json({
       success: true,
-      message: "Precios de revendedores sincronizados desde config - TEST",
+      message: "Precios de revendedores sincronizados desde config",
       data: result,
     });
   } catch (error: any) {
@@ -175,44 +191,99 @@ router.post("/sync-precios-revendedores", (_req: Request, res: Response) => {
 
 /**
  * POST /api/config/sync-todo
- * Limpia caché y sincroniza todos los precios (planes + revendedores)
- * Útil después de modificar manualmente los archivos JSON
+ * Limpia caché, sincroniza todos los precios (planes + revendedores) Y refresca BD del VPS
+ * Útil después de modificar manualmente los archivos JSON - hace todo automáticamente
  */
-router.post("/sync-todo", (_req: Request, res: Response) => {
+router.post("/sync-todo", async (_req: Request, res: Response) => {
   try {
-    console.log("[CONFIG-ROUTE] 🔄 Iniciando sincronización completa...");
+    console.log("[CONFIG-ROUTE] 🔄 Iniciando sincronización completa + refresco BD VPS...");
 
-    // Limpiar caché primero
+    // Función helper para ejecutar comandos
+    const execCommand = (command: string, description: string) => {
+      return new Promise<{ success: boolean; output?: string; error?: string }>((resolve) => {
+        const { exec } = require('child_process');
+        exec(command, { cwd: process.cwd() }, (error: any, stdout: string) => {
+          if (error) {
+            console.error(`[SYNC-TODO] ❌ Error en ${description}:`, error.message);
+            resolve({ success: false, error: error.message });
+          } else {
+            console.log(`[SYNC-TODO] ✅ ${description} completado`);
+            resolve({ success: true, output: stdout });
+          }
+        });
+      });
+    };
+
+    const results: any = {
+      cache: null,
+      planes: null,
+      revendedores: null,
+      vps_db_refresh: null
+    };
+
+    // 1. Limpiar caché
     configService.limpiarCache();
-    console.log("[CONFIG-ROUTE] ✅ Caché limpiado");
+    results.cache = "limpiado";
+    console.log("[SYNC-TODO] ✅ Caché limpiado");
 
-    // Sincronizar precios de planes
+    // 2. Sincronizar precios de planes
     const resultPlanes = preciosSyncService.sincronizarPreciosDesdeConfig();
-    console.log(
-      `[CONFIG-ROUTE] ✅ Precios de planes sincronizados: ${resultPlanes.updated} actualizados`
+    results.planes = resultPlanes;
+    console.log(`[SYNC-TODO] ✅ Precios de planes sincronizados: ${resultPlanes.updated} actualizados`);
+
+    // 3. Sincronizar precios de revendedores
+    const resultRevendedores = preciosSyncService.sincronizarPreciosRevendedoresDesdeConfig();
+    results.revendedores = resultRevendedores;
+    console.log(`[SYNC-TODO] ✅ Precios de revendedores sincronizados: ${resultRevendedores.updated} actualizados`);
+
+    // 4. Refrescar base de datos del VPS (corregir valores max_users)
+    console.log("[SYNC-TODO] 🔄 Refrescando base de datos del VPS...");
+    const vpsRefreshCommand = `
+      sqlite3 secureshop.db "
+        UPDATE planes_revendedores SET max_users = 5 WHERE id = 1;
+        UPDATE planes_revendedores SET max_users = 10 WHERE id = 2;
+        UPDATE planes_revendedores SET max_users = 20 WHERE id = 3;
+        UPDATE planes_revendedores SET max_users = 30 WHERE id = 4;
+        UPDATE planes_revendedores SET max_users = 40 WHERE id = 5;
+        UPDATE planes_revendedores SET max_users = 50 WHERE id = 6;
+        UPDATE planes_revendedores SET max_users = 60 WHERE id = 7;
+        UPDATE planes_revendedores SET max_users = 80 WHERE id = 8;
+        UPDATE planes_revendedores SET max_users = 100 WHERE id = 9;
+        UPDATE planes_revendedores SET max_users = 150 WHERE id = 10;
+        UPDATE planes_revendedores SET max_users = 200 WHERE id = 11;
+        SELECT 'Planes corregidos en VPS' as status;
+      "
+    `;
+
+    results.vps_db_refresh = await execCommand(
+      `ssh -t root@149.50.148.6 "cd /home/secureshop/secureshop-vpn/backend/database && ${vpsRefreshCommand}"`,
+      "refresco BD VPS"
     );
 
-    // Sincronizar precios de revendedores
-    const resultRevendedores =
-      preciosSyncService.sincronizarPreciosRevendedoresDesdeConfig();
-    console.log(
-      `[CONFIG-ROUTE] ✅ Precios de revendedores sincronizados: ${resultRevendedores.updated} actualizados`
-    );
+    if (!results.vps_db_refresh.success) {
+      console.warn("[SYNC-TODO] ⚠️ No se pudo refrescar BD del VPS, pero sincronización local completada");
+    } else {
+      console.log("[SYNC-TODO] ✅ Base de datos del VPS refrescada");
+    }
+
+    console.log("[SYNC-TODO] 🎉 ¡Sincronización completa + refresco BD exitoso!");
 
     return res.status(200).json({
       success: true,
-      message: "Sincronización completa realizada",
+      message: "Sincronización completa + refresco BD realizado exitosamente",
       data: {
-        cache: "limpiado",
-        planes: resultPlanes,
-        revendedores: resultRevendedores,
+        cache: results.cache,
+        planes: results.planes,
+        revendedores: results.revendedores,
+        vps_db_refresh: results.vps_db_refresh.success ? "completado" : "fallido",
+        timestamp: new Date().toISOString()
       },
     });
   } catch (error: any) {
-    console.error("Error en sincronización completa:", error);
+    console.error("[SYNC-TODO] ❌ Error en sincronización completa:", error);
     return res.status(500).json({
       success: false,
-      error: "Error en sincronización completa",
+      error: "Error en sincronización completa + refresco BD",
       detalles: error.message || String(error),
     });
   }
@@ -398,6 +469,28 @@ router.post("/noticias", (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       error: "Error al actualizar noticias",
+      detalles: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+/**
+ * GET /api/config/mercadopago
+ * Obtiene la configuración pública de MercadoPago (solo publicKey)
+ */
+router.get("/mercadopago", (_req: Request, res: Response) => {
+  try {
+    const { config: appConfig } = require("../config");
+
+    return res.status(200).json({
+      success: true,
+      publicKey: appConfig.mercadopago.publicKey,
+    });
+  } catch (error) {
+    console.error("Error obteniendo config MercadoPago:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Error al obtener configuración de MercadoPago",
       detalles: error instanceof Error ? error.message : "Unknown error",
     });
   }

@@ -33,7 +33,7 @@ export const config: AppConfig = {
     accessToken: process.env.MP_ACCESS_TOKEN!,
     publicKey: process.env.MP_PUBLIC_KEY!,
     webhookUrl: process.env.MP_WEBHOOK_URL!,
-    frontendUrl: "https://store.jhservices.com.ar",
+    frontendUrl: "https://shop.jhservices.com.ar",
   },
 
   database: {

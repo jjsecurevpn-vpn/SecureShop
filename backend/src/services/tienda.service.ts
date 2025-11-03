@@ -1,10 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
 import { DatabaseService } from "./database.service";
 import { ServexService } from "./servex.service";
+import { WebSocketService } from "./websocket.service";
 import { MercadoPagoService } from "./mercadopago.service";
 import { DemoService } from "./demo.service";
 import { configService } from "./config.service";
 import emailService from "./email.service";
+import { cuponesService } from "./cupones.service";
 import { Plan, Pago, CrearPagoInput, ClienteServex } from "../types";
 
 export class TiendaService {
@@ -13,10 +15,11 @@ export class TiendaService {
   constructor(
     private db: DatabaseService,
     private servex: ServexService,
-    private mercadopago: MercadoPagoService
+    private mercadopago: MercadoPagoService,
+    private wsService: WebSocketService
   ) {
-    // Inicializar DemoService con la instancia de better-sqlite3
-    this.demo = new DemoService(this.db.getDatabase(), this.servex);
+    // Inicializar DemoService con wsService también
+    this.demo = new DemoService(this.db.getDatabase(), this.servex, this.wsService);
   }
 
   /**
@@ -105,6 +108,8 @@ export class TiendaService {
   async procesarCompra(input: CrearPagoInput): Promise<{
     pago: Pago;
     linkPago: string;
+    descuentoAplicado?: number;
+    cuponAplicado?: any;
   }> {
     // 1. Validar que el plan existe
     let plan = this.db.obtenerPlanPorId(input.planId);
@@ -118,18 +123,46 @@ export class TiendaService {
 
     // 2. Aplicar overrides de configuración
     plan = configService.aceptarOverridesAlPlan(plan);
-    console.log(`[Tienda] Plan ${plan.id} - Precio final: $${plan.precio}`);
+    let precioFinal = plan.precio;
+    let descuentoAplicado = 0;
+    let cuponAplicado = null;
 
-    // 3. Crear registro de pago en la base de datos
+    // 3. Validar y aplicar cupón si se proporciona
+    if (input.codigoCupon) {
+      console.log(`[Tienda] Validando cupón: ${input.codigoCupon}`);
+
+      const validacion = await cuponesService.validarCupon(input.codigoCupon, input.planId);
+
+      if (!validacion.valido) {
+        throw new Error(`Cupón inválido: ${validacion.mensaje_error}`);
+      }
+
+      if (!validacion.cupon) {
+        throw new Error("Error interno: cupón válido pero no encontrado");
+      }
+
+      // Calcular descuento
+      descuentoAplicado = cuponesService.calcularDescuento(validacion.cupon, precioFinal);
+      precioFinal = Math.max(0, precioFinal - descuentoAplicado); // No permitir precios negativos
+      cuponAplicado = validacion.cupon;
+
+      console.log(`[Tienda] Cupón aplicado: ${descuentoAplicado} de descuento, precio final: $${precioFinal}`);
+    }
+
+    console.log(`[Tienda] Plan ${plan.id} - Precio final: $${precioFinal}`);
+
+    // 4. Crear registro de pago en la base de datos
     const pagoId = uuidv4();
     const pago = this.db.crearPago({
       id: pagoId,
       plan_id: plan.id,
-      monto: plan.precio, // Usar precio con override aplicado
+      monto: precioFinal, // Usar precio con descuento aplicado
       estado: "pendiente",
       metodo_pago: "mercadopago",
       cliente_email: input.clienteEmail,
       cliente_nombre: input.clienteNombre,
+      cupon_id: cuponAplicado?.id,
+      descuento_aplicado: descuentoAplicado,
     });
 
     console.log("[Tienda] Pago creado:", pagoId);
@@ -140,7 +173,7 @@ export class TiendaService {
         await this.mercadopago.crearPreferencia(
           pagoId,
           plan.nombre,
-          plan.precio, // MercadoPago recibe precio con override
+          precioFinal, // MercadoPago recibe precio con descuento
           input.clienteEmail,
           input.clienteNombre
         );
@@ -150,6 +183,8 @@ export class TiendaService {
       return {
         pago,
         linkPago: initPoint,
+        descuentoAplicado: descuentoAplicado > 0 ? descuentoAplicado : undefined,
+        cuponAplicado: cuponAplicado,
       };
     } catch (error: any) {
       // Si falla la creación de la preferencia, marcar el pago como rechazado
@@ -293,12 +328,40 @@ export class TiendaService {
         clienteCreado.connection_limit
       );
 
+      // ✅ IMPORTANTE: Pequeño delay para asegurar que SQLite escribió los datos
+      // Esto previene race conditions cuando el cliente consulta inmediatamente
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       console.log(
         "[Tienda] ✅ Cuenta VPN creada exitosamente:",
         clienteCreado.username
       );
 
-      // Enviar email con las credenciales
+      // Aplicar cupón si se usó uno
+      let cuponInfo = null;
+      if (pago.cupon_id) {
+        try {
+          await cuponesService.aplicarCupon(pago.cupon_id);
+          const cupon = await cuponesService.obtenerCuponPorId(pago.cupon_id);
+          if (cupon) {
+            const descuentoAplicado = cuponesService.calcularDescuento(cupon, plan.precio);
+            cuponInfo = {
+              codigo: cupon.codigo,
+              tipo: cupon.tipo as 'porcentaje' | 'fijo',
+              valor: cupon.valor,
+              descuentoAplicado,
+              montoOriginal: plan.precio,
+              montoFinal: pago.monto
+            };
+          }
+          console.log(`[Tienda] ✅ Cupón ${pago.cupon_id} aplicado (uso incrementado)`);
+        } catch (cuponError: any) {
+          console.error(`[Tienda] ⚠️ Error aplicando cupón ${pago.cupon_id}:`, cuponError.message);
+          // No fallar la creación de cuenta por error en cupón
+        }
+      }
+
+      // Enviar credenciales por email
       try {
         await emailService.enviarCredencialesCliente(pago.cliente_email, {
           username: clienteCreado.username,
@@ -307,7 +370,8 @@ export class TiendaService {
           expiracion: new Date(
             clienteCreado.expiration_date
           ).toLocaleDateString("es-AR"),
-          servidores: ["JJSecureARG1 (Argentina)", "JJSecureBR1 (Brasil)"],
+          servidores: this.wsService.obtenerEstadisticas().map((s: any) => `${s.serverName} (${s.location})`),
+          cupon: cuponInfo || undefined,
         });
         console.log("[Tienda] ✅ Email enviado a:", pago.cliente_email);
       } catch (emailError: any) {
@@ -323,6 +387,7 @@ export class TiendaService {
           monto: pago.monto,
           descripcion: `Plan: ${plan.nombre} (${plan.connection_limit} conexiones, ${plan.dias} días)`,
           username: clienteCreado.username,
+          cupon: cuponInfo || undefined,
         });
         console.log("[Tienda] ✅ Notificación enviada al administrador");
       } catch (emailError: any) {

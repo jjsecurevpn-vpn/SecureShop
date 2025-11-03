@@ -6,6 +6,14 @@ interface ServerStat {
   status: "online" | "offline";
   connectedUsers: number;
   lastUpdate: string;
+  // Datos de rendimiento
+  cpuUsage?: number;
+  memoryUsage?: number;
+  cpuCores?: number;
+  totalMemoryGb?: number;
+  totalUsuarios?: number;
+  netRecvMbps?: number;
+  netSentMbps?: number;
 }
 
 interface ServerStatsData {

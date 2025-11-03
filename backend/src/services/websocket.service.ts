@@ -7,6 +7,15 @@ interface ServerStats {
   status: 'online' | 'offline';
   connectedUsers: number;
   lastUpdate: Date;
+  serverId?: number; // ID único del servidor desde Servex
+  // Datos de rendimiento en tiempo real
+  cpuUsage?: number; // Porcentaje 0-100
+  memoryUsage?: number; // Porcentaje 0-100
+  cpuCores?: number;
+  totalMemoryGb?: number;
+  totalUsuarios?: number; // Total de usuarios en el servidor
+  netRecvMbps?: number;
+  netSentMbps?: number;
 }
 
 export class WebSocketService {
@@ -14,6 +23,15 @@ export class WebSocketService {
   private ws: WebSocket | null = null;
   private stats: Map<string, ServerStats> = new Map();
   private reconnectTimeout: NodeJS.Timeout | null = null;
+  private connectionAttempts: number = 0;
+  private maxRetries: number = 5;
+
+  // Mapeo de IDs de servidor a nombres reales (override del nombre que viene de Servex)
+  private readonly SERVIDOR_NOMBRES_REALES: { [key: number]: { nombre: string; ubicacion: string } } = {
+    515: { nombre: 'Servidor 1 BR', ubicacion: 'Brasil' },
+    528: { nombre: 'Servidor 1 AR', ubicacion: 'Argentina' },
+    // Agregar más servidores conforme se descubran sus IDs
+  };
 
   constructor() {
     this.servexToken = process.env.SERVEX_API_KEY || '';
@@ -38,21 +56,19 @@ export class WebSocketService {
   }
 
   /**
-   * Conecta al WebSocket de Servex para obtener estado de servidores
+   * Conecta al WebSocket de JJSecure Panel para obtener estado de servidores en tiempo real
    */
   async conectar(): Promise<void> {
     try {
-      // Inicializar con datos de ejemplo como fallback
-      this.inicializarDatosEjemplo();
-      
       const token = await this.obtenerTokenSSE();
       const wsUrl = `wss://front.servex.ws/ws/server-status?token=${token}`;
 
-      console.log('[WebSocket] Conectando a Servex (server-status)...');
+      console.log('[WebSocket] Conectando a JJSecure Panel (server-status)...');
       this.ws = new WebSocket(wsUrl);
+      this.connectionAttempts = 0;
 
       this.ws.on('open', () => {
-        console.log('[WebSocket] ✅ Conectado a Servex - Recibiendo datos reales de servidores');
+        // Log desactivado - servicio funcionando correctamente
       });
 
       this.ws.on('message', (data: WebSocket.Data) => {
@@ -60,7 +76,7 @@ export class WebSocketService {
           const message = JSON.parse(data.toString());
           this.procesarMensaje(message);
         } catch (error) {
-          console.error('[WebSocket] Error procesando mensaje:', error);
+          // Log desactivado - error de parseo ignorado
         }
       });
 
@@ -69,81 +85,26 @@ export class WebSocketService {
       });
 
       this.ws.on('close', () => {
-        console.log('[WebSocket] Desconectado. Reconectando en 30s...');
+        console.log('[WebSocket] Desconectado. Intentando reconectar...');
         this.ws = null;
         
-        // Reconectar después de 30 segundos
-        this.reconnectTimeout = setTimeout(() => {
-          this.conectar();
-        }, 30000);
+        // Reconectar con backoff exponencial
+        if (this.connectionAttempts < this.maxRetries) {
+          const delay = Math.pow(2, this.connectionAttempts) * 1000; // 1s, 2s, 4s, 8s, 16s
+          this.connectionAttempts++;
+          console.log(`[WebSocket] Reintentando en ${delay}ms (intento ${this.connectionAttempts}/${this.maxRetries})`);
+          
+          this.reconnectTimeout = setTimeout(() => {
+            this.conectar();
+          }, delay);
+        } else {
+          console.error('[WebSocket] Máximo de reintentos alcanzado. Servidores no disponibles.');
+        }
       });
 
     } catch (error: any) {
       console.error('[WebSocket] Error al conectar:', error.message);
-      console.log('[WebSocket] Usando datos de ejemplo mientras tanto...');
-      
-      // Actualizar datos de ejemplo cada 30 segundos
-      this.inicializarDatosEjemplo();
-      setInterval(() => {
-        this.actualizarDatosEjemplo();
-      }, 30000);
-    }
-  }
-
-  /**
-   * Inicializa datos de ejemplo para los servidores
-   */
-  private inicializarDatosEjemplo(): void {
-    const usuariosARG = Math.floor(Math.random() * 40) + 100; // 100-140
-    const usuariosBR = Math.floor(Math.random() * 30) + 90;   // 90-120
-
-    this.stats.set('JJSecureARG1', {
-      serverName: 'JJSecureARG1',
-      location: 'Argentina',
-      status: 'online',
-      connectedUsers: usuariosARG,
-      lastUpdate: new Date(),
-    });
-
-    this.stats.set('JJSecureBR1', {
-      serverName: 'JJSecureBR1',
-      location: 'Brasil',
-      status: 'online',
-      connectedUsers: usuariosBR,
-      lastUpdate: new Date(),
-    });
-
-    console.log(`[WebSocket] Datos de ejemplo: ARG=${usuariosARG}, BR=${usuariosBR}`);
-  }
-
-  /**
-   * Actualiza datos de ejemplo con variaciones aleatorias
-   */
-  private actualizarDatosEjemplo(): void {
-    const statsARG = this.stats.get('JJSecureARG1');
-    const statsBR = this.stats.get('JJSecureBR1');
-
-    if (statsARG) {
-      // Variación aleatoria ±5 usuarios
-      const cambio = Math.floor(Math.random() * 11) - 5;
-      const nuevosUsuarios = Math.max(90, Math.min(150, statsARG.connectedUsers + cambio));
-      
-      this.stats.set('JJSecureARG1', {
-        ...statsARG,
-        connectedUsers: nuevosUsuarios,
-        lastUpdate: new Date(),
-      });
-    }
-
-    if (statsBR) {
-      const cambio = Math.floor(Math.random() * 11) - 5;
-      const nuevosUsuarios = Math.max(80, Math.min(130, statsBR.connectedUsers + cambio));
-      
-      this.stats.set('JJSecureBR1', {
-        ...statsBR,
-        connectedUsers: nuevosUsuarios,
-        lastUpdate: new Date(),
-      });
+      console.error('[WebSocket] No se puede conectar a JJSecure Panel. Los datos en tiempo real no están disponibles.');
     }
   }
 
@@ -152,44 +113,81 @@ export class WebSocketService {
    */
   private procesarMensaje(message: any): void {
     try {
-      // Cada mensaje es un objeto de servidor individual con sus stats
+      // Log desactivado - servicio funcionando correctamente
       if (message.name && message.online_users_count !== undefined) {
         this.actualizarEstadisticasServidores([message]);
       }
     } catch (error) {
-      console.error('[WebSocket] Error en procesarMensaje:', error);
+      // Log desactivado - error ignorado
     }
   }
 
   /**
    * Actualiza estadísticas de servidores con datos reales
+   * Usa IDs de servidor para obtener nombres "reales" en lugar de confiar en el nombre de Servex
    */
   private actualizarEstadisticasServidores(servidores: any[]): void {
     servidores.forEach((servidor: any) => {
-      const nombre = servidor.name || servidor.hostname || servidor.server_name;
-      const usuariosOnline = servidor.online_users_count || 0;
-      const online = servidor.online !== false;
+      const serverId = servidor.id || servidor.serverId;
+      const usuariosOnline = servidor.online_users_count || servidor.users || 0;
+      const online = servidor.online !== false && servidor.status !== 'offline';
       
-      console.log(`[WebSocket] ✅ ${nombre}: ${usuariosOnline} usuarios online`);
+      // Intentar obtener nombre real del mapeo, si no existe usar el de Servex
+      let nombre: string;
+      let location: string;
       
-      // Mapear servidores de Servex a nuestros nombres
-      if (nombre?.toLowerCase().includes('arg') || nombre?.toLowerCase().includes('argentina')) {
-        this.stats.set('JJSecureARG1', {
-          serverName: 'JJSecureARG1',
-          location: 'Argentina',
-          status: online ? 'online' : 'offline',
-          connectedUsers: usuariosOnline,
-          lastUpdate: new Date(),
-        });
-      } else if (nombre?.toLowerCase().includes('br') || nombre?.toLowerCase().includes('brasil')) {
-        this.stats.set('JJSecureBR1', {
-          serverName: 'JJSecureBR1',
-          location: 'Brasil',
-          status: online ? 'online' : 'offline',
-          connectedUsers: usuariosOnline,
-          lastUpdate: new Date(),
-        });
+      if (serverId && this.SERVIDOR_NOMBRES_REALES[serverId]) {
+        // Usar nombre real mapeado
+        nombre = this.SERVIDOR_NOMBRES_REALES[serverId].nombre;
+        location = this.SERVIDOR_NOMBRES_REALES[serverId].ubicacion;
+        // Log desactivado - servidor mapeado correctamente
+      } else {
+        // Fallback: usar nombre de Servex y detectar ubicación
+        nombre = servidor.name || servidor.hostname || servidor.server_name || 'Unknown';
+        const nombreLower = nombre.toLowerCase();
+        
+        // Log desactivado - servidor no mapeado pero funcionando
+        
+        // Detectar ubicación por nombre como fallback
+        if (nombreLower.includes('ar') || /\bar\b|argentina|arg/.test(nombreLower)) {
+          location = 'Argentina';
+        } else if (nombreLower.includes('br') || nombreLower.includes('brasil')) {
+          location = 'Brasil';
+        } else if (nombreLower.includes('usa') || nombreLower.includes('us')) {
+          location = 'USA';
+        } else if (nombreLower.includes('mx') || nombreLower.includes('mexico')) {
+          location = 'México';
+        } else if (nombreLower.includes('cl') || nombreLower.includes('chile')) {
+          location = 'Chile';
+        } else if (nombreLower.includes('eu') || nombreLower.includes('europe')) {
+          location = 'Europa';
+        } else {
+          location = 'Desconocido';
+        }
       }
+      
+      // Log desactivado - servidor actualizado correctamente
+      
+      // Usar serverId como clave única (no el nombre, que puede cambiar)
+      const serverKey = `server-${serverId || nombre}`;
+      
+      // Actualizar estadísticas con datos reales de JJSecure Panel
+      this.stats.set(serverKey, {
+        serverId: serverId,
+        serverName: nombre,
+        location: location,
+        status: online ? 'online' : 'offline',
+        connectedUsers: usuariosOnline,
+        lastUpdate: new Date(),
+        // Datos de rendimiento
+        cpuUsage: servidor.cpu_usage || 0,
+        memoryUsage: servidor.memory_usage || 0,
+        cpuCores: servidor.cpu_cores,
+        totalMemoryGb: servidor.total_memory_gb,
+        totalUsuarios: servidor.total_usuarios,
+        netRecvMbps: servidor.net_recv_mbps,
+        netSentMbps: servidor.net_sent_mbps,
+      });
     });
   }
 

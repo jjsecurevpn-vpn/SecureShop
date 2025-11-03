@@ -56,7 +56,7 @@ const Header = () => {
   return (
     <>
       {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 bg-neutral-900 text-white text-sm py-3 w-full border-b border-neutral-800 z-[9999] flex items-center justify-between px-4">
+      <header className="sticky top-0 left-0 right-0 bg-neutral-900 text-white text-sm py-3 w-full border-b border-neutral-800 z-[9999] flex items-center justify-between px-4">
         {/* Left side: Menu button and logo */}
         <div className="flex items-center gap-4">
           <button

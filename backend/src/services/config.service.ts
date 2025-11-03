@@ -633,7 +633,13 @@ export class ConfigService {
 
     // Verificar si la promoción está activa
     if (!config.promo_config?.activa) {
-      // Si la promo no está activa, NO usar precios del config, mantener precio de DB
+      // Si la promo NO está activa, usar precios_normales del config
+      if (config.precios_normales) {
+        const precioNormal = config.precios_normales[plan.id.toString()];
+        if (precioNormal !== undefined) {
+          return { ...plan, precio: precioNormal };
+        }
+      }
       return plan;
     }
 

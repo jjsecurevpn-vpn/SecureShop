@@ -9,9 +9,13 @@ import {
   MessageCircle,
   Phone,
 } from "lucide-react";
-import MobilePageHeader from "../components/MobilePageHeader";
 import BottomSheet from "../components/BottomSheet";
 import NavigationSidebar from "../components/NavigationSidebar";
+
+interface TermsPageProps {
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (value: boolean) => void;
+}
 
 const sectionsData = [
   {
@@ -164,9 +168,8 @@ const sectionsData = [
   },
 ];
 
-const TermsPage = () => {
-  const [activeSection, setActiveSection] = useState("aceptación-de-términos");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+const TermsPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: TermsPageProps) => {
+  const [activeSection, setActiveSection] = useState("aceptacion-de-terminos");
 
   const sections = [
     {
@@ -212,12 +215,6 @@ const TermsPage = () => {
   ];
   return (
     <div className="min-h-screen bg-[#181818]">
-      {/* Mobile Header */}
-      <MobilePageHeader
-        title="Términos y Condiciones"
-        onMenuClick={() => setIsMobileMenuOpen(true)}
-      />
-
       {/* Sidebar */}
       <NavigationSidebar
         title="Términos y Condiciones"

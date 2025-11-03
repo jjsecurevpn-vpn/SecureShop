@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   Shield,
@@ -17,27 +18,27 @@ import {
   Gauge,
   Sparkles,
 } from "lucide-react";
-import CheckoutModal from "../components/CheckoutModal";
 import RenovacionModal from "../components/RenovacionModal";
 import DemoModal from "../components/DemoModal";
-import MobilePageHeader from "../components/MobilePageHeader";
 import BottomSheet from "../components/BottomSheet";
 import NavigationSidebar from "../components/NavigationSidebar";
 import { PromoTimer } from "../components/PromoTimer";
-import { Plan, CompraRequest } from "../types";
+import { Plan } from "../types";
 import { apiService } from "../services/api.service";
 import { useServerStats } from "../hooks/useServerStats";
 import { useHeroConfig } from "../hooks/useHeroConfig";
 
-export default function PlanesPage() {
-  const [planSeleccionado, setPlanSeleccionado] = useState<Plan | null>(null);
+interface PlanesPageProps {
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (value: boolean) => void;
+}
+
+export default function PlanesPage({ isMobileMenuOpen, setIsMobileMenuOpen }: PlanesPageProps) {
+  const navigate = useNavigate();
   const [expandedPlanId, setExpandedPlanId] = useState<number | null>(null);
-  const [comprando, setComprando] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [mostrarRenovacion, setMostrarRenovacion] = useState(false);
   const [isDemoOpen, setIsDemoOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("3-días");
 
   const { totalUsers, onlineServers } = useServerStats(10000);
@@ -157,31 +158,8 @@ export default function PlanesPage() {
     },
   ];
 
-  const handleConfirmarCompra = async (datos: CompraRequest) => {
-    try {
-      setComprando(true);
-      setError(null);
-      const respuesta = await apiService.comprarPlan(datos);
-      if (respuesta.linkPago) {
-        window.location.href = respuesta.linkPago;
-      } else {
-        throw new Error("No se recibió el enlace de pago");
-      }
-    } catch (err: any) {
-      console.error("Error en la compra:", err);
-      setError(err.message || "Error al procesar la compra");
-      setComprando(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#181818]">
-      {/* Mobile Header */}
-      <MobilePageHeader
-        title="Planes VPN"
-        onMenuClick={() => setIsMobileMenuOpen(true)}
-      />
-
       {/* Sidebar */}
       <NavigationSidebar
         title="Planes VPN"
@@ -195,7 +173,7 @@ export default function PlanesPage() {
       <DemoModal isOpen={isDemoOpen} onClose={() => setIsDemoOpen(false)} />
 
       {/* Main Content */}
-      <main className="md:ml-[312px]">
+      <main className="md:ml-[312px] pt-16 md:pt-0">
         {/* Hero Section */}
         <section className="relative pt-36 pb-16 md:pt-36 md:pb-20">
           <div className="max-w-[1400px] mx-auto px-6 md:px-8">
@@ -513,7 +491,7 @@ export default function PlanesPage() {
 
                               {/* CTA Button */}
                               <button
-                                onClick={() => setPlanSeleccionado(plan)}
+                                onClick={() => navigate(`/checkout?planId=${plan.id}`)}
                                 className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
                               >
                                 Comprar ahora
@@ -586,35 +564,9 @@ export default function PlanesPage() {
             </div>
           </div>
         </section>
-
-        {/* Error Toast */}
-        {error && (
-          <div className="fixed bottom-4 right-4 z-50 max-w-md">
-            <div className="bg-red-900/20 border border-red-800/50 rounded-lg p-4 backdrop-blur-sm">
-              <div className="flex items-start gap-3">
-                <div className="text-red-400">⚠️</div>
-                <p className="text-sm text-red-200 flex-1">{error}</p>
-                <button
-                  onClick={() => setError(null)}
-                  className="text-red-400 hover:text-red-300 transition-colors"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
 
       {/* Modals */}
-      {planSeleccionado && (
-        <CheckoutModal
-          plan={planSeleccionado}
-          onClose={() => setPlanSeleccionado(null)}
-          onConfirm={handleConfirmarCompra}
-          loading={comprando}
-        />
-      )}
       <RenovacionModal
         isOpen={mostrarRenovacion}
         onClose={() => setMostrarRenovacion(false)}

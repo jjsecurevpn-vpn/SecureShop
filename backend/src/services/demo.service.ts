@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import Database from "better-sqlite3";
 import { ServexService } from "./servex.service";
+import { WebSocketService } from "./websocket.service";
 import emailService from "./email.service";
 
 export interface Demo {
@@ -27,7 +28,7 @@ export interface VerificacionBloqueo {
 export class DemoService {
   private db: Database.Database;
 
-  constructor(dbInstance: Database.Database, private servex: ServexService) {
+  constructor(dbInstance: Database.Database, private servex: ServexService, private wsService: WebSocketService) {
     this.db = dbInstance;
     this.inicializarTabla();
   }
@@ -256,7 +257,7 @@ export class DemoService {
         username,
         password,
         horas_validas: 2,
-        servidores: ["JJSecureARG1 (Argentina)", "JJSecureBR1 (Brasil)"],
+        servidores: this.wsService.obtenerEstadisticas().map((s: any) => `${s.serverName} (${s.location})`),
       });
     } catch (error: any) {
       throw new Error(`Error enviando email de demo: ${error.message}`);

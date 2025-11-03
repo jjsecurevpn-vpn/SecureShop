@@ -16,7 +16,9 @@ import { crearRutasRenovacion } from "./routes/renovacion.routes";
 import { crearRutasStats } from "./routes/stats.routes";
 import { crearRutasClientes } from "./routes/clientes.routes";
 import configRoutes from "./routes/config.routes";
+import cuponesRoutes from "./routes/cupones.routes";
 // import promoRoutes from "./routes/promo.routes"; // DESACTIVADO por conflicto
+import { cuponesService } from "./services/cupones.service";
 import {
   corsMiddleware,
   loggerMiddleware,
@@ -47,6 +49,16 @@ class Server {
     const db = new DatabaseService(config.database.path);
     console.log("[Server] ✅ Base de datos inicializada");
 
+    // Inicializar cupones desde configuración
+    cuponesService.cargarCuponesDesdeConfig().then((resultado) => {
+      console.log(`[Server] ✅ Cupones cargados: ${resultado.cargados}, existentes: ${resultado.existentes}`);
+      if (resultado.errores.length > 0) {
+        console.warn("[Server] ⚠️  Errores al cargar cupones:", resultado.errores);
+      }
+    }).catch((error) => {
+      console.error("[Server] Error cargando cupones desde configuración:", error);
+    });
+
     // Inicializar servicio de Servex
     const servex = new ServexService(config.servex);
     this.servexService = servex;
@@ -56,8 +68,15 @@ class Server {
     const mercadopago = new MercadoPagoService(config.mercadopago);
     console.log("[Server] ✅ Servicio MercadoPago inicializado");
 
-    // Inicializar servicio de tienda
-    this.tiendaService = new TiendaService(db, servex, mercadopago);
+    // Inicializar WebSocket para estadísticas en tiempo real (ANTES de tienda)
+    this.wsService = new WebSocketService();
+    this.wsService.conectar().catch((error) => {
+      console.error("[Server] Error conectando WebSocket:", error);
+    });
+    console.log("[Server] ✅ Servicio de WebSocket inicializado");
+
+    // Inicializar servicio de tienda (DESPUÉS de wsService)
+    this.tiendaService = new TiendaService(db, servex, mercadopago, this.wsService);
     console.log("[Server] ✅ Servicio de tienda inicializado");
 
     // Inicializar servicio de tienda para revendedores
@@ -71,13 +90,6 @@ class Server {
     // Inicializar servicio de renovaciones
     this.renovacionService = new RenovacionService(db, servex, mercadopago);
     console.log("[Server] ✅ Servicio de renovaciones inicializado");
-
-    // Inicializar WebSocket para estadísticas en tiempo real
-    this.wsService = new WebSocketService();
-    this.wsService.conectar().catch((error) => {
-      console.error("[Server] Error conectando WebSocket:", error);
-    });
-    console.log("[Server] ✅ Servicio de WebSocket inicializado");
 
     // Inicializar planes por defecto
     this.tiendaService.inicializarPlanes().catch((error) => {
@@ -169,7 +181,7 @@ class Server {
     });
 
     // Rutas de la API - Clientes
-    this.app.use("/api", crearRutasTienda(this.tiendaService));
+    this.app.use("/api", crearRutasTienda(this.tiendaService, this.wsService));
 
     // Rutas de la API - Revendedores
     this.app.use(
@@ -194,6 +206,9 @@ class Server {
 
     // Rutas de la API - Config (Promociones, etc)
     this.app.use("/api/config", configRoutes);
+
+    // Rutas de la API - Cupones
+    this.app.use("/api/cupones", cuponesRoutes);
 
     // Rutas de la API - Promo (para revendedores) - DESACTIVADO por conflicto
     // this.app.use("/api/config", promoRoutes);

@@ -54,12 +54,14 @@ export interface CompraRequest {
   planId: number;
   clienteEmail: string;
   clienteNombre: string;
+  codigoCupon?: string;
 }
 
 export interface CompraRevendedorRequest {
   planRevendedorId: number;
   clienteEmail: string;
   clienteNombre: string;
+  codigoCupon?: string;
 }
 
 export interface CompraResponse {

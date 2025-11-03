@@ -13,7 +13,12 @@ import {
   Activity,
 } from "lucide-react";
 
-const DownloadPage = () => {
+interface DownloadPageProps {
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (value: boolean) => void;
+}
+
+const DownloadPage = ({ isMobileMenuOpen: _, setIsMobileMenuOpen: __ }: DownloadPageProps) => {
   return (
     <div className="min-h-screen bg-neutral-900 text-white">
       <div className="max-w-6xl mx-auto px-6 pt-28 pb-20">
