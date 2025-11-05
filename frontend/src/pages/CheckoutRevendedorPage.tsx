@@ -192,7 +192,7 @@ const CheckoutRevendedorPage: React.FC = () => {
                   ref={nombreInputRef}
                   type="text"
                   defaultValue=""
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors hover:border-neutral-600"
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors hover:border-neutral-600"
                   placeholder="Juan Pérez"
                 />
               </div>
@@ -206,7 +206,7 @@ const CheckoutRevendedorPage: React.FC = () => {
                   ref={emailInputRef}
                   type="email"
                   defaultValue=""
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors hover:border-neutral-600"
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors hover:border-neutral-600"
                   placeholder="tu@email.com"
                 />
               </div>
@@ -228,7 +228,7 @@ const CheckoutRevendedorPage: React.FC = () => {
 
               {/* Error */}
               {error && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 flex items-start gap-3">
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p- rounded-xl p-4 flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-red-200">{error}</p>
                 </div>
@@ -239,7 +239,7 @@ const CheckoutRevendedorPage: React.FC = () => {
           {/* Right Column - Resumen (Sticky) */}
           <div className="md:sticky md:top-32 h-fit space-y-6">
             {/* Plan Card */}
-            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 space-y-6">
+            <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-6">
               {/* Plan Info */}
               <div>
                 <div className="text-sm text-neutral-500 mb-2">Plan seleccionado</div>
@@ -340,7 +340,7 @@ const CheckoutRevendedorPage: React.FC = () => {
             {/* Back Button */}
             <button
               onClick={() => navigate("/revendedores")}
-              className="w-full py-2 px-4 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium rounded-lg transition-colors"
+              className="w-full py-2 px-4 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium rounded-xl transition-colors"
             >
               Volver a planes
             </button>

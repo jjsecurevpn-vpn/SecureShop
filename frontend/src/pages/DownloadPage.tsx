@@ -84,22 +84,22 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
               Tu conexión segura en tu bolsillo. Descarga la app y conéctate con privacidad total desde cualquier lugar.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mt-8">
+            <div className="flex flex-col gap-4 justify-center max-w-xs mx-auto sm:max-w-none sm:flex-row sm:mx-0">
               <a
                 href="https://play.google.com/store/apps/details?id=com.jjsecure.pro"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block hover:opacity-90 transition-opacity"
+                className="inline-flex items-center justify-center hover:opacity-90 transition-opacity w-full sm:w-auto"
               >
                 <img 
                   src="/GetItOnGooglePlay_Badge_Web_color_Spanish.svg" 
                   alt="Descargar en Google Play"
-                  className="h-12"
+                  className="h-12 w-full sm:w-auto"
                 />
               </a>
               <Link
                 to="/planes"
-                className="inline-flex items-center justify-center gap-2 px-6 py-0 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 rounded-xl font-medium transition-all"
+                className="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 px-6 py-3 rounded-xl font-medium transition-all w-full sm:w-auto"
               >
                 Ver Planes
               </Link>
@@ -312,7 +312,7 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
             <p className="text-gray-400 mb-8 max-w-xl mx-auto">
               Descarga la app ahora y accede a internet con privacidad total.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col gap-4 justify-center sm:flex-row">
               <a
                 href="https://play.google.com/store/apps/details?id=com.jjsecure.pro"
                 target="_blank"
@@ -327,7 +327,7 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
               </a>
               <Link
                 to="/planes"
-                className="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 px-6 py-0 rounded-xl font-medium transition-all"
+                className="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 px-6 py-3 rounded-xl font-medium transition-all"
               >
                 Ver Planes
               </Link>
@@ -355,7 +355,7 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
                   ?.scrollIntoView({ behavior: "smooth", block: "center" });
               }, 300);
             }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm ${
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm ${
               activeSection === section.id
                 ? "bg-emerald-900/20 text-emerald-300"
                 : "text-gray-400 hover:bg-white/5"

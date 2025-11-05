@@ -200,7 +200,7 @@ const CheckoutPage: React.FC = () => {
                 </div>
 
                 {error && (
-                  <div className="mb-4 flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                  <div className="mb-4 flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
                     <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
                     <p className="text-xs text-red-400">{error}</p>
                   </div>
@@ -218,7 +218,7 @@ const CheckoutPage: React.FC = () => {
 
             {/* Right: Resumen y Botón */}
             <div className="md:col-span-1">
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 sticky top-24">
+              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 sticky top-24">
                 {/* Plan Header */}
                 <div className="mb-6 pb-6 border-b border-neutral-800">
                   <p className="text-xs font-semibold text-neutral-500 uppercase tracking-tight mb-2">

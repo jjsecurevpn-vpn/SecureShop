@@ -154,7 +154,7 @@ const SuccessPage: React.FC = () => {
           </p>
           <Link
             to="/"
-            className="inline-block px-6 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-semibold rounded-lg transition-colors border border-neutral-700"
+            className="inline-block px-6 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-semibold rounded-xl transition-colors border border-neutral-700"
           >
             Volver al inicio
           </Link>
@@ -182,14 +182,14 @@ const SuccessPage: React.FC = () => {
         </div>
 
         {/* Main Card */}
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 mb-6">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 mb-6">
           {/* Credentials */}
           <div className="space-y-4 mb-6">
             <div>
               <label className="block text-sm font-medium text-neutral-300 mb-2">
                 Usuario
               </label>
-              <div className="flex items-center gap-3 bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3">
+              <div className="flex items-center gap-3 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3">
                 <span className="font-mono text-sm text-neutral-200 flex-1">
                   {pago.servex_username || "Generando..."}
                 </span>
@@ -213,7 +213,7 @@ const SuccessPage: React.FC = () => {
                 <label className="block text-sm font-medium text-neutral-300 mb-2">
                   Contraseña
                 </label>
-                <div className="flex items-center gap-3 bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3">
+                <div className="flex items-center gap-3 bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3">
                   <span className="font-mono text-sm text-neutral-200 flex-1">
                     {pago.servex_password}
                   </span>
@@ -234,7 +234,7 @@ const SuccessPage: React.FC = () => {
             )}
 
             {searchParams.get("renovacion") === "true" && (
-              <div className="bg-green-900/20 border border-green-800/50 rounded-lg p-4">
+              <div className="bg-green-900/20 border border-green-800/50 rounded-xl p- rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
                   <p className="text-green-300 text-sm">
@@ -250,7 +250,7 @@ const SuccessPage: React.FC = () => {
 
           {/* Details Grid */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-lg p-4">
+            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-xl p- rounded-xl p-4">
               <div className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
                 Servidor
               </div>
@@ -259,7 +259,7 @@ const SuccessPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-lg p-4">
+            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-xl p- rounded-xl p-4">
               <div className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
                 Dispositivos
               </div>
@@ -268,7 +268,7 @@ const SuccessPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-lg p-4">
+            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-xl p- rounded-xl p-4">
               <div className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
                 Válido hasta
               </div>
@@ -291,7 +291,7 @@ const SuccessPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-lg p-4">
+            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-xl p- rounded-xl p-4">
               <div className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
                 Referencia
               </div>
@@ -302,7 +302,7 @@ const SuccessPage: React.FC = () => {
           </div>
 
           {/* Email notification */}
-          <div className="flex items-center gap-3 text-sm text-neutral-400 bg-neutral-800/30 border border-neutral-700/50 rounded-lg p-4">
+          <div className="flex items-center gap-3 text-sm text-neutral-400 bg-neutral-800/30 border border-neutral-700/50 rounded-xl p- rounded-xl p-4">
             <Mail className="w-5 h-5 text-neutral-500 flex-shrink-0" />
             <span>
               Credenciales enviadas a{" "}
@@ -315,9 +315,9 @@ const SuccessPage: React.FC = () => {
 
         {/* Panel de Gestión - Solo para Revendedores */}
         {searchParams.get("tipo") === "revendedor" && (
-          <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-6 mb-6">
+          <div className="bg-blue-900/20 border border-blue-800/50 rounded-xl p- rounded-xl p-6 mb-6">
             <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
                 <ExternalLink className="w-5 h-5 text-blue-400" />
               </div>
               <div>
@@ -334,7 +334,7 @@ const SuccessPage: React.FC = () => {
               href="https://servex.ws"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
             >
               <span>Ir al Panel de Gestión</span>
               <ExternalLink className="w-4 h-4" />
@@ -348,7 +348,7 @@ const SuccessPage: React.FC = () => {
         )}
 
         {/* Instructions Card */}
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 mb-6">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 mb-6">
           <h3 className="text-lg font-semibold text-neutral-200 mb-4">
             {searchParams.get("tipo") === "revendedor"
               ? "Próximos pasos"
@@ -412,7 +412,7 @@ const SuccessPage: React.FC = () => {
         </div>
 
         {/* Security Warning */}
-        <div className="bg-amber-900/20 border border-amber-800/50 rounded-lg p-4 mb-6">
+        <div className="bg-amber-900/20 border border-amber-800/50 rounded-xl p- rounded-xl p-4 mb-6">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
             <div>
@@ -431,7 +431,7 @@ const SuccessPage: React.FC = () => {
         <div className="grid grid-cols-3 gap-3 mb-8">
           <button
             onClick={() => window.print()}
-            className="flex items-center justify-center gap-2 px-3 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium rounded-lg transition-colors border border-neutral-700"
+            className="flex items-center justify-center gap-2 px-3 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium rounded-xl transition-colors border border-neutral-700"
             title="Imprimir"
           >
             <Download className="w-4 h-4" />
@@ -445,7 +445,7 @@ const SuccessPage: React.FC = () => {
                 "all"
               )
             }
-            className="flex items-center justify-center gap-2 px-3 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium rounded-lg transition-colors border border-neutral-700"
+            className="flex items-center justify-center gap-2 px-3 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium rounded-xl transition-colors border border-neutral-700"
             title="Copiar todo"
           >
             {copiedField === "all" ? (
@@ -463,7 +463,7 @@ const SuccessPage: React.FC = () => {
 
           <Link
             to="/"
-            className="flex items-center justify-center gap-2 px-3 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium rounded-lg transition-colors border border-neutral-700"
+            className="flex items-center justify-center gap-2 px-3 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-medium rounded-xl transition-colors border border-neutral-700"
           >
             <Home className="w-4 h-4" />
             <span className="hidden sm:inline">Inicio</span>

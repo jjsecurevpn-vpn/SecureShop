@@ -283,7 +283,7 @@ export class ServexService {
       .toLowerCase()
       .normalize("NFD") // Descomponer acentos
       .replace(/[\u0300-\u036f]/g, "") // Eliminar marcas diacríticas
-      .replace(/[^a-z]/g, ""); // Solo letras
+      .replace(/[^a-z0-9]/g, ""); // Letras y números (sin caracteres especiales)
 
     // Si después de limpiar no queda nada, usar método anterior
     if (nombreLimpio.length === 0) {
@@ -293,20 +293,33 @@ export class ServexService {
       return { username, password };
     }
 
-    // Generar 3 letras aleatorias
-    const chars = "abcdefghijklmnopqrstuvwxyz";
-    let letrasAleatorias = "";
+    // IMPORTANTE: Servex requiere máximo 12 caracteres para username
+    // El máximo disponible es: 12 - 2 (números) = 10 caracteres del nombre
+    // Para garantizar variación, usamos máximo 7 caracteres del nombre + 2 números + 3 caracteres aleatorios
+    // Total: 7 + 2 + 3 = 12 caracteres exactos
+    
+    const nombreTruncado = nombreLimpio.substring(0, 7).toLowerCase();
+    
+    // Generar 2 números aleatorios (10-99)
+    const numerosAleatorios = Math.floor(Math.random() * 90) + 10;
+
+    // Generar 3 caracteres aleatorios (letras o números)
+    const charsAleatorios = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let sufijo = "";
     for (let i = 0; i < 3; i++) {
-      letrasAleatorias += chars.charAt(
-        Math.floor(Math.random() * chars.length)
+      sufijo += charsAleatorios.charAt(
+        Math.floor(Math.random() * charsAleatorios.length)
       );
     }
 
-    // Generar 2 números aleatorios
-    const numerosAleatorios = Math.floor(Math.random() * 90) + 10; // 10-99
+    // Formato: NombreTruncado (7) + Números (2) + SufijoAleatorio (3) = 12 caracteres máximo
+    const username = `${nombreTruncado}${numerosAleatorios}${sufijo}`;
 
-    // Formato: NombreLimpio + 3letras + 2numeros
-    const username = `${nombreLimpio}${letrasAleatorias}${numerosAleatorios}`;
+    // Validación de seguridad: asegurarse de que no exceda 12 caracteres
+    if (username.length > 12) {
+      console.warn(`[Servex] ⚠️ Username '${username}' excede 12 caracteres, truncando...`);
+      return { username: username.substring(0, 12), password };
+    }
 
     return { username, password };
   }
@@ -325,42 +338,56 @@ export class ServexService {
     if (!nombreCliente || nombreCliente.trim().length === 0) {
       const timestamp = Date.now().toString(36);
       const random = Math.random().toString(36).substring(2, 7);
-      const username = `reseller${timestamp}${random}`;
+      const username = `r${timestamp}${random}`.substring(0, 12); // Limitar a 12 caracteres
       const name = `Revendedor ${timestamp}`;
       return { username, password, name };
     }
 
-    // Limpiar el nombre: solo letras y convertir a minúsculas
+    // Limpiar el nombre: solo letras y números, convertir a minúsculas
     const nombreLimpio = nombreCliente
       .trim()
       .toLowerCase()
       .normalize("NFD") // Descomponer acentos
       .replace(/[\u0300-\u036f]/g, "") // Eliminar marcas diacríticas
-      .replace(/[^a-z]/g, ""); // Solo letras
+      .replace(/[^a-z0-9]/g, ""); // Letras y números
 
     // Si después de limpiar no queda nada, usar método anterior
     if (nombreLimpio.length === 0) {
       const timestamp = Date.now().toString(36);
       const random = Math.random().toString(36).substring(2, 7);
-      const username = `reseller${timestamp}${random}`;
+      const username = `r${timestamp}${random}`.substring(0, 12); // Limitar a 12 caracteres
       const name = `Revendedor ${timestamp}`;
       return { username, password, name };
     }
 
-    // Generar 3 letras aleatorias
-    const chars = "abcdefghijklmnopqrstuvwxyz";
-    let letrasAleatorias = "";
+    // IMPORTANTE: Servex requiere máximo 12 caracteres para username
+    // Usamos máximo 5 caracteres del nombre + "r" (revendedor) + 3 caracteres aleatorios + 2 números
+    // Total: 1 + 5 + 3 + 2 = 11 caracteres (bien dentro del límite de 12)
+    
+    const prefijo = "r"; // Identificador de revendedor
+    const nombreTruncado = nombreLimpio.substring(0, 5).toLowerCase();
+    
+    // Generar 2 números aleatorios (10-99)
+    const numerosAleatorios = Math.floor(Math.random() * 90) + 10;
+
+    // Generar 3 caracteres aleatorios (letras o números)
+    const charsAleatorios = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let sufijo = "";
     for (let i = 0; i < 3; i++) {
-      letrasAleatorias += chars.charAt(
-        Math.floor(Math.random() * chars.length)
+      sufijo += charsAleatorios.charAt(
+        Math.floor(Math.random() * charsAleatorios.length)
       );
     }
 
-    // Generar 2 números aleatorios
-    const numerosAleatorios = Math.floor(Math.random() * 90) + 10; // 10-99
+    // Formato: r + NombreTruncado (5) + Números (2) + SufijoAleatorio (3) = máximo 11 caracteres
+    const username = `${prefijo}${nombreTruncado}${numerosAleatorios}${sufijo}`;
 
-    // Formato: NombreLimpio + 3letras + 2numeros
-    const username = `${nombreLimpio}${letrasAleatorias}${numerosAleatorios}`;
+    // Validación de seguridad: asegurarse de que no exceda 12 caracteres
+    if (username.length > 12) {
+      console.warn(`[Servex] ⚠️ Username revendedor '${username}' excede 12 caracteres, truncando...`);
+      return { username: username.substring(0, 12), password, name: `Revendedor ${nombreCliente}` };
+    }
+
     const name = `Revendedor ${nombreCliente}`;
 
     return { username, password, name };

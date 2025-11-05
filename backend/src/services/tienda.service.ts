@@ -131,7 +131,7 @@ export class TiendaService {
     if (input.codigoCupon) {
       console.log(`[Tienda] Validando cupón: ${input.codigoCupon}`);
 
-      const validacion = await cuponesService.validarCupon(input.codigoCupon, input.planId);
+      const validacion = await cuponesService.validarCupon(input.codigoCupon, input.planId, input.clienteEmail);
 
       if (!validacion.valido) {
         throw new Error(`Cupón inválido: ${validacion.mensaje_error}`);

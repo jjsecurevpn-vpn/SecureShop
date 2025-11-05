@@ -26,22 +26,14 @@
     "3": "20 créditos (3 meses)",
     "4": "30 créditos (4 meses)",
     "5": "40 créditos (5 meses)",
-    "6": "50 créditos (5 meses)",
-    "7": "60 créditos (5 meses)",
-    "8": "80 créditos (5 meses)",
-    "9": "100 créditos (5 meses)",
-    "10": "150 créditos (5 meses)",
-    "11": "200 créditos (5 meses)"
+    "6": "50 créditos (5 meses)"
   },
   "planes_validity": {
     "12": "5 Usuarios (30 días)",
     "13": "10 Usuarios (30 días)",
     "14": "20 Usuarios (30 días)",
     "15": "30 Usuarios (30 días)",
-    "16": "45 Usuarios (30 días)",
-    "17": "60 Usuarios (30 días)",
-    "18": "75 Usuarios (30 días)",
-    "19": "90 Usuarios (30 días)"
+    "16": "50 Usuarios (30 días)"
   },
   "precios_normales": {
     "1": 16000,
@@ -50,19 +42,11 @@
     "4": 68000,
     "5": 85000,
     "6": 100000,
-    "7": 112000,
-    "8": 138000,
-    "9": 146000,
-    "10": 200000,
-    "11": 250000,
     "12": 13500,
     "13": 24000,
     "14": 42500,
     "15": 56000,
-    "16": 74000,
-    "17": 93000,
-    "18": 106000,
-    "19": 120000
+    "16": 90000
   },
   "overrides": {
     "_comentario": "Precios con 20% descuento para promoción de revendedores - Solo se aplican si promo_config.activa === true",
@@ -72,19 +56,11 @@
     "4": { "precio": 54400 },
     "5": { "precio": 68000 },
     "6": { "precio": 80000 },
-    "7": { "precio": 89600 },
-    "8": { "precio": 110400 },
-    "9": { "precio": 116800 },
-    "10": { "precio": 160000 },
-    "11": { "precio": 200000 },
     "12": { "precio": 10800 },
     "13": { "precio": 19200 },
     "14": { "precio": 34000 },
     "15": { "precio": 44800 },
-    "16": { "precio": 59200 },
-    "17": { "precio": 74400 },
-    "18": { "precio": 84800 },
-    "19": { "precio": 96000 }
+    "16": { "precio": 72000 }
   },
   "promo_config": {
     "activa": false,

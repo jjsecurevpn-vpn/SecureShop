@@ -118,11 +118,11 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 pt-20">
-      <div className="bg-neutral-900 rounded-lg shadow-2xl max-w-md w-full max-h-[70vh] border border-neutral-800 flex flex-col overflow-hidden">
+      <div className="bg-neutral-900 rounded-xl shadow-2xl max-w-md w-full max-h-[70vh] border border-neutral-800 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="border-b border-neutral-800 p-6 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
               <Gift className="w-5 h-5 text-blue-400" />
             </div>
             <div>
@@ -155,7 +155,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
           {success && credentials && !loading && (
             <div className="space-y-6">
               {/* Success Message */}
-              <div className="bg-green-900/20 border border-green-800/50 rounded-lg p-4">
+              <div className="bg-green-900/20 border border-green-800/50 rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
                   <div>
@@ -172,7 +172,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
 
               {/* Credentials */}
               <div className="space-y-3">
-                <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-4">
+                <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-4 h-4 rounded bg-neutral-700 flex items-center justify-center">
                       <span className="text-xs">👤</span>
@@ -186,7 +186,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
                   </p>
                 </div>
 
-                <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-4">
+                <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-4 h-4 rounded bg-neutral-700 flex items-center justify-center">
                       <span className="text-xs">🔑</span>
@@ -200,7 +200,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
                   </p>
                 </div>
 
-                <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-4">
+                <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Clock className="w-4 h-4 text-neutral-400" />
                     <p className="text-neutral-400 text-xs font-semibold">
@@ -214,7 +214,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               {/* Info Box */}
-              <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4">
+              <div className="bg-blue-900/20 border border-blue-800/50 rounded-xl p-4">
                 <p className="text-blue-300 text-xs">
                   Descarga la app JJSecure VPN desde Play Store o App Store e
                   ingresa estas credenciales. Acceso válido por 2 horas.
@@ -224,7 +224,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
               {/* Close Button */}
               <button
                 onClick={handleClose}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
               >
                 Cerrar
               </button>
@@ -237,7 +237,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
               {/* Error Message */}
               {error && (
                 <div
-                  className={`rounded-lg p-4 ${
+                  className={`rounded-xl p-4 ${
                     bloqueado
                       ? "bg-orange-900/20 border border-orange-800/50"
                       : "bg-red-900/20 border border-red-800/50"
@@ -280,7 +280,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
                   onChange={(e) => setNombre(e.target.value)}
                   disabled={loading}
                   placeholder="Tu nombre"
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
                 />
               </div>
 
@@ -295,12 +295,12 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
                   placeholder="tu@email.com"
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-50"
                 />
               </div>
 
               {/* Info Box */}
-              <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4 space-y-2">
+              <div className="bg-blue-900/20 border border-blue-800/50 rounded-xl p-4 space-y-2">
                 <p className="text-neutral-300 text-xs">
                   <span className="font-semibold">✨ Incluye:</span>
                 </p>
@@ -318,7 +318,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
               <button
                 type="submit"
                 disabled={loading || bloqueado}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-700 disabled:text-neutral-500 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-700 disabled:text-neutral-500 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {bloqueado ? (
                   <>

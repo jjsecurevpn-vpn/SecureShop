@@ -10,6 +10,7 @@ interface CuponInputProps {
   onCuponRemovido: () => void;
   cuponActual?: ValidacionCupon['cupon'] | null;
   descuentoActual?: number;
+  clienteEmail?: string;
 }
 
 const CuponInput: React.FC<CuponInputProps> = ({
@@ -19,6 +20,7 @@ const CuponInput: React.FC<CuponInputProps> = ({
   onCuponRemovido,
   cuponActual,
   descuentoActual = 0,
+  clienteEmail,
 }) => {
   const [codigo, setCodigo] = useState('');
   const [isValidating, setIsValidating] = useState(false);
@@ -44,7 +46,7 @@ const CuponInput: React.FC<CuponInputProps> = ({
     });
 
     try {
-      const resultado = await cuponesService.validarCupon(codigo.trim(), planId, precioPlan);
+      const resultado = await cuponesService.validarCupon(codigo.trim(), planId, precioPlan, clienteEmail);
 
       console.log('[CuponInput] Resultado:', resultado);
 
@@ -127,7 +129,7 @@ const CuponInput: React.FC<CuponInputProps> = ({
 
               <button
                 onClick={handleRemoverCupon}
-                className="flex-shrink-0 p-2 text-emerald-400/60 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-lg transition-all duration-200 opacity-80 hover:opacity-100"
+                className="flex-shrink-0 p-2 text-emerald-400/60 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-xl transition-all duration-200 opacity-80 hover:opacity-100"
                 title="Remover cupón"
               >
                 <X className="w-4 h-4" />
@@ -147,7 +149,7 @@ const CuponInput: React.FC<CuponInputProps> = ({
     <div className="space-y-3">
       <label className="block text-sm font-medium text-neutral-300">
         <div className="flex items-center gap-2 mb-3">
-          <div className="p-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20">
+          <div className="p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
             <Tag className="w-4 h-4 text-purple-400" />
           </div>
           <span className="font-medium">Código de descuento</span>
@@ -165,7 +167,7 @@ const CuponInput: React.FC<CuponInputProps> = ({
             onKeyPress={handleKeyPress}
             placeholder="CODIGO2024"
             disabled={isValidating}
-            className="relative w-full px-4 py-3 bg-neutral-800/80 border border-neutral-700/60 rounded-lg text-neutral-100 placeholder-neutral-500/60 focus:outline-none focus:border-purple-500/30 transition-all duration-200 uppercase disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
+            className="relative w-full px-4 py-3 bg-neutral-800/80 border border-neutral-700/60 rounded-xl text-neutral-100 placeholder-neutral-500/60 focus:outline-none focus:border-purple-500/30 transition-all duration-200 uppercase disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
           />
           
           {/* Indicador de estado sutil */}
@@ -201,7 +203,7 @@ const CuponInput: React.FC<CuponInputProps> = ({
         <button
           onClick={handleValidarCupon}
           disabled={isValidating || !codigo.trim()}
-          className="group relative px-5 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-lg flex items-center gap-2 transition-all duration-300 overflow-hidden"
+          className="group relative px-5 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl flex items-center gap-2 transition-all duration-300 overflow-hidden"
         >
           {/* Efecto de brillo */}
           <div className="absolute -inset-full bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-full group-hover:translate-x-0 transition-transform duration-500 group-disabled:opacity-0" />
@@ -227,7 +229,7 @@ const CuponInput: React.FC<CuponInputProps> = ({
 
       {/* Mensaje de error elegante */}
       {error && (
-        <div className="flex items-start gap-3 text-sm text-red-300 bg-red-500/8 border border-red-500/20 rounded-lg p-3 backdrop-blur-sm animate-in fade-in slide-in-from-top-1 duration-300">
+        <div className="flex items-start gap-3 text-sm text-red-300 bg-red-500/8 border border-red-500/20 rounded-xl p-3 backdrop-blur-sm animate-in fade-in slide-in-from-top-1 duration-300">
           <X className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span className="font-light">{error}</span>
         </div>

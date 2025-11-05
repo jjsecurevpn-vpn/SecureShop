@@ -84,8 +84,9 @@ export class CuponesService {
 
   /**
    * Valida un cupón para aplicarlo a una compra
+   * ✅ MEJORADO: Ahora verifica abuso por usuario/email
    */
-  async validarCupon(codigo: string, planId?: number): Promise<ValidacionCupon> {
+  async validarCupon(codigo: string, planId?: number, clienteEmail?: string): Promise<ValidacionCupon> {
     try {
       const cupon = await this.obtenerCuponPorCodigo(codigo);
       if (!cupon) {
@@ -105,6 +106,17 @@ export class CuponesService {
       // Verificar límite de uso
       if (cupon.limite_uso && (cupon.usos_actuales || 0) >= cupon.limite_uso) {
         return { valido: false, mensaje_error: 'Cupón agotado' };
+      }
+
+      // ✅ NUEVO: Verificar abuso por usuario/email (cupones de bienvenida)
+      if (clienteEmail && cupon.codigo === 'BIENVENIDO' && cupon.id) {
+        const usosDelUsuario = await this.contarUsosDelUsuario(cupon.id, clienteEmail);
+        if (usosDelUsuario > 0) {
+          return { 
+            valido: false, 
+            mensaje_error: 'Ya utilizaste el cupón de bienvenida. Cada usuario puede usarlo una sola vez.' 
+          };
+        }
       }
 
       // Verificar aplicabilidad a plan
@@ -127,6 +139,52 @@ export class CuponesService {
     } catch (error) {
       console.error('Error validando cupón:', error);
       return { valido: false, mensaje_error: 'Error interno del servidor' };
+    }
+  }
+
+  /**
+   * Cuenta cuántas veces un usuario ha usado un cupón específico
+   * Solo cuenta pagos aprobados
+   */
+  async contarUsosDelUsuario(cuponId: number, clienteEmail: string): Promise<number> {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT COUNT(*) as total FROM pagos 
+        WHERE cupon_id = ? AND cliente_email = ? AND estado = 'aprobado'
+      `);
+      const result = stmt.get(cuponId, clienteEmail) as any;
+      return result?.total || 0;
+    } catch (error) {
+      console.error('Error contando usos del usuario:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Obtiene estadísticas de abuso de un cupón
+   * Retorna usuarios que lo han usado múltiples veces
+   */
+  async detectarAbusoCupon(cuponId: number): Promise<Array<{
+    cliente_email: string;
+    usos_aprobados: number;
+    usos_totales: number;
+  }>> {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT 
+          cliente_email,
+          COUNT(CASE WHEN estado = 'aprobado' THEN 1 END) as usos_aprobados,
+          COUNT(*) as usos_totales
+        FROM pagos 
+        WHERE cupon_id = ?
+        GROUP BY cliente_email
+        HAVING COUNT(*) > 1 OR COUNT(CASE WHEN estado = 'aprobado' THEN 1 END) > 1
+        ORDER BY usos_aprobados DESC
+      `);
+      return stmt.all(cuponId) as any;
+    } catch (error) {
+      console.error('Error detectando abuso:', error);
+      return [];
     }
   }
 

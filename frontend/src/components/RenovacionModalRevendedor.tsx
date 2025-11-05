@@ -224,11 +224,11 @@ export default function RenovacionModalRevendedor({
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 pt-20">
-      <div className="bg-neutral-900 rounded-lg shadow-2xl max-w-2xl w-full max-h-[70vh] border border-neutral-800 flex flex-col overflow-hidden">
+      <div className="bg-neutral-900 rounded-xl shadow-2xl max-w-2xl w-full max-h-[70vh] border border-neutral-800 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="border-b border-neutral-800 p-6 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
               <RefreshCw className="w-5 h-5 text-purple-400" />
             </div>
             <div>
@@ -254,7 +254,7 @@ export default function RenovacionModalRevendedor({
         <div className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* Error */}
           {error && (
-            <div className="bg-red-900/20 border border-red-800/50 rounded-lg p-4 flex items-start gap-3">
+            <div className="bg-red-900/20 border border-red-800/50 rounded-xl p-4 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
               <p className="text-sm text-red-200">{error}</p>
             </div>
@@ -275,7 +275,7 @@ export default function RenovacionModalRevendedor({
                     onChange={(e) => setBusqueda(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && buscarRevendedor()}
                     placeholder="ejemplo@email.com o username123"
-                    className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     disabled={buscando}
                   />
                 </div>
@@ -287,7 +287,7 @@ export default function RenovacionModalRevendedor({
               <button
                 onClick={buscarRevendedor}
                 disabled={buscando || !busqueda.trim()}
-                className="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-neutral-700 disabled:text-neutral-500 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-neutral-700 disabled:text-neutral-500 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 {buscando ? (
                   <>
@@ -308,7 +308,7 @@ export default function RenovacionModalRevendedor({
           {paso === "seleccionar" && revendedor && (
             <div className="space-y-6">
               {/* Account Found */}
-              <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+              <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
                   <div className="space-y-2">
@@ -355,7 +355,7 @@ export default function RenovacionModalRevendedor({
                     disabled={
                       revendedor?.datos.servex_account_type !== "validity"
                     }
-                    className={`p-4 rounded-lg border-2 transition-all ${
+                    className={`p-4 rounded-xl border-2 transition-all ${
                       revendedor?.datos.servex_account_type !== "validity"
                         ? "border-neutral-700/30 bg-neutral-800/20 cursor-not-allowed opacity-50"
                         : tipoRenovacion === "validity"
@@ -390,7 +390,7 @@ export default function RenovacionModalRevendedor({
                     disabled={
                       revendedor?.datos.servex_account_type !== "credit"
                     }
-                    className={`p-4 rounded-lg border-2 transition-all ${
+                    className={`p-4 rounded-xl border-2 transition-all ${
                       revendedor?.datos.servex_account_type !== "credit"
                         ? "border-neutral-700/30 bg-neutral-800/20 cursor-not-allowed opacity-50"
                         : tipoRenovacion === "credit"
@@ -437,7 +437,7 @@ export default function RenovacionModalRevendedor({
                           onClick={() =>
                             setCreditosSeleccionados(plan.max_users)
                           }
-                          className={`p-4 rounded-lg border-2 transition-all ${
+                          className={`p-4 rounded-xl border-2 transition-all ${
                             creditosSeleccionados === plan.max_users
                               ? "border-purple-500 bg-purple-500/10 text-neutral-200"
                               : "border-neutral-700 bg-neutral-800 text-neutral-400 hover:border-neutral-600"
@@ -479,7 +479,7 @@ export default function RenovacionModalRevendedor({
                             onClick={() =>
                               setCreditosSeleccionados(plan.max_users)
                             }
-                            className={`p-4 rounded-lg border-2 transition-all ${
+                            className={`p-4 rounded-xl border-2 transition-all ${
                               creditosSeleccionados === plan.max_users
                                 ? "border-purple-500 bg-purple-500/10 text-neutral-200"
                                 : "border-neutral-700 bg-neutral-800 text-neutral-400 hover:border-neutral-600"
@@ -514,7 +514,7 @@ export default function RenovacionModalRevendedor({
                     value={nombreCliente}
                     onChange={(e) => setNombreCliente(e.target.value)}
                     placeholder="Tu nombre"
-                    className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -526,13 +526,13 @@ export default function RenovacionModalRevendedor({
                     value={emailCliente}
                     onChange={(e) => setEmailCliente(e.target.value)}
                     placeholder="tu@email.com"
-                    className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
               </div>
 
               {/* Summary */}
-              <div className="bg-neutral-800 border border-neutral-700 rounded-lg p-4 space-y-3">
+              <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-4 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-neutral-400">
                     {tipoRenovacion === "validity" ? "Usuarios:" : "Créditos:"}
@@ -580,7 +580,7 @@ export default function RenovacionModalRevendedor({
               <div className="flex gap-3">
                 <button
                   onClick={() => setPaso("buscar")}
-                  className="flex-1 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold rounded-lg transition-colors border border-neutral-700"
+                  className="flex-1 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold rounded-xl transition-colors border border-neutral-700"
                 >
                   Volver
                 </button>
@@ -589,7 +589,7 @@ export default function RenovacionModalRevendedor({
                   disabled={
                     procesando || !nombreCliente.trim() || !emailCliente.trim()
                   }
-                  className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-neutral-700 disabled:text-neutral-500 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-neutral-700 disabled:text-neutral-500 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
                   {procesando ? (
                     <>

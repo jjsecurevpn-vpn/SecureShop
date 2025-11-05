@@ -53,7 +53,7 @@ export default function ContactButton() {
       {/* Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-center w-9 h-9 rounded-lg border transition-all ${
+        className={`flex items-center justify-center w-9 h-9 rounded-xl border transition-all ${
           isOpen
             ? "bg-neutral-800 border-neutral-700 text-neutral-200"
             : "bg-transparent border-neutral-700 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 hover:border-neutral-600"
@@ -65,11 +65,11 @@ export default function ContactButton() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-72 bg-neutral-900 border border-neutral-800 rounded-lg shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-full right-0 mt-2 w-72 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Header */}
           <div className="px-4 py-3 border-b border-neutral-800">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+              <div className="p-1.5 bg-purple-500/10 border border-purple-500/20 rounded-xl">
                 <MessageCircle className="w-4 h-4 text-purple-400" />
               </div>
               <div>
@@ -88,9 +88,9 @@ export default function ContactButton() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsOpen(false)}
-                className={`group flex items-center gap-3 px-3 py-3 rounded-lg border border-transparent transition-all ${option.color}`}
+                className={`group flex items-center gap-3 px-3 py-3 rounded-xl border border-transparent transition-all ${option.color}`}
               >
-                <div className={`p-2 bg-neutral-800 border border-neutral-700 rounded-lg ${option.iconColor} group-hover:scale-110 transition-transform`}>
+                <div className={`p-2 bg-neutral-800 border border-neutral-700 rounded-xl ${option.iconColor} group-hover:scale-110 transition-transform`}>
                   {option.icon}
                 </div>
                 <div className="flex-1 min-w-0">

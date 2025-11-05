@@ -125,7 +125,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
             <button
               onClick={onClose}
               disabled={loading}
-              className="p-2 hover:bg-neutral-800 rounded-lg text-neutral-400 hover:text-neutral-200 transition-colors disabled:opacity-50"
+              className="p-2 hover:bg-neutral-800 rounded-xl text-neutral-400 hover:text-neutral-200 transition-colors disabled:opacity-50"
             >
               <X className="w-5 h-5" />
             </button>
@@ -202,7 +202,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="flex-1 py-3 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-neutral-300 font-semibold rounded-lg transition-colors border border-neutral-700"
+              className="flex-1 py-3 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-neutral-300 font-semibold rounded-xl transition-colors border border-neutral-700"
             >
               Cancelar
             </button>

@@ -98,7 +98,7 @@ const Header = () => {
           {/* News Button */}
           <button
             onClick={() => setNoticiasOpen(!noticiasOpen)}
-            className={`relative p-2 rounded-lg transition-colors duration-150 ${
+            className={`relative p-2 rounded-xl transition-colors duration-150 ${
               hasActiveNoticia
                 ? "text-red-400 hover:text-red-300 hover:bg-red-500/10"
                 : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
@@ -122,7 +122,7 @@ const Header = () => {
           className="fixed inset-0 z-[10000]"
           onClick={() => setNoticiasOpen(false)}
         >
-          <div className="absolute top-16 right-4 w-80 bg-neutral-900 border border-neutral-800 rounded-lg shadow-xl z-[10001]">
+          <div className="absolute top-16 right-4 w-80 bg-neutral-900 border border-neutral-800 rounded-xl shadow-xl z-[10001]">
             {/* Arrow pointing up */}
             <div className="absolute -top-2 right-8 w-0 h-0 border-l-6 border-r-6 border-b-6 border-transparent border-b-neutral-900"></div>
             {/* Arrow border for better visibility */}
@@ -145,7 +145,7 @@ const Header = () => {
               {noticiasConfig?.aviso ? (
                 <div className="space-y-3">
                   <div
-                    className={`p-3 rounded-lg text-sm ${
+                    className={`p-3 rounded-xl text-sm ${
                       noticiasConfig.aviso.bgColor || "bg-neutral-800"
                     } ${noticiasConfig.aviso.textColor || "text-neutral-300"}`}
                   >

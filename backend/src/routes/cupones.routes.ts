@@ -18,13 +18,14 @@ router.post('/validar', async (req, res) => {
     const schema = z.object({
       codigo: z.string().min(1, 'Código de cupón requerido'),
       planId: z.number().optional(),
-      precioPlan: z.number().optional()
+      precioPlan: z.number().optional(),
+      clienteEmail: z.string().email().optional()
     });
 
-    const { codigo, planId, precioPlan } = schema.parse(req.body);
-    console.log('[Cupones] Parámetros validados:', { codigo, planId, precioPlan });
+    const { codigo, planId, precioPlan, clienteEmail } = schema.parse(req.body);
+    console.log('[Cupones] Parámetros validados:', { codigo, planId, precioPlan, clienteEmail });
 
-    const resultado = await cuponesService.validarCupon(codigo, planId);
+    const resultado = await cuponesService.validarCupon(codigo, planId, clienteEmail);
     console.log('[Cupones] Resultado validación:', resultado);
 
     if (!resultado.valido) {
@@ -377,6 +378,128 @@ router.post('/recargar-config', async (_req, res) => {
 
   } catch (error) {
     console.error('Error recargando cupones desde configuración:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor'
+    });
+  }
+});
+
+/**
+ * POST /api/cupones/:id/sincronizar
+ * Sincroniza el contador de usos de un cupón basado en pagos aprobados reales
+ * ADMIN ONLY
+ */
+router.post('/:id/sincronizar', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'ID de cupón inválido'
+      });
+    }
+
+    const cupon = await cuponesService.obtenerCuponPorId(id);
+    if (!cupon) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cupón no encontrado'
+      });
+    }
+
+    // Obtener la BD para contar pagos aprobados reales
+    const Database = require('better-sqlite3');
+    const { config } = require('../config');
+    const db = new Database(config.database.path);
+    
+    const stmt = db.prepare(`
+      SELECT COUNT(*) as total FROM pagos 
+      WHERE cupon_id = ? AND estado = 'aprobado'
+    `);
+    const result = stmt.get(id) as any;
+    const usosReales = result?.total || 0;
+
+    // Actualizar el contador
+    const updateStmt = db.prepare(`
+      UPDATE cupones SET usos_actuales = ?, actualizado_en = CURRENT_TIMESTAMP 
+      WHERE id = ?
+    `);
+    updateStmt.run(usosReales, id);
+    db.close();
+
+    // Verificar si debe desactivarse
+    const cuponActualizado = await cuponesService.obtenerCuponPorId(id);
+    let desactivado = false;
+    if (cuponActualizado && cuponActualizado.limite_uso && usosReales >= cuponActualizado.limite_uso) {
+      await cuponesService.desactivarCupon(id);
+      desactivado = true;
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        cupon_codigo: cupon.codigo,
+        usos_anteriores: cupon.usos_actuales,
+        usos_actuales: usosReales,
+        limite_uso: cupon.limite_uso,
+        desactivado: desactivado,
+        mensaje: desactivado ? `Cupón desactivado tras alcanzar límite de ${cupon.limite_uso} usos` : 'Sincronizado exitosamente'
+      }
+    });
+
+  } catch (error) {
+    console.error('Error sincronizando cupón:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor'
+    });
+  }
+});
+
+/**
+ * GET /api/cupones/:id/abuso
+ * Detecta posible abuso de un cupón (usuarios que lo usan múltiples veces)
+ * ADMIN ONLY
+ */
+router.get('/:id/abuso', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'ID de cupón inválido'
+      });
+    }
+
+    const cupon = await cuponesService.obtenerCuponPorId(id);
+    if (!cupon) {
+      return res.status(404).json({
+        success: false,
+        error: 'Cupón no encontrado'
+      });
+    }
+
+    const abusadores = await cuponesService.detectarAbusoCupon(id);
+
+    return res.json({
+      success: true,
+      data: {
+        cupon_codigo: cupon.codigo,
+        total_usuarios_abusando: abusadores.length,
+        abusadores: abusadores.map(a => ({
+          email: a.cliente_email,
+          usos_aprobados: a.usos_aprobados,
+          usos_totales: a.usos_totales,
+          estado: a.usos_aprobados > 1 ? '⚠️ ABUSO DETECTADO' : '⚠️ Intentos de abuso'
+        }))
+      }
+    });
+
+  } catch (error) {
+    console.error('Error detectando abuso:', error);
     return res.status(500).json({
       success: false,
       error: 'Error interno del servidor'

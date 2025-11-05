@@ -9,8 +9,8 @@ export class CuponesService {
   /**
    * Valida un cupón de descuento
    */
-  async validarCupon(codigo: string, planId?: number, precioPlan?: number): Promise<ValidacionCupon> {
-    return apiService.validarCupon(codigo, planId, precioPlan);
+  async validarCupon(codigo: string, planId?: number, precioPlan?: number, clienteEmail?: string): Promise<ValidacionCupon> {
+    return apiService.validarCupon(codigo, planId, precioPlan, clienteEmail);
   }
 
   /**

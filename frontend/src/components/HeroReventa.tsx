@@ -87,7 +87,7 @@ export default function HeroReventa() {
               ].map((stat, i) => (
                 <div
                   key={i}
-                  className="flex flex-col items-center justify-center p-3 md:p-4 rounded-lg border bg-neutral-900/50 border-neutral-800 hover:border-neutral-700 transition-all group min-h-[100px]"
+                  className="flex flex-col items-center justify-center p-3 md:p-4 rounded-xl border bg-neutral-900/50 border-neutral-800 hover:border-neutral-700 transition-all group min-h-[100px]"
                 >
                   <div className="p-1.5 rounded-full bg-white/5 group-hover:bg-white/10 transition-all mb-1.5">
                     <div className="text-blue-400">{stat.icon}</div>
@@ -106,14 +106,14 @@ export default function HeroReventa() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start px-4 lg:px-0">
               <button
                 onClick={handleComenzarAhora}
-                className="inline-flex items-center justify-center gap-2 px-4 md:px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-semibold text-white transition-colors w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 px-4 md:px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-semibold text-white transition-colors w-full sm:w-auto"
               >
                 <Users className="w-4 h-4" />
                 <span className="break-words">Comenzar ahora</span>
               </button>
               <button
                 onClick={handleContactarSoporte}
-                className="inline-flex items-center justify-center gap-2 px-4 md:px-6 py-3 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm font-semibold text-neutral-200 transition-colors w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 px-4 md:px-6 py-3 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-xl text-sm font-semibold text-neutral-200 transition-colors w-full sm:w-auto"
               >
                 <MessageCircle className="w-4 h-4" />
                 <span className="break-words">Contactar soporte</span>
@@ -132,7 +132,7 @@ export default function HeroReventa() {
                 <img
                   src="/PanelReventa.png"
                   alt="Panel de Revendedores"
-                  className="w-full md:max-w-lg h-auto object-contain drop-shadow-xl rounded-lg"
+                  className="w-full md:max-w-lg h-auto object-contain drop-shadow-xl rounded-xl"
                 />
               </div>
             </div>

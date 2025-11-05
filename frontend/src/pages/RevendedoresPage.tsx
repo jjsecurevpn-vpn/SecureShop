@@ -1,19 +1,23 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Users,
   Star,
   Check,
   MessageCircle,
   Phone,
-  CreditCard,
   Calendar,
-  RefreshCw,
   ChevronRight,
   Zap,
-  Gift,
-  TrendingUp,
   ChevronDown,
+  AlertCircle,
+  BarChart3,
+  Zap as Zap2,
+  Clock,
+  Users,
+  CheckCircle,
+  RefreshCw,
+  DollarSign,
+  Maximize,
 } from "lucide-react";
 import RenovacionModalRevendedor from "../components/RenovacionModalRevendedor";
 import HeroReventa from "../components/HeroReventa";
@@ -87,36 +91,88 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
 
   const groupedPlans = [
     {
+      id: "creditos",
       title: "Sistema de Créditos",
-      subtitle: "Máxima flexibilidad",
+      subtitle: "Cuentas personalizadas sin límite de días",
       accent: "bg-emerald-500/10 border-emerald-500/20",
       accentText: "text-emerald-400",
       icon: <Zap className="w-5 h-5" />,
       recommended: true,
-      description:
-        "Crea cuentas personalizadas sin límites de días. 1 crédito = 1 mes de acceso (30 días)",
-      benefits: [
-        "Cuentas de 30 días o más",
-        "Acumula créditos en tu panel",
-        "Flexibilidad total para clientes",
-        "Perfecto para retención",
+      mainDescription:
+        "Diseñado para máxima flexibilidad. 1 conexión = 1 crédito. Así: 30 días = 1 crédito, 60 días = 2 créditos, 90 días = 3 créditos, etc. Las cuentas son independientes de tu suscripción, se mantienen vigentes incluso después de vencer.",
+      shortDescription: "1 conexión = 1 crédito | 30 días = 1 crédito, 60 días = 2 créditos",
+      keyFeatures: [
+        {
+          icon: "zap",
+          title: "1 Conexión = 1 Crédito",
+          description: "Cada crédito = 1 conexión VPN independiente",
+        },
+        {
+          icon: "clock",
+          title: "Costo por Duración",
+          description: "30 días = 1 crédito | 60 días = 2 créditos | 90 días = 3 créditos",
+        },
+        {
+          icon: "users",
+          title: "Cuentas Independientes",
+          description: "Se mantienen vigentes incluso después de vencer tu suscripción",
+        },
+        {
+          icon: "check-circle",
+          title: "Acumula Créditos",
+          description: "Almacena en tu panel y úsalos cuando necesites",
+        },
       ],
+      useCases: [
+        "Vender planes mensuales estándar (30 días)",
+        "Ofrecer pruebas extendidas personalizadas",
+        "Crear planes anuales (360+ días) para clientes premium",
+        "Adaptarse a preferencias específicas de cada cliente",
+      ],
+      bestFor:
+        "Revendedores que buscan máxima flexibilidad para crear planes personalizados sin limitaciones de duración.",
       items: planes.filter((p) => p.account_type === "credit"),
     },
     {
+      id: "validez",
       title: "Sistema de Validez",
-      subtitle: "Total control",
+      subtitle: "Suscripción con reutilización automática de cupos",
       accent: "bg-blue-500/10 border-blue-500/20",
       accentText: "text-blue-400",
-      icon: <Calendar className="w-5 h-5" />,
-      description:
-        "Cuentas personalizadas en el rango que desees. Al expirar, se libera el cupo automáticamente",
-      benefits: [
-        "Cuentas personalizadas (3-45 días)",
-        "Flexibilidad total en duración",
-        "Reutiliza cupos automáticamente",
-        "Máximo aprovechamiento",
+      icon: <BarChart3 className="w-5 h-5" />,
+      mainDescription:
+        "Suscripción mensual renovable con reutilización de cupos. Crea múltiples cuentas dentro del rango de usuarios durante ese mes. Los usuarios están vinculados a tu suscripción: si esta vence, todos los usuarios expiran también. Al contrario de Créditos donde las cuentas son independientes.",
+      shortDescription: "0/N usuarios → Vinculados a tu suscripción mensual",
+      keyFeatures: [
+        {
+          icon: "refresh-cw",
+          title: "Vinculado a Suscripción Mensual",
+          description: "Los usuarios están ligados a tu suscripción. Si expira, todos expiran.",
+        },
+        {
+          icon: "users",
+          title: "Reutilización dentro del Mes",
+          description: "Crea cuentas de cualquier duración dentro del mismo mes",
+        },
+        {
+          icon: "dollar-sign",
+          title: "Sin Costo Adicional",
+          description: "No consumes créditos, solo cupos reutilizables",
+        },
+        {
+          icon: "maximize",
+          title: "Máxima Rentabilidad",
+          description: "Optimiza tu inventario con diferentes duraciones mensuales",
+        },
       ],
+      useCases: [
+        "Vender cuentas dentro del mes (30, 20, 15 días)",
+        "Combinar duraciones (1×30 días, 2×15 días, etc.) en el mismo mes",
+        "Maximizar la utilización de cupos mensuales",
+        "Mantener rentabilidad sin costo adicional durante el mes",
+      ],
+      bestFor:
+        "Revendedores que buscan eficiencia: vender cuentas premium personalizadas reutilizando cupos sin gastar créditos.",
       items: planes.filter((p) => p.account_type === "validity"),
     },
   ];
@@ -211,283 +267,347 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
 
         {/* Plans Section */}
         <section id="planes-section" className="pb-20">
-          <div className="max-w-[1400px] mx-auto px-6 md:px-8">
-            <div className="space-y-12">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
+            {/* Header */}
+            <div className="mb-16">
+              <h1 className="text-4xl md:text-5xl font-bold text-neutral-100 mb-4">
+                Planes de Revendedor
+              </h1>
+              <p className="text-xl text-neutral-400">
+                Dos sistemas diseñados para adaptarse a tu modelo de negocio
+              </p>
+            </div>
+
+            {/* Plans Grid */}
+            <div className="space-y-16">
               {groupedPlans.map((group) => (
                 <div
-                  key={group.title}
-                  id={`plan-${group.title.toLowerCase().replace(" ", "-")}`}
-                  className={`transition-all duration-500 ${
-                    activeSection ===
-                    group.title.toLowerCase().replace(" ", "-")
-                      ? "ring-2 ring-purple-500/30 rounded-lg p-2 md:p-4 bg-purple-500/5"
-                      : ""
-                  }`}
+                  key={group.id}
+                  id={`plan-${group.id}`}
+                  className="space-y-8"
                 >
                   {/* Group Header */}
-                  <div className="mb-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`p-2 rounded-lg border ${group.accent}`}>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className={`p-3 rounded-xl border ${group.accent} flex-shrink-0`}
+                      >
                         <div className={group.accentText}>{group.icon}</div>
                       </div>
-                      <div>
-                        <h2
-                          className={`text-2xl font-bold flex items-center gap-2 transition-colors duration-300 break-words ${
-                            activeSection ===
-                            group.title.toLowerCase().replace(" ", "-")
-                              ? "text-purple-300"
-                              : "text-neutral-200"
-                          }`}
-                        >
-                          {group.title}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2 flex-wrap">
+                          <h2 className="text-3xl font-bold text-neutral-100">
+                            {group.title}
+                          </h2>
                           {group.recommended && (
-                            <span className="text-xs font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400 px-2 py-1 rounded-full">
-                              <Star className="w-3 h-3 inline mr-1" />
+                            <span className="inline-flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3 py-1 rounded-full text-sm font-medium">
+                              <Star className="w-3.5 h-3.5" />
                               Recomendado
                             </span>
                           )}
-                        </h2>
-                        <p className="text-sm text-neutral-500">
+                        </div>
+                        <p className="text-lg text-neutral-300 font-medium">
                           {group.subtitle}
                         </p>
                       </div>
-                    </div>{" "}
-                    {/* Description */}
-                    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 mb-4">
-                      <p className="text-sm text-neutral-300 leading-relaxed break-words">
-                        {group.description}
+                    </div>
+
+                    {/* Main Description */}
+                    <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p- rounded-xl p-4">
+                      <p className="text-neutral-300 leading-relaxed">
+                        {group.mainDescription}
                       </p>
                     </div>
-                    {/* Benefits Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {group.benefits.map((benefit, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-start gap-2 text-xs text-neutral-400"
-                        >
-                          <Check
-                            className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                          />
-                          <span className="break-words">{benefit}</span>
-                        </div>
-                      ))}
-                    </div>
-                    {/* Plans List */}
-                    {group.items.length > 0 ? (
-                      <div className="space-y-3 max-w-full">
-                        {group.items.map((plan: PlanRevendedor) => (
+
+                    {/* Key Features */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {group.keyFeatures.map((feature, idx) => {
+                        let IconComponent = null;
+                        if (feature.icon === "zap") IconComponent = Zap2;
+                        if (feature.icon === "clock") IconComponent = Clock;
+                        if (feature.icon === "users") IconComponent = Users;
+                        if (feature.icon === "check-circle") IconComponent = CheckCircle;
+                        if (feature.icon === "refresh-cw") IconComponent = RefreshCw;
+                        if (feature.icon === "dollar-sign") IconComponent = DollarSign;
+                        if (feature.icon === "maximize") IconComponent = Maximize;
+                        
+                        return (
                           <div
-                            key={plan.id}
-                            id={`plan-${plan.id}`}
-                            className={`bg-neutral-900 border hover:border-neutral-700 rounded-lg overflow-hidden transition-all max-w-full ${
-                              activeSection === `plan-${plan.id}`
-                                ? "ring-2 ring-purple-500/50 border-purple-500/50 bg-purple-500/5 shadow-lg shadow-purple-500/10"
-                                : "border-neutral-800"
-                            }`}
+                            key={idx}
+                            className="bg-neutral-900/40 border border-neutral-800 rounded-xl p- rounded-xl p-4"
                           >
-                            {/* Plan Header */}
-                            <button
-                              onClick={() => togglePlan(plan.id)}
-                              className="w-full px-4 sm:px-6 py-4 flex items-center justify-between gap-4 hover:bg-neutral-800/50 transition-colors"
-                            >
-                              <div className="flex items-center gap-4 flex-1 min-w-0">
-                                <div className="text-left flex-1 min-w-0">
-                                  <div
-                                    className={`text-sm font-semibold transition-colors break-words ${
-                                      activeSection === `plan-${plan.id}`
-                                        ? "text-purple-300"
-                                        : "text-neutral-200"
-                                    }`}
-                                  >
-                                    {plan.nombre}
-                                  </div>
-                                  <div className="text-xs text-neutral-500 break-words">
-                                    {plan.account_type === "credit"
-                                      ? "Sistema de créditos"
-                                      : "30 días"}
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-                                <div className="text-right">
-                                  <div className="text-xl sm:text-2xl font-bold text-emerald-400">
-                                    ${plan.precio.toLocaleString("es-AR")}
-                                  </div>
-                                  <div className="text-xs text-neutral-500">
-                                    $
-                                    {(
-                                      plan.precio / (plan.max_users || 1)
-                                    ).toFixed(0)}{" "}
-                                    por{" "}
-                                    {plan.account_type === "credit"
-                                      ? "crédito"
-                                      : "usuario"}
-                                  </div>
-                                </div>
-                                <ChevronRight
-                                  className={`w-5 h-5 text-neutral-400 transition-transform ${
-                                    expandedPlanId === plan.id
-                                      ? "rotate-90"
-                                      : ""
-                                  }`}
-                                />
-                              </div>
-                            </button>
-
-                            {/* Expanded Content */}
-                            {expandedPlanId === plan.id && (
-                              <div className="border-t border-neutral-800 bg-neutral-900/50">
-                                <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden">
-                                  {/* Features */}
-                                  <div>
-                                    <h4 className="text-sm font-semibold text-neutral-200 mb-3">
-                                      ¿Qué incluye?
-                                    </h4>
-                                    <div className="space-y-3">
-                                      {plan.account_type === "credit" ? (
-                                        <>
-                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                            <CreditCard
-                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                            />
-                                            <span className="break-words">
-                                              <strong>
-                                                {plan.max_users} créditos
-                                              </strong>{" "}
-                                              en tu panel
-                                            </span>
-                                          </div>
-                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                            <Calendar
-                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                            />
-                                            <span className="break-words">
-                                              Plan de{" "}
-                                              <strong>
-                                                {plan.max_users}{" "}
-                                                {plan.account_type === "credit"
-                                                  ? "créditos"
-                                                  : "usuarios simultáneos"}
-                                              </strong>{" "}
-                                              con máxima flexibilidad
-                                            </span>
-                                          </div>
-                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                            <Zap
-                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                            />
-                                            <span className="break-words">
-                                              Crea cuentas de{" "}
-                                              <strong>30 días o más</strong>
-                                            </span>
-                                          </div>
-                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                            <Users
-                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                            />
-                                            <span className="break-words">
-                                              Acumula créditos y úsalos cuando
-                                              necesites
-                                            </span>
-                                          </div>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                            <Calendar
-                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                            />
-                                            <span className="break-words">
-                                              <strong>30 días</strong> totales
-                                              para crear cuentas
-                                            </span>
-                                          </div>
-                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                            <Gift
-                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                            />
-                                            <span className="break-words">
-                                              Flexibilidad: cada plan
-                                              corresponde a{" "}
-                                              <strong>30 días</strong>
-                                            </span>
-                                          </div>
-                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                            <TrendingUp
-                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                            />
-                                            <span className="break-words">
-                                              Ejemplo: 1×30 días, 2×15 días, o
-                                              combina
-                                            </span>
-                                          </div>
-                                          <div className="flex items-start gap-2 text-sm text-neutral-300">
-                                            <RefreshCw
-                                              className={`w-4 h-4 flex-shrink-0 mt-0.5 ${group.accentText}`}
-                                            />
-                                            <span className="break-words">
-                                              Al expirar,{" "}
-                                              <strong>se libera el cupo</strong>{" "}
-                                              automáticamente
-                                            </span>
-                                          </div>
-                                        </>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {/* Costo por unidad */}
-                                  <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4">
-                                    <h4 className="text-sm font-semibold text-neutral-200 mb-2">
-                                      Costo por unidad:
-                                    </h4>
-                                    <div className="text-base sm:text-lg font-bold text-emerald-400">
-                                      $
-                                      {(
-                                        plan.precio / (plan.max_users || 1)
-                                      ).toFixed(0)}{" "}
-                                      ARS
-                                      <span className="text-xs sm:text-sm font-normal text-neutral-400 ml-1">
-                                        por{" "}
-                                        {plan.account_type === "credit"
-                                          ? "crédito"
-                                          : "usuario"}
-                                      </span>
-                                    </div>
-                                    <p className="text-xs text-neutral-500 mt-1 break-words">
-                                      {plan.account_type === "credit"
-                                        ? "Cada crédito te permite crear una cuenta VPN de 30 días"
-                                        : "Cada usuario corresponde a una cuenta VPN individual"}
-                                    </p>
-                                  </div>
-
-                                  {/* Use Case */}
-                                  <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4">
-                                    <h4 className="text-sm font-semibold text-neutral-200 mb-2">
-                                      Caso de uso ideal:
-                                    </h4>
-                                    <p className="text-sm text-neutral-400 leading-relaxed break-words">
-                                      {plan.account_type === "credit"
-                                        ? "Perfecto si quieres ofrecer planes estándar mensuales. Tus clientes reciben acceso consistente cada 30 días. Ideal para construir una base de clientes leales."
-                                        : "Perfecto si necesitas flexibilidad máxima. Crea pruebas gratis de 3-7 días, o combina diferentes duraciones para optimizar tu inventario."}
-                                    </p>
-                                  </div>
-
-                                  {/* CTA */}
-                                  <button
-                                    onClick={() => handleConfirmarCompra(plan)}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
-                                  >
-                                    Comprar ahora
-                                    <ChevronRight className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </div>
-                            )}
+                            <div className="mb-2">
+                              {IconComponent && <IconComponent className="w-6 h-6 text-neutral-300" />}
+                            </div>
+                            <h4 className="font-semibold text-neutral-200 mb-1">
+                              {feature.title}
+                            </h4>
+                            <p className="text-sm text-neutral-400">
+                              {feature.description}
+                            </p>
                           </div>
-                        ))}
+                        );
+                      })}
+                    </div>
+
+                    {/* Use Cases & Best For */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold text-neutral-200 mb-3 flex items-center gap-2">
+                          <Check className={`w-4 h-4 ${group.accentText}`} />
+                          Casos de uso ideales
+                        </h4>
+                        <ul className="space-y-2">
+                          {group.useCases.map((useCase, idx) => (
+                            <li
+                              key={idx}
+                              className={`flex gap-2 text-neutral-400 text-sm`}
+                            >
+                              <span className={`${group.accentText} flex-shrink-0`}>
+                                ✓
+                              </span>
+                              <span>{useCase}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
+
+                      <div className={`border rounded-xl p- rounded-xl p-4 ${group.accent}`}>
+                        <h4 className={`font-semibold ${group.accentText} mb-2`}>
+                          Mejor para:
+                        </h4>
+                        <p className="text-sm text-neutral-300">
+                          {group.bestFor}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Plans Cards */}
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold text-neutral-200">
+                      Planes disponibles
+                    </h3>
+                    {group.items.length > 0 ? (
+                      group.items.map((plan) => (
+                        <div
+                          key={plan.id}
+                          id={`plan-${plan.id}`}
+                          className={`bg-neutral-900 border rounded-xl overflow-hidden transition-all ${
+                            expandedPlanId === plan.id
+                              ? "ring-2 ring-purple-500/50 border-purple-500/50 bg-purple-500/5"
+                              : "border-neutral-800 hover:border-neutral-700"
+                          }`}
+                        >
+                          {/* Plan Header */}
+                          <button
+                            onClick={() => togglePlan(plan.id)}
+                            className="w-full px-6 py-4 flex items-center justify-between gap-4 hover:bg-neutral-800/30 transition-colors"
+                          >
+                            <div className="text-left flex-1">
+                              <div className="text-lg font-semibold text-neutral-200">
+                                {plan.nombre}
+                              </div>
+                              <div className="text-sm text-neutral-500">
+                                {group.id === "creditos"
+                                  ? "Sistema de Créditos"
+                                  : "Sistema de Validez"}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-4 flex-shrink-0">
+                              <div className="text-right">
+                                <div className="text-2xl font-bold text-emerald-400">
+                                  ${plan.precio.toLocaleString("es-AR")}
+                                </div>
+                                <div className="text-xs text-neutral-500">
+                                  $
+                                  {(plan.precio / plan.max_users).toFixed(0)} por{" "}
+                                  {group.id === "creditos"
+                                    ? "crédito"
+                                    : "usuario"}
+                                </div>
+                              </div>
+                              <ChevronRight
+                                className={`w-5 h-5 text-neutral-400 transition-transform ${
+                                  expandedPlanId === plan.id ? "rotate-90" : ""
+                                }`}
+                              />
+                            </div>
+                          </button>
+
+                          {/* Expanded Details */}
+                          {expandedPlanId === plan.id && (
+                            <div className="border-t border-neutral-800 bg-neutral-900/50">
+                              <div className="p-6 space-y-6">
+                                {group.id === "creditos" ? (
+                                  <>
+                                    <div>
+                                      <h4 className="font-semibold text-neutral-200 mb-4">
+                                        ¿Cómo funciona?
+                                      </h4>
+                                      <div className="space-y-3">
+                                        <div className="flex gap-3 p-3 bg-neutral-800/30 rounded-xl">
+                                          <div className="text-emerald-400 flex-shrink-0 font-bold min-w-6">
+                                            1
+                                          </div>
+                                          <div>
+                                            <p className="font-medium text-neutral-200">
+                                              Compras {plan.max_users} créditos
+                                            </p>
+                                            <p className="text-sm text-neutral-400">
+                                              Se almacenan en tu panel de control
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <div className="flex gap-3 p-3 bg-neutral-800/30 rounded-xl">
+                                          <div className="text-emerald-400 flex-shrink-0 font-bold min-w-6">
+                                            2
+                                          </div>
+                                          <div>
+                                            <p className="font-medium text-neutral-200">
+                                              Cómo gastar tus créditos
+                                            </p>
+                                            <p className="text-sm text-neutral-400">
+                                              30 días = 1 crédito | 60 días = 2 créditos | 90 días = 3 créditos | etc.
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <div className="flex gap-3 p-3 bg-neutral-800/30 rounded-xl">
+                                          <div className="text-emerald-400 flex-shrink-0 font-bold min-w-6">
+                                            3
+                                          </div>
+                                          <div>
+                                            <p className="font-medium text-neutral-200">
+                                              Cada crédito = 1 conexión independiente
+                                            </p>
+                                            <p className="text-sm text-neutral-400">
+                                              La cuenta se mantiene vigente incluso después de vencer tu suscripción
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p- rounded-xl p-4">
+                                      <h4 className="font-semibold text-neutral-200 mb-3">
+                                        Ejemplo de uso
+                                      </h4>
+                                      <div className="space-y-2 text-sm">
+                                        <p className="text-neutral-300">
+                                          Tienes {plan.max_users} créditos. Opciones:
+                                        </p>
+                                        <ul className="space-y-1 text-neutral-400 ml-4">
+                                          <li>• {plan.max_users} cuentas de 30 días ({plan.max_users} × 1 crédito = {plan.max_users} créditos)</li>
+                                          <li>• O {Math.floor(plan.max_users / 2)} cuentas de 60 días ({Math.floor(plan.max_users / 2)} × 2 créditos = {Math.floor(plan.max_users / 2) * 2} créditos)</li>
+                                          <li>• O mezclar: 3 cuentas de 30 días (3 créditos) + 1 cuenta de 60 días (2 créditos) = 5 créditos total</li>
+                                        </ul>
+                                        <p className="text-neutral-300 mt-3">
+                                          <strong>Cada crédito = 1 conexión independiente de 30 días</strong>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <div>
+                                      <h4 className="font-semibold text-neutral-200 mb-4">
+                                        ¿Cómo funciona?
+                                      </h4>
+                                      <div className="space-y-3">
+                                        <div className="flex gap-3 p-3 bg-neutral-800/30 rounded-xl">
+                                          <div className="text-blue-400 flex-shrink-0 font-bold min-w-6">
+                                            1
+                                          </div>
+                                          <div>
+                                            <p className="font-medium text-neutral-200">
+                                              Pagas suscripción mensual de {plan.max_users} cupos
+                                            </p>
+                                            <p className="text-sm text-neutral-400">
+                                              Tienes <strong className="text-blue-300">30 días</strong> para usar tus {plan.max_users} usuarios
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <div className="flex gap-3 p-3 bg-neutral-800/30 rounded-xl">
+                                          <div className="text-blue-400 flex-shrink-0 font-bold min-w-6">
+                                            2
+                                          </div>
+                                          <div>
+                                            <p className="font-medium text-neutral-200">
+                                              Creas cuentas durante ese mes
+                                            </p>
+                                            <p className="text-sm text-neutral-400">
+                                              Distribuye tus {plan.max_users} usuarios en diferentes cuentas (cualquier duración dentro del mes)
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <div className="flex gap-3 p-3 bg-neutral-800/30 rounded-xl">
+                                          <div className="text-blue-400 flex-shrink-0 font-bold min-w-6">
+                                            3
+                                          </div>
+                                          <div>
+                                            <p className="font-medium text-neutral-200">
+                                              Al vencer tu suscripción, todos los usuarios expiran
+                                            </p>
+                                            <p className="text-sm text-neutral-400">
+                                              Los usuarios dependen de tu suscripción, no son independientes como en Créditos
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p- rounded-xl p-4">
+                                      <h4 className="font-semibold text-neutral-200 mb-3">
+                                        Ejemplo de uso
+                                      </h4>
+                                      <div className="space-y-2 text-sm">
+                                        <p className="text-neutral-300">
+                                          Tienes plan de {plan.max_users} usuarios por 30 días:
+                                        </p>
+                                        <ul className="space-y-2 text-neutral-400 ml-4 font-mono">
+                                          <li className="text-neutral-300">Día 1: <span className="text-blue-400">0/{plan.max_users}</span> usuarios</li>
+                                          <li>→ Creas 3 cuentas de 20 días</li>
+                                          <li className="text-neutral-300">Estado: <span className="text-blue-400">3/{plan.max_users}</span> usuarios</li>
+                                          <li>→ Creas 2 cuentas de 10 días</li>
+                                          <li className="text-neutral-300">Estado: <span className="text-blue-400">5/{plan.max_users}</span> usuarios</li>
+                                          <li>→ Expiran las cuentas de 10 días (día 11)</li>
+                                          <li className="text-neutral-300">Estado: <span className="text-blue-400">3/{plan.max_users}</span> usuarios</li>
+                                          <li>→ Creas 2 nuevas cuentas de 19 días</li>
+                                          <li className="text-neutral-300">Día 30: <span className="text-blue-300">Vence tu suscripción</span></li>
+                                          <li className="text-neutral-300"><strong>Todos los usuarios expiran, sin importar su duración individual</strong></li>
+                                        </ul>
+                                      </div>
+                                    </div>
+
+                                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p- rounded-xl p-4">
+                                      <div className="flex gap-2">
+                                        <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                                        <div>
+                                          <p className="font-semibold text-blue-300 mb-1">
+                                            Diferencia clave con Créditos
+                                          </p>
+                                          <p className="text-sm text-blue-200">
+                                            Los usuarios están vinculados a tu suscripción mensual. Si esta vence, todos expiran. En Créditos, cada cuenta es independiente y se mantiene vigente después de que la suscripción termina.
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+
+                                <button
+                                  onClick={() => handleConfirmarCompra(plan)}
+                                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2"
+                                >
+                                  Comprar ahora
+                                  <ChevronRight className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))
                     ) : (
                       <div className="text-center py-12 text-neutral-500">
                         No hay planes disponibles
@@ -501,60 +621,50 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
         </section>
 
         {/* Support Section */}
-        <section className="py-20 bg-neutral-900/50">
-          <div className="max-w-[1400px] mx-auto px-6 md:px-8">
+        <section className="py-20 border-t border-neutral-800 bg-gradient-to-b from-transparent to-neutral-900/30">
+          <div className="max-w-7xl mx-auto px-4 md:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-neutral-200 mb-3">
-                ¿Dudas? Contacta a nuestro equipo
+                ¿Tienes dudas?
               </h2>
-              <p className="text-neutral-400">Soporte prioritario 24/7</p>
+              <p className="text-neutral-400">
+                Contacta a nuestro equipo de soporte
+              </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
               <a
                 href="https://t.me/+rAuU1_uHGZthMWZh"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-lg p-8 text-center transition-all"
+                className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-xl p- rounded-xl p-6 text-center transition-all"
               >
-                <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <MessageCircle className="w-6 h-6 text-purple-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-neutral-200 mb-2">
                   Telegram
                 </h3>
-                <p className="text-sm text-neutral-400 mb-4">
-                  Respuesta inmediata
-                </p>
-                <span className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:gap-3 transition-all">
-                  Contactar <ChevronRight className="w-4 h-4" />
-                </span>
+                <p className="text-sm text-neutral-400">Respuesta inmediata</p>
               </a>
 
               <a
                 href="https://chat.whatsapp.com/LU16SUptp4xFQ4zTNta7Ja"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-lg p-8 text-center transition-all"
+                className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-xl p- rounded-xl p-6 text-center transition-all"
               >
-                <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Phone className="w-6 h-6 text-purple-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-neutral-200 mb-2">
                   WhatsApp
                 </h3>
-                <p className="text-sm text-neutral-400 mb-4">
-                  Ayuda especializada
-                </p>
-                <span className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:gap-3 transition-all">
-                  Unirse <ChevronRight className="w-4 h-4" />
-                </span>
+                <p className="text-sm text-neutral-400">Ayuda especializada</p>
               </a>
             </div>
           </div>
         </section>
-
-        {/* Error Toast */}
       </main>
 
       {/* Mobile Bottom Sheet */}

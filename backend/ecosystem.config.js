@@ -8,7 +8,6 @@ module.exports = {
       exec_mode: "fork",
       listen_timeout: 10000,
       kill_timeout: 5000,
-      wait_ready: true,
       env: {
         NODE_ENV: "production",
         MP_ACCESS_TOKEN:
@@ -32,11 +31,12 @@ module.exports = {
       merge_logs: true,
       max_memory_restart: "500M",
       max_size: "50M",
-      max_restarts: 10,
-      min_uptime: "10s",
+      max_restarts: 5,
+      min_uptime: "30s",
       autorestart: true,
       watch: false,
       force_kill: true,
+      shutdown_with_message: true,
     },
   ],
 };

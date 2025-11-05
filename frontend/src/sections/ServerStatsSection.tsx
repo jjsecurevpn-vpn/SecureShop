@@ -33,15 +33,15 @@ export default function ServerStatsSection() {
 
         {/* KPIs compactos */}
         <div className="grid grid-cols-3 gap-3 mb-8">
-          <div className="bg-neutral-800/40 border border-neutral-700/30 rounded-lg p-3 backdrop-blur-sm">
+          <div className="bg-neutral-800/40 border border-neutral-700/30 rounded-xl p-3 backdrop-blur-sm">
             <div className="text-xs text-neutral-400 mb-1">Usuarios</div>
             <div className="text-xl font-bold text-white">{totalUsers.toLocaleString()}</div>
           </div>
-          <div className="bg-neutral-800/40 border border-neutral-700/30 rounded-lg p-3 backdrop-blur-sm">
+          <div className="bg-neutral-800/40 border border-neutral-700/30 rounded-xl p-3 backdrop-blur-sm">
             <div className="text-xs text-neutral-400 mb-1">Servidores</div>
             <div className="text-xl font-bold text-white">{onlineServers}/{servers.length}</div>
           </div>
-          <div className="bg-neutral-800/40 border border-neutral-700/30 rounded-lg p-3 backdrop-blur-sm">
+          <div className="bg-neutral-800/40 border border-neutral-700/30 rounded-xl p-3 backdrop-blur-sm">
             <div className="text-xs text-neutral-400 mb-1">CPU Promedio</div>
             <div className="text-xl font-bold text-white">{avgCpu}%</div>
           </div>
@@ -52,11 +52,11 @@ export default function ServerStatsSection() {
           {servers.map((server) => (
             <div
               key={server.serverName}
-              className="group bg-neutral-800/30 border border-neutral-700/20 rounded-lg p-4 hover:border-neutral-600/50 hover:bg-neutral-800/50 transition-all duration-300 backdrop-blur-sm"
+              className="group bg-neutral-800/30 border border-neutral-700/20 rounded-xl p-4 hover:border-neutral-600/50 hover:bg-neutral-800/50 transition-all duration-300 backdrop-blur-sm"
             >
               <div className="flex items-center justify-between">
                 {/* Left: Server Info */}
-                <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="flex items-center gap-3 flex-shrink-0">
                   <div className="flex-shrink-0">
                     <div
                       className={`w-2 h-2 rounded-full ${
@@ -66,16 +66,19 @@ export default function ServerStatsSection() {
                       }`}
                     />
                   </div>
+                  <div className="text-lg">
+                    {getCountryFlag(server.location)}
+                  </div>
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-white truncate">
-                      {getCountryFlag(server.location)} {server.serverName}
+                    <div className="text-sm font-semibold text-white">
+                      {server.serverName}
                     </div>
                     <div className="text-xs text-neutral-500">{server.location}</div>
                   </div>
                 </div>
 
                 {/* Center: Metrics */}
-                <div className="hidden sm:flex items-center gap-6 mx-4 text-xs">
+                <div className="hidden sm:flex items-center gap-4 mx-4 text-xs flex-1 justify-between">
                   <div className="text-center">
                     <div className="text-neutral-400 mb-0.5">CPU</div>
                     <div className="text-sm font-bold text-white">

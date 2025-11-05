@@ -108,6 +108,39 @@ export class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_cupones_activo ON cupones(activo);
       CREATE INDEX IF NOT EXISTS idx_cupones_fecha_expiracion ON cupones(fecha_expiracion);
     `);
+
+    // Tabla para historial de renovaciones y upgrades
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS renovaciones (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tipo TEXT NOT NULL CHECK(tipo IN ('cliente', 'revendedor')),
+        servex_id INTEGER NOT NULL,
+        servex_username TEXT NOT NULL,
+        operacion TEXT NOT NULL CHECK(operacion IN ('renovacion', 'upgrade')),
+        dias_agregados INTEGER,
+        datos_anteriores TEXT,
+        datos_nuevos TEXT,
+        monto REAL NOT NULL,
+        metodo_pago TEXT NOT NULL,
+        cliente_email TEXT NOT NULL,
+        cliente_nombre TEXT NOT NULL,
+        mp_payment_id TEXT,
+        mp_preference_id TEXT,
+        estado TEXT NOT NULL CHECK(estado IN ('pendiente', 'aprobado', 'rechazado', 'cancelado')),
+        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+        fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Índices para renovaciones
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_renovaciones_tipo ON renovaciones(tipo);
+      CREATE INDEX IF NOT EXISTS idx_renovaciones_servex_id ON renovaciones(servex_id);
+      CREATE INDEX IF NOT EXISTS idx_renovaciones_username ON renovaciones(servex_username);
+      CREATE INDEX IF NOT EXISTS idx_renovaciones_email ON renovaciones(cliente_email);
+      CREATE INDEX IF NOT EXISTS idx_renovaciones_estado ON renovaciones(estado);
+      CREATE INDEX IF NOT EXISTS idx_renovaciones_mp_payment ON renovaciones(mp_payment_id);
+    `);
   }
 
   // ============================================

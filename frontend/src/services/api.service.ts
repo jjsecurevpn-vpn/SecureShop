@@ -266,7 +266,7 @@ class ApiService {
   /**
    * Valida un cupón de descuento
    */
-  async validarCupon(codigo: string, planId?: number, precioPlan?: number): Promise<ValidacionCupon> {
+  async validarCupon(codigo: string, planId?: number, precioPlan?: number, clienteEmail?: string): Promise<ValidacionCupon> {
     try {
       const response = await this.client.post<{
         success: boolean;
@@ -276,6 +276,7 @@ class ApiService {
         codigo: codigo.trim().toUpperCase(),
         planId,
         precioPlan,
+        clienteEmail,
       });
 
       if (!response.data.success) {

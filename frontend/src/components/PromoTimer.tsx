@@ -55,7 +55,7 @@ function PromoTimerComponent() {
 
   return (
     <div className="w-full flex justify-center px-4 py-3">
-      <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-lg border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm">
+      <div className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm">
         {/* Icono */}
         <div className={colorConfig.text}>{colorConfig.icon}</div>
 

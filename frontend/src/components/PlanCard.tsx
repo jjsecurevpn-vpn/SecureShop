@@ -66,7 +66,7 @@ const PlanCard: React.FC<PlanCardProps> = ({ plan, onSelect, loading }) => {
       <button
         onClick={() => onSelect(plan)}
         disabled={loading}
-        className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-200 ${
+        className={`w-full py-3 px-6 rounded-xl font-semibold text-white transition-all duration-200 ${
           loading
             ? 'bg-gray-700 cursor-not-allowed'
             : 'bg-purple-600 hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-500/30 transform hover:-translate-y-0.5'

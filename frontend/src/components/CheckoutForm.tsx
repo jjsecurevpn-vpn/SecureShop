@@ -110,7 +110,7 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
               ref={nombreInputRef}
               type="text"
               disabled={loading}
-              className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
               placeholder="Juan Pérez"
             />
           </div>
@@ -134,7 +134,7 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
               ref={emailInputRef}
               type="email"
               disabled={loading}
-              className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
               placeholder="tu@email.com"
             />
           </div>
@@ -160,6 +160,7 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
             onCuponRemovido={handleCuponRemovido}
             cuponActual={cuponDataRef.current}
             descuentoActual={descuentoRef.current}
+            clienteEmail={emailInputRef.current?.value}
           />
         </div>
       </form>
