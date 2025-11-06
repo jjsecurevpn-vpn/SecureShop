@@ -45,8 +45,8 @@ export const config: AppConfig = {
   },
 
   rateLimit: {
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000", 10),
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "100", 10),
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000", 10), // 15 minutos
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "500", 10), // 500 solicitudes por ventana
   },
 
   logLevel: process.env.LOG_LEVEL || "info",
