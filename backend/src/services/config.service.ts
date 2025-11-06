@@ -833,7 +833,8 @@ export class ConfigService {
 
     // Verificar que los overrides sean para planes existentes
     if (config.overrides && config.planes_disponibles) {
-      const overrideIds = Object.keys(config.overrides);
+      const overrideIds = Object.keys(config.overrides)
+        .filter((id) => !id.startsWith('_')); // Ignorar comentarios (claves que empiezan con _)
       const planesIds = Object.keys(config.planes_disponibles);
 
       const overridesInvalidos = overrideIds.filter(
