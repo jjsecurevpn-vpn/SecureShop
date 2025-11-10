@@ -8,6 +8,11 @@ import {
   CompraResponse,
   ApiResponse,
   Usuario,
+  Cupon,
+  NoticiaConfig,
+  RenovacionClienteRequest,
+  RenovacionRevendedorRequest,
+  RenovacionResponse,
 } from "../types";
 
 export interface ValidacionCupon {
@@ -21,6 +26,15 @@ export interface ValidacionCupon {
     tipo: "porcentaje" | "monto_fijo";
     valor: number;
   };
+}
+
+interface CrearCuponPayload {
+  codigo: string;
+  tipo: "porcentaje" | "monto_fijo";
+  valor: number;
+  limite_uso?: number;
+  fecha_expiracion?: string;
+  planes_aplicables?: number[];
 }
 
 class ApiService {
@@ -101,6 +115,32 @@ class ApiService {
       throw new Error(response.data.error || "Error procesando compra");
     }
     return response.data.data!;
+  }
+
+  /**
+   * Procesa la renovación de un cliente y devuelve el link de pago generado
+   */
+  async procesarRenovacionCliente(
+    data: RenovacionClienteRequest
+  ): Promise<RenovacionResponse> {
+    const response = await this.client.post<RenovacionResponse>(
+      "/renovacion/cliente",
+      data
+    );
+    return response.data;
+  }
+
+  /**
+   * Procesa la renovación de un revendedor y devuelve el link de pago generado
+   */
+  async procesarRenovacionRevendedor(
+    data: RenovacionRevendedorRequest
+  ): Promise<RenovacionResponse> {
+    const response = await this.client.post<RenovacionResponse>(
+      "/renovacion/revendedor",
+      data
+    );
+    return response.data;
   }
 
   /**
@@ -222,6 +262,53 @@ class ApiService {
   }
 
   /**
+   * Obtiene la configuración del hero para planes normales
+   */
+  async obtenerConfigHero(): Promise<any> {
+    const response = await this.client.get<any>("/config/hero");
+
+    // El backend puede devolver dos formatos
+    const body = response.data;
+
+    // Caso 1: envoltorio ApiResponse
+    if (typeof body === "object" && body !== null && "success" in body) {
+      if (!body.success) {
+        throw new Error(
+          body.error || "Error obteniendo configuración del hero"
+        );
+      }
+      return body.data || {};
+    }
+
+    // Caso 2: respuesta directa
+    if (typeof body === "object" && body !== null && "data" in body) {
+      return body.data || {};
+    }
+
+    // Caso 3: respuesta directa con las propiedades del hero
+    if (
+      typeof body === "object" &&
+      body !== null &&
+      ("titulo" in body || "promocion" in body)
+    ) {
+      return body;
+    }
+
+    return {};
+  }
+
+  /**
+   * Guarda la configuración del hero (incluida la promoción)
+   */
+  async guardarConfigHero(heroConfig: any, tipo: "planes" | "revendedores" = "planes"): Promise<void> {
+    const endpoint = tipo === "planes" ? "/config/hero" : "/config/hero-revendedores";
+    const response = await this.client.post<ApiResponse>(endpoint, heroConfig);
+    if (!response.data.success) {
+      throw new Error(response.data.error || "Error guardando configuración del hero");
+    }
+  }
+
+  /**
    * Solicita una demostración gratuita
    */
   async solicitarDemo(nombre: string, email: string): Promise<any> {
@@ -328,6 +415,157 @@ class ApiService {
       console.error("[ApiService] Error aplicando cupón:", error);
       return false;
     }
+  }
+
+  /**
+   * Lista todos los cupones disponibles (admin)
+   */
+  async listarCupones(): Promise<Cupon[]> {
+    const response = await this.client.get<ApiResponse<Cupon[]>>("/cupones");
+    if (!response.data.success) {
+      throw new Error(response.data.error || "Error obteniendo cupones");
+    }
+    return response.data.data || [];
+  }
+
+  /**
+   * Crea un cupón nuevo
+   */
+  async crearCupon(payload: CrearCuponPayload): Promise<Cupon> {
+    const response = await this.client.post<ApiResponse<Cupon>>(
+      "/cupones",
+      payload
+    );
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.error || "Error creando cupón");
+    }
+    return response.data.data;
+  }
+
+  /**
+   * Desactiva un cupón existente
+   */
+  async desactivarCupon(cuponId: number): Promise<void> {
+    const response = await this.client.delete<ApiResponse>(
+      `/cupones/${cuponId}`
+    );
+    if (!response.data.success) {
+      throw new Error(response.data.error || "Error desactivando cupón");
+    }
+  }
+
+  /**
+   * Elimina permanentemente un cupón (solo si nunca se usó)
+   */
+  async eliminarCupon(cuponId: number): Promise<void> {
+    const response = await this.client.delete<ApiResponse>(
+      `/cupones/${cuponId}/eliminar`
+    );
+    if (!response.data.success) {
+      throw new Error(response.data.error || "Error eliminando cupón");
+    }
+  }
+
+  /**
+   * Obtiene la configuración de noticias
+   */
+  async obtenerNoticiasConfig(): Promise<NoticiaConfig | null> {
+    const response = await this.client.get<ApiResponse<NoticiaConfig | null>>(
+      "/config/noticias"
+    );
+    if (!response.data.success) {
+      throw new Error(
+        response.data.error || "Error obteniendo configuración de noticias"
+      );
+    }
+    return response.data.data ?? null;
+  }
+
+  /**
+   * Guarda la configuración de noticias
+   */
+  async guardarNoticiasConfig(config: NoticiaConfig): Promise<void> {
+    const response = await this.client.post<ApiResponse>(
+      "/config/noticias",
+      config
+    );
+    if (!response.data.success) {
+      throw new Error(
+        response.data.error || "Error guardando configuración de noticias"
+      );
+    }
+  }
+
+  /**
+   * Obtiene el estado actual de la promoción global
+   */
+  async obtenerPromoStatus(): Promise<any> {
+    const response = await this.client.get<any>(
+      "/config/promo-status"
+    );
+    if (response.status !== 200) {
+      throw new Error(
+        response.data?.error || "Error obteniendo estado de promoción"
+      );
+    }
+    return response.data.promo_config || response.data.data || {
+      activa: false,
+      activada_en: null,
+      duracion_horas: 12,
+      auto_desactivar: true,
+    };
+  }
+
+  /**
+   * Obtiene el estado actual de la promoción global para revendedores
+   */
+  async obtenerPromoStatusRevendedores(): Promise<any> {
+    const response = await this.client.get<any>(
+      "/config/promo-status-revendedores"
+    );
+    if (response.status !== 200) {
+      throw new Error(
+        response.data?.error || "Error obteniendo estado de promoción"
+      );
+    }
+    return response.data.promo_config || response.data.data || {
+      activa: false,
+      activada_en: null,
+      duracion_horas: 12,
+      auto_desactivar: true,
+    };
+  }
+
+  /**
+   * Activa la promoción global por una duración específica
+   */
+  async activarPromo(
+    duracion_horas: number,
+    tipo: "planes" | "revendedores" = "planes",
+    descuento_porcentaje: number = 20
+  ): Promise<any> {
+    const response = await this.client.post<ApiResponse<any>>(
+      "/config/activar-promo",
+      { duracion_horas, tipo, descuento_porcentaje }
+    );
+    if (!response.data.success) {
+      throw new Error(response.data.error || "Error activando promoción");
+    }
+    return response.data.data || response.data;
+  }
+
+  /**
+   * Desactiva la promoción global inmediatamente
+   */
+  async desactivarPromo(tipo: "planes" | "revendedores" = "planes"): Promise<any> {
+    const response = await this.client.post<ApiResponse<any>>(
+      "/config/desactivar-promo",
+      { tipo }
+    );
+    if (!response.data.success) {
+      throw new Error(response.data.error || "Error desactivando promoción");
+    }
+    return response.data.data || response.data;
   }
 }
 

@@ -9,16 +9,20 @@ import {
   CheckCircle,
   XCircle,
   Download,
+  Ticket,
 } from "lucide-react";
 import Sidebar from "./Sidebar";
 import ContactButton from "./ContactButton";
 import { useNoticias } from "../hooks/useNoticias";
+import { useCuponesActivos } from "../hooks/useCuponesActivos";
 
 const Header = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [noticiasOpen, setNoticiasOpen] = useState(false);
+  const [cuponesOpen, setCuponesOpen] = useState(false);
   const location = useLocation();
   const { config: noticiasConfig, loading } = useNoticias();
+    const { cupones: cuponesActivos } = useCuponesActivos();
 
   useEffect(() => {
     setSidebarOpen(false);
@@ -95,6 +99,23 @@ const Header = () => {
           >
             <Download size={16} />
           </Link>
+          {/* Cupones Button */}
+          <button
+            onClick={() => setCuponesOpen(!cuponesOpen)}
+            className={`relative p-2 rounded-xl transition-colors duration-150 ${
+              cuponesActivos.length > 0
+                ? "text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
+            }`}
+            aria-label="Ver cupones activos"
+          >
+            <Ticket size={20} />
+            {cuponesActivos.length > 0 && (
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-neutral-900 flex items-center justify-center">
+                <span className="text-xs font-bold text-white">{cuponesActivos.length}</span>
+              </div>
+            )}
+          </button>
           {/* News Button */}
           <button
             onClick={() => setNoticiasOpen(!noticiasOpen)}
@@ -169,6 +190,79 @@ const Header = () => {
                   <Info className="w-8 h-8 text-neutral-500 mx-auto mb-2" />
                   <p className="text-xs text-neutral-400">
                     No hay noticias disponibles.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cupones Popover */}
+      {cuponesOpen && (
+        <div
+          className="fixed inset-0 z-[10000]"
+          onClick={() => setCuponesOpen(false)}
+        >
+          <div className="absolute top-16 right-4 w-96 bg-neutral-900 border border-neutral-800 rounded-xl shadow-xl z-[10001]">
+            {/* Arrow pointing up */}
+            <div className="absolute -top-2 right-12 w-0 h-0 border-l-6 border-r-6 border-b-6 border-transparent border-b-neutral-900"></div>
+            {/* Arrow border for better visibility */}
+            <div className="absolute -top-3 right-12 w-0 h-0 border-l-6 border-r-6 border-b-6 border-transparent border-b-neutral-800"></div>
+
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                  <Ticket size={16} className="text-green-400" />
+                  Cupones Activos
+                </h3>
+                <button
+                  onClick={() => setCuponesOpen(false)}
+                  className="text-neutral-400 hover:text-white transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {cuponesActivos.length > 0 ? (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {cuponesActivos.map((cupon) => (
+                    <div
+                      key={cupon.id}
+                      className="p-3 rounded-lg bg-neutral-800/50 border border-green-500/30 hover:border-green-500/60 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <code className="text-xs font-mono bg-neutral-700 px-2 py-1 rounded text-green-400">
+                              {cupon.codigo}
+                            </code>
+                            <span className="text-xs font-semibold text-neutral-300">
+                              {cupon.tipo === "porcentaje"
+                                ? `${cupon.valor}%`
+                                : `$${cupon.valor.toLocaleString()}`}
+                            </span>
+                          </div>
+                          {cupon.limite_uso && (
+                            <p className="text-xs text-neutral-400">
+                              Usos: {cupon.usos_actuales || 0} / {cupon.limite_uso}
+                            </p>
+                          )}
+                          {cupon.fecha_expiracion && (
+                            <p className="text-xs text-neutral-500">
+                              Expira: {new Date(cupon.fecha_expiracion).toLocaleDateString("es-ES")}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <Ticket className="w-8 h-8 text-neutral-500 mx-auto mb-2" />
+                  <p className="text-xs text-neutral-400">
+                    No hay cupones activos disponibles.
                   </p>
                 </div>
               )}

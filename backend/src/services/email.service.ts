@@ -537,7 +537,7 @@ class EmailService {
 
             <h3>📱 Cómo empezar:</h3>
             <ol>
-              <li>Descarga la app <strong>JJSecure VPN</strong> desde <a href="https://play.google.com/store/apps/details?id=com.jjsecure.pro" target="_blank" style="color: #667eea;">Google Play Store</a></li>
+              <li>Descarga la app <strong>JJSecure VPN</strong> desde <a href="https://play.google.com/store/apps/details?id=com.jjsecure.lite&hl=es_AR" target="_blank" style="color: #667eea;">Google Play Store</a></li>
               <li>Abre la app e ingresa tu usuario y contraseña</li>
               <li>Selecciona un servidor y conecta</li>
               <li>¡Disfruta de navegación segura y privada!</li>

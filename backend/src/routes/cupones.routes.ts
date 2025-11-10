@@ -16,13 +16,29 @@ router.post('/validar', async (req, res) => {
   try {
     console.log('[Cupones] Validando cupón:', req.body);
     const schema = z.object({
-      codigo: z.string().min(1, 'Código de cupón requerido'),
-      planId: z.number().optional(),
-      precioPlan: z.number().optional(),
-      clienteEmail: z.string().email().optional()
+      codigo: z.string().trim().min(1, 'Código de cupón requerido'),
+      planId: z.union([z.number(), z.string()]).optional(),
+      precioPlan: z.union([z.number(), z.string()]).optional(),
+      clienteEmail: z.union([z.string().trim().email(), z.literal('')]).optional()
     });
 
-    const { codigo, planId, precioPlan, clienteEmail } = schema.parse(req.body);
+    const parsed = schema.parse(req.body);
+
+    const codigo = parsed.codigo.trim();
+    const planId = parsed.planId !== undefined && parsed.planId !== '' ? Number(parsed.planId) : undefined;
+    const precioPlan = parsed.precioPlan !== undefined && parsed.precioPlan !== '' ? Number(parsed.precioPlan) : undefined;
+    const clienteEmail = parsed.clienteEmail && parsed.clienteEmail.trim().length > 0
+      ? parsed.clienteEmail.trim()
+      : undefined;
+
+    if (planId !== undefined && Number.isNaN(planId)) {
+      return res.status(400).json({ success: false, error: 'planId inválido' });
+    }
+
+    if (precioPlan !== undefined && Number.isNaN(precioPlan)) {
+      return res.status(400).json({ success: false, error: 'precioPlan inválido' });
+    }
+
     console.log('[Cupones] Parámetros validados:', { codigo, planId, precioPlan, clienteEmail });
 
     const resultado = await cuponesService.validarCupon(codigo, planId, clienteEmail);
@@ -52,6 +68,14 @@ router.post('/validar', async (req, res) => {
     });
 
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error('[Cupones] Datos inválidos:', error.flatten().fieldErrors);
+      return res.status(400).json({
+        success: false,
+        error: 'Datos inválidos'
+      });
+    }
+
     console.error('Error validando cupón:', error);
     return res.status(500).json({
       success: false,
@@ -101,6 +125,28 @@ router.post('/aplicar/:cuponId', async (req, res) => {
  * Lista todos los cupones (para admin)
  */
 router.get('/', async (_req, res) => {
+  try {
+    const cupones = await cuponesService.listarCupones();
+
+    return res.json({
+      success: true,
+      data: cupones
+    });
+
+  } catch (error) {
+    console.error('Error listando cupones:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor'
+    });
+  }
+});
+
+/**
+ * GET /api/cupones/listar
+ * Lista todos los cupones activos (público - para mostrar en header)
+ */
+router.get('/listar', async (_req, res) => {
   try {
     const cupones = await cuponesService.listarCupones();
 
@@ -304,7 +350,7 @@ router.delete('/:id', async (req, res) => {
 
 /**
  * DELETE /api/cupones/:id/eliminar
- * Elimina permanentemente un cupón (solo si nunca se usó)
+ * Elimina permanentemente un cupón
  */
 router.delete('/:id/eliminar', async (req, res) => {
   try {
@@ -319,23 +365,16 @@ router.delete('/:id/eliminar', async (req, res) => {
 
     await cuponesService.eliminarCupon(id);
 
-    return res.json({
+    return res.status(200).json({
       success: true,
       message: 'Cupón eliminado exitosamente'
     });
 
   } catch (error) {
-    if ((error as Error).message.includes('No se puede eliminar')) {
-      return res.status(400).json({
-        success: false,
-        error: (error as Error).message
-      });
-    }
-
     console.error('Error eliminando cupón:', error);
     return res.status(500).json({
       success: false,
-      error: 'Error interno del servidor'
+      error: 'Error al eliminar el cupón'
     });
   }
 });

@@ -46,7 +46,13 @@ const CuponInput: React.FC<CuponInputProps> = ({
     });
 
     try {
-      const resultado = await cuponesService.validarCupon(codigo.trim(), planId, precioPlan, clienteEmail);
+      const emailNormalizado = clienteEmail && clienteEmail.trim().length > 0 ? clienteEmail.trim() : undefined;
+      const resultado = await cuponesService.validarCupon(
+        codigo.trim(),
+        planId,
+        precioPlan,
+        emailNormalizado
+      );
 
       console.log('[CuponInput] Resultado:', resultado);
 

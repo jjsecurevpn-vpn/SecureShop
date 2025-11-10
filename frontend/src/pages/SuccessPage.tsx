@@ -234,7 +234,7 @@ const SuccessPage: React.FC = () => {
             )}
 
             {searchParams.get("renovacion") === "true" && (
-              <div className="bg-green-900/20 border border-green-800/50 rounded-xl p- rounded-xl p-4">
+              <div className="bg-green-900/20 border border-green-800/50 rounded-xl p- p-4">
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
                   <p className="text-green-300 text-sm">
@@ -250,7 +250,7 @@ const SuccessPage: React.FC = () => {
 
           {/* Details Grid */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-xl p- rounded-xl p-4">
+            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-xl p- p-4">
               <div className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
                 Servidor
               </div>
@@ -259,7 +259,7 @@ const SuccessPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-xl p- rounded-xl p-4">
+            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-xl p- p-4">
               <div className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
                 Dispositivos
               </div>
@@ -268,7 +268,7 @@ const SuccessPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-xl p- rounded-xl p-4">
+            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-xl p- p-4">
               <div className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
                 Válido hasta
               </div>
@@ -291,7 +291,7 @@ const SuccessPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-xl p- rounded-xl p-4">
+            <div className="bg-neutral-800/50 border border-neutral-700/50 rounded-xl p- p-4">
               <div className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-2">
                 Referencia
               </div>
@@ -302,7 +302,7 @@ const SuccessPage: React.FC = () => {
           </div>
 
           {/* Email notification */}
-          <div className="flex items-center gap-3 text-sm text-neutral-400 bg-neutral-800/30 border border-neutral-700/50 rounded-xl p- rounded-xl p-4">
+          <div className="flex items-center gap-3 text-sm text-neutral-400 bg-neutral-800/30 border border-neutral-700/50 rounded-xl p- p-4">
             <Mail className="w-5 h-5 text-neutral-500 flex-shrink-0" />
             <span>
               Credenciales enviadas a{" "}
@@ -315,7 +315,7 @@ const SuccessPage: React.FC = () => {
 
         {/* Panel de Gestión - Solo para Revendedores */}
         {searchParams.get("tipo") === "revendedor" && (
-          <div className="bg-blue-900/20 border border-blue-800/50 rounded-xl p- rounded-xl p-6 mb-6">
+          <div className="bg-blue-900/20 border border-blue-800/50 rounded-xl p- p-6 mb-6">
             <div className="flex items-start gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
                 <ExternalLink className="w-5 h-5 text-blue-400" />
@@ -412,7 +412,7 @@ const SuccessPage: React.FC = () => {
         </div>
 
         {/* Security Warning */}
-        <div className="bg-amber-900/20 border border-amber-800/50 rounded-xl p- rounded-xl p-4 mb-6">
+        <div className="bg-amber-900/20 border border-amber-800/50 rounded-xl p- p-4 mb-6">
           <div className="flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
             <div>

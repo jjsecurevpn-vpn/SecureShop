@@ -1,7 +1,8 @@
+import EventEmitter from 'events';
 import WebSocket from 'ws';
 import axios from 'axios';
 
-interface ServerStats {
+export interface ServerStats {
   serverName: string;
   location: string;
   status: 'online' | 'offline';
@@ -18,23 +19,28 @@ interface ServerStats {
   netSentMbps?: number;
 }
 
-export class WebSocketService {
+export class WebSocketService extends EventEmitter {
   private servexToken: string;
   private ws: WebSocket | null = null;
   private stats: Map<string, ServerStats> = new Map();
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private connectionAttempts: number = 0;
   private maxRetries: number = 5;
+  private readonly debugLogging: boolean;
 
-  // Mapeo de IDs de servidor a nombres reales (override del nombre que viene de Servex)
-  private readonly SERVIDOR_NOMBRES_REALES: { [key: number]: { nombre: string; ubicacion: string } } = {
-    515: { nombre: 'Servidor 1 BR', ubicacion: 'Brasil' },
-    528: { nombre: 'Servidor 1 AR', ubicacion: 'Argentina' },
-    // Agregar más servidores conforme se descubran sus IDs
-  };
+  // Mapeo de IDs de servidor a nombres que deseas mostrar
+  // Este mapeo sobreescribe los nombres que Servex devuelve
+  private NOMBRES_PERSONALIZADOS: Map<number, string> = new Map([
+    [515, 'PREMIUM 1 BR'],
+    [550, 'PREMIUM 1 USA'],
+    [528, 'PREMIUM 1 AR'],
+    [557, 'GRATUITO 1'],
+  ]);
 
   constructor() {
+    super();
     this.servexToken = process.env.SERVEX_API_KEY || '';
+    this.debugLogging = (process.env.NODE_ENV || 'development') !== 'production';
   }
 
   /**
@@ -76,7 +82,9 @@ export class WebSocketService {
           const message = JSON.parse(data.toString());
           this.procesarMensaje(message);
         } catch (error) {
-          // Log desactivado - error de parseo ignorado
+          if (this.debugLogging) {
+            console.warn('[WebSocket] Error parseando mensaje:', error);
+          }
         }
       });
 
@@ -113,18 +121,27 @@ export class WebSocketService {
    */
   private procesarMensaje(message: any): void {
     try {
-      // Log desactivado - servicio funcionando correctamente
+      if (this.debugLogging) {
+        console.log('[WebSocket] Mensaje recibido:', JSON.stringify({
+          id: message.id,
+          name: message.name,
+          online_users_count: message.online_users_count,
+          status: message.online
+        }));
+      }
       if (message.name && message.online_users_count !== undefined) {
         this.actualizarEstadisticasServidores([message]);
       }
     } catch (error) {
-      // Log desactivado - error ignorado
+      if (this.debugLogging) {
+        console.error('[WebSocket] Error procesando mensaje:', error);
+      }
     }
   }
 
   /**
    * Actualiza estadísticas de servidores con datos reales
-   * Usa IDs de servidor para obtener nombres "reales" en lugar de confiar en el nombre de Servex
+   * Usa nombres personalizados si existen, sino usa los de Servex
    */
   private actualizarEstadisticasServidores(servidores: any[]): void {
     servidores.forEach((servidor: any) => {
@@ -132,41 +149,34 @@ export class WebSocketService {
       const usuariosOnline = servidor.online_users_count || servidor.users || 0;
       const online = servidor.online !== false && servidor.status !== 'offline';
       
-      // Intentar obtener nombre real del mapeo, si no existe usar el de Servex
-      let nombre: string;
+      // Usar nombre personalizado si existe, sino usar el de Servex
+      let nombre = this.NOMBRES_PERSONALIZADOS.get(serverId) || 
+                   servidor.name || 
+                   servidor.hostname || 
+                   servidor.server_name || 
+                   'Unknown';
+      
+      const nombreLower = nombre.toLowerCase();
+      
+      // Detectar ubicación por nombre
       let location: string;
-      
-      if (serverId && this.SERVIDOR_NOMBRES_REALES[serverId]) {
-        // Usar nombre real mapeado
-        nombre = this.SERVIDOR_NOMBRES_REALES[serverId].nombre;
-        location = this.SERVIDOR_NOMBRES_REALES[serverId].ubicacion;
-        // Log desactivado - servidor mapeado correctamente
+      if (nombreLower.includes('ar') || nombreLower.includes('argentina') || /\bar\b|arg/.test(nombreLower)) {
+        location = 'Argentina';
+      } else if (nombreLower.includes('br') || nombreLower.includes('brasil') || nombreLower.includes('premium 1 br')) {
+        location = 'Brasil';
+      } else if (nombreLower.includes('usa') || nombreLower.includes('us') || nombreLower.includes('premium 1 usa')) {
+        location = 'USA';
+      } else if (nombreLower.includes('mx') || nombreLower.includes('mexico')) {
+        location = 'México';
+      } else if (nombreLower.includes('cl') || nombreLower.includes('chile')) {
+        location = 'Chile';
+      } else if (nombreLower.includes('eu') || nombreLower.includes('europe')) {
+        location = 'Europa';
+      } else if (nombreLower.includes('gratuito')) {
+        location = 'Global';
       } else {
-        // Fallback: usar nombre de Servex y detectar ubicación
-        nombre = servidor.name || servidor.hostname || servidor.server_name || 'Unknown';
-        const nombreLower = nombre.toLowerCase();
-        
-        // Log desactivado - servidor no mapeado pero funcionando
-        
-        // Detectar ubicación por nombre como fallback
-        if (nombreLower.includes('ar') || /\bar\b|argentina|arg/.test(nombreLower)) {
-          location = 'Argentina';
-        } else if (nombreLower.includes('br') || nombreLower.includes('brasil')) {
-          location = 'Brasil';
-        } else if (nombreLower.includes('usa') || nombreLower.includes('us')) {
-          location = 'USA';
-        } else if (nombreLower.includes('mx') || nombreLower.includes('mexico')) {
-          location = 'México';
-        } else if (nombreLower.includes('cl') || nombreLower.includes('chile')) {
-          location = 'Chile';
-        } else if (nombreLower.includes('eu') || nombreLower.includes('europe')) {
-          location = 'Europa';
-        } else {
-          location = 'Desconocido';
-        }
+        location = 'Desconocido';
       }
-      
-      // Log desactivado - servidor actualizado correctamente
       
       // Usar serverId como clave única (no el nombre, que puede cambiar)
       const serverKey = `server-${serverId || nombre}`;
@@ -189,6 +199,35 @@ export class WebSocketService {
         netSentMbps: servidor.net_sent_mbps,
       });
     });
+
+    this.emit('server-stats', this.obtenerEstadisticas());
+  }
+
+  /**
+   * Fuerza reconexión del WebSocket (limpia cache y reconecta)
+   */
+  async forzarReconexion(): Promise<void> {
+    console.log('[WebSocket] Forzando reconexión y limpieza de cache...');
+    
+    // Cerrar conexión existente
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+    
+    // Limpiar timeout de reconexión pendiente
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
+    
+    // Limpiar cache
+    this.stats.clear();
+    console.log('[WebSocket] Cache limpiado. Reconectando...');
+    
+    // Reconectar
+    this.connectionAttempts = 0;
+    await this.conectar();
   }
 
   /**

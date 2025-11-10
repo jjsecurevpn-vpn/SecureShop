@@ -9,10 +9,12 @@ import PrivacyPage from "./pages/PrivacyPage";
 import DownloadPage from "./pages/DownloadPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutRevendedorPage from "./pages/CheckoutRevendedorPage";
+import CheckoutRenovacionPage from "./pages/CheckoutRenovacionPage";
 import Header from "./components/Header";
 import MobilePageHeader from "./components/MobilePageHeader";
 import ScrollToTop from "./components/ScrollToTop";
 import { useState } from "react";
+import AdminToolsPage from "./pages/AdminToolsPage";
 
 const App = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -30,6 +32,8 @@ const App = () => {
         return "Sobre Nosotros";
       case "/checkout":
         return "Compra VPN";
+      case "/checkout-renovacion":
+        return "Renovación";
       case "/checkout-revendedor":
         return "Compra Revendedor";
       case "/success":
@@ -40,12 +44,14 @@ const App = () => {
         return "Privacidad";
       case "/descargar":
         return "Descargar";
+      case "/155908348":
+        return "Panel interno";
       default:
         return "JJSecure VPN";
     }
   };
 
-  const showMobileHeader = !["/checkout", "/checkout-revendedor", "/success"].includes(
+  const showMobileHeader = !["/checkout", "/checkout-revendedor", "/checkout-renovacion", "/success"].includes(
     location.pathname
   );
 
@@ -66,6 +72,7 @@ const App = () => {
           <Routes>
           <Route path="/" element={<HomePage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/checkout-renovacion" element={<CheckoutRenovacionPage />} />
           <Route path="/checkout-revendedor" element={<CheckoutRevendedorPage />} />
           <Route path="/planes" element={<PlanesPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/revendedores" element={<RevendedoresPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
@@ -74,6 +81,7 @@ const App = () => {
           <Route path="/terminos" element={<TermsPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/privacidad" element={<PrivacyPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/descargar" element={<DownloadPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
+          <Route path="/155908348" element={<AdminToolsPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
         </Routes>
         </main>
       </div>

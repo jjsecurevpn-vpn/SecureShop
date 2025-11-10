@@ -127,10 +127,29 @@ export class DatabaseService {
         mp_payment_id TEXT,
         mp_preference_id TEXT,
         estado TEXT NOT NULL CHECK(estado IN ('pendiente', 'aprobado', 'rechazado', 'cancelado')),
+        cupon_id INTEGER,
+        descuento_aplicado REAL DEFAULT 0,
         fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
         fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Asegurar columnas recientes en renovaciones (compatibilidad hacia atrás)
+    try {
+      this.db.exec(`ALTER TABLE renovaciones ADD COLUMN cupon_id INTEGER`);
+    } catch (error: any) {
+      if (!error?.message?.includes('duplicate column name')) {
+        throw error;
+      }
+    }
+
+    try {
+      this.db.exec(`ALTER TABLE renovaciones ADD COLUMN descuento_aplicado REAL DEFAULT 0`);
+    } catch (error: any) {
+      if (!error?.message?.includes('duplicate column name')) {
+        throw error;
+      }
+    }
 
     // Índices para renovaciones
     this.db.exec(`
@@ -549,13 +568,16 @@ export class DatabaseService {
     cliente_email: string;
     cliente_nombre: string;
     estado: string;
+    cupon_id?: number | null;
+    descuento_aplicado?: number;
   }): any {
     const stmt = this.db.prepare(`
       INSERT INTO renovaciones (
         tipo, servex_id, servex_username, operacion,
         dias_agregados, datos_anteriores, datos_nuevos,
-        monto, metodo_pago, cliente_email, cliente_nombre, estado
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        monto, metodo_pago, cliente_email, cliente_nombre, estado,
+        cupon_id, descuento_aplicado
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const result = stmt.run(
@@ -570,7 +592,9 @@ export class DatabaseService {
       data.metodo_pago,
       data.cliente_email,
       data.cliente_nombre,
-      data.estado
+      data.estado,
+      data.cupon_id ?? null,
+      data.descuento_aplicado ?? 0
     );
 
     return this.obtenerRenovacionPorId(result.lastInsertRowid as number);

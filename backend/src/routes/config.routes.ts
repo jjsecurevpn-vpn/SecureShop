@@ -7,11 +7,11 @@ const router = express.Router();
 /**
  * POST /api/config/activar-promo
  * Activa la promoción por una duración configurable
- * Body: { duracion_horas: number }
+ * Body: { duracion_horas: number, tipo?: "planes" | "revendedores", descuento_porcentaje?: number }
  */
 router.post("/activar-promo", async (req: Request, res: Response) => {
   try {
-    const { duracion_horas } = req.body;
+    const { duracion_horas, tipo = "planes", descuento_porcentaje = 20 } = req.body;
 
     if (!duracion_horas || duracion_horas <= 0) {
       return res.status(400).json({
@@ -19,68 +19,115 @@ router.post("/activar-promo", async (req: Request, res: Response) => {
       });
     }
 
-    // Leer configs actual
-    const configPlanes = configService.leerConfigPlanes();
-    const configRevendedores = configService.leerConfigRevendedores();
+    if (!["planes", "revendedores"].includes(tipo)) {
+      return res.status(400).json({
+        error: 'tipo debe ser "planes" o "revendedores"',
+      });
+    }
 
-    // Actualizar promo_config en PLANES
+    if (descuento_porcentaje < 1 || descuento_porcentaje > 100) {
+      return res.status(400).json({
+        error: "descuento_porcentaje debe estar entre 1 y 100",
+      });
+    }
+
     const now = new Date().toISOString();
-    if (!configPlanes.promo_config) {
-      configPlanes.promo_config = {
-        activa: false,
-        activada_en: null,
-        duracion_horas: 12,
-        auto_desactivar: true,
-      };
+
+    // Si es "planes" o ambos
+    if (tipo === "planes") {
+      const configPlanes = configService.leerConfigPlanes();
+      if (!configPlanes.promo_config) {
+        configPlanes.promo_config = {
+          activa: false,
+          activada_en: null,
+          duracion_horas: 12,
+          auto_desactivar: true,
+          descuento_porcentaje: 20,
+        };
+      }
+      configPlanes.promo_config.activa = true;
+      configPlanes.promo_config.activada_en = now;
+      configPlanes.promo_config.duracion_horas = duracion_horas;
+      configPlanes.promo_config.auto_desactivar = true;
+      configPlanes.promo_config.descuento_porcentaje = descuento_porcentaje;
+      configPlanes.ultima_actualizacion = now;
+
+      // 🆕 Recalcular precios en overrides basándose en descuento_porcentaje
+      if (configPlanes.precios_normales && configPlanes.overrides) {
+        const factorDescuento = (100 - descuento_porcentaje) / 100;
+        for (const [planId, precioNormal] of Object.entries(configPlanes.precios_normales)) {
+          const precioConDescuento = Math.round((precioNormal as number) * factorDescuento);
+          if (!configPlanes.overrides[planId]) {
+            configPlanes.overrides[planId] = {};
+          }
+          const override = configPlanes.overrides[planId];
+          if (typeof override === 'object') {
+            override.precio = precioConDescuento;
+          }
+          console.log(`[CONFIG-ROUTE] Actualizado plan ${planId}: ${precioNormal} ARS -> ${precioConDescuento} ARS (${descuento_porcentaje}% OFF)`);
+        }
+      }
+
+      if (configPlanes.hero && configPlanes.hero.promocion) {
+        configPlanes.hero.promocion.habilitada = true;
+      }
+
+      console.log("[CONFIG-ROUTE] 💾 Guardando config de planes...");
+      configService.guardarConfigPlanes(configPlanes);
+      console.log("[CONFIG-ROUTE] ✅ Config de planes guardada");
     }
-    configPlanes.promo_config.activa = true;
-    configPlanes.promo_config.activada_en = now;
-    configPlanes.promo_config.duracion_horas = duracion_horas;
-    configPlanes.promo_config.auto_desactivar = true;
-    configPlanes.ultima_actualizacion = now;
 
-    // Habilitar el banner del hero en PLANES si existe la configuración
-    if (configPlanes.hero && configPlanes.hero.promocion) {
-      configPlanes.hero.promocion.habilitada = true;
+    // Si es "revendedores" o ambos
+    if (tipo === "revendedores") {
+      const configRevendedores = configService.leerConfigRevendedores();
+      if (!configRevendedores.promo_config) {
+        configRevendedores.promo_config = {
+          activa: false,
+          activada_en: null,
+          duracion_horas: 12,
+          auto_desactivar: true,
+          descuento_porcentaje: 20,
+        };
+      }
+      configRevendedores.promo_config.activa = true;
+      configRevendedores.promo_config.activada_en = now;
+      configRevendedores.promo_config.duracion_horas = duracion_horas;
+      configRevendedores.promo_config.auto_desactivar = true;
+      configRevendedores.promo_config.descuento_porcentaje = descuento_porcentaje;
+      configRevendedores.ultima_actualizacion = now;
+
+      // 🆕 Recalcular precios en overrides basándose en descuento_porcentaje
+      if (configRevendedores.precios_normales && configRevendedores.overrides) {
+        const factorDescuento = (100 - descuento_porcentaje) / 100;
+        for (const [planId, precioNormal] of Object.entries(configRevendedores.precios_normales)) {
+          const precioConDescuento = Math.round((precioNormal as number) * factorDescuento);
+          if (!configRevendedores.overrides[planId]) {
+            configRevendedores.overrides[planId] = {};
+          }
+          const override = configRevendedores.overrides[planId];
+          if (typeof override === 'object') {
+            override.precio = precioConDescuento;
+          }
+          console.log(`[CONFIG-ROUTE] Actualizado plan revendedor ${planId}: ${precioNormal} ARS -> ${precioConDescuento} ARS (${descuento_porcentaje}% OFF)`);
+        }
+      }
+
+      if (configRevendedores.hero && configRevendedores.hero.promocion) {
+        configRevendedores.hero.promocion.habilitada = true;
+      }
+
+      console.log("[CONFIG-ROUTE] 💾 Guardando config de revendedores...");
+      configService.guardarConfigRevendedores(configRevendedores);
+      console.log("[CONFIG-ROUTE] ✅ Config de revendedores guardada");
     }
 
-    // Actualizar promo_config en REVENDEDORES
-    if (!configRevendedores.promo_config) {
-      configRevendedores.promo_config = {
-        activa: false,
-        activada_en: null,
-        duracion_horas: 12,
-        auto_desactivar: true,
-      };
-    }
-    configRevendedores.promo_config.activa = true;
-    configRevendedores.promo_config.activada_en = now;
-    configRevendedores.promo_config.duracion_horas = duracion_horas;
-    configRevendedores.promo_config.auto_desactivar = true;
-    configRevendedores.ultima_actualizacion = now;
-
-    // Habilitar el banner del hero en REVENDEDORES si existe la configuración
-    if (configRevendedores.hero && configRevendedores.hero.promocion) {
-      configRevendedores.hero.promocion.habilitada = true;
-    }
-
-    // Guardar cambios en ambos archivos
-    console.log("[CONFIG-ROUTE] 💾 Guardando config de planes...");
-    configService.guardarConfigPlanes(configPlanes);
-    console.log("[CONFIG-ROUTE] ✅ Config de planes guardada");
-
-    console.log("[CONFIG-ROUTE] 💾 Guardando config de revendedores...");
-    configService.guardarConfigRevendedores(configRevendedores);
-    console.log("[CONFIG-ROUTE] ✅ Config de revendedores guardada");
-
-    // Limpiar ambos cachés para que cambios se apliquen inmediatamente
+    // Limpiar caché
     configService.limpiarCache();
     console.log("[CONFIG-ROUTE] 🔄 Caché limpiado");
 
     return res.status(200).json({
       success: true,
-      mensaje: `Promoción activada por ${duracion_horas} hora(s) en PLANES y REVENDEDORES`,
-      promo_config: configPlanes.promo_config,
+      mensaje: `Promoción de ${tipo} activada con ${descuento_porcentaje}% de descuento por ${duracion_horas} hora(s)`,
       timestamp: now,
     });
   } catch (error) {
@@ -95,35 +142,72 @@ router.post("/activar-promo", async (req: Request, res: Response) => {
 /**
  * POST /api/config/desactivar-promo
  * Desactiva la promoción inmediatamente
+ * Body: { tipo?: "planes" | "revendedores" }
  */
-router.post("/desactivar-promo", (_req: Request, res: Response) => {
+router.post("/desactivar-promo", (req: Request, res: Response) => {
   try {
-    const config = configService.leerConfigPlanes();
+    const { tipo = "planes" } = req.body;
 
-    if (!config.promo_config) {
-      config.promo_config = {
-        activa: false,
-        activada_en: null,
-        duracion_horas: 12,
-        auto_desactivar: true,
-      };
-    }
-    config.promo_config.activa = false;
-    config.promo_config.activada_en = null;
-    config.ultima_actualizacion = new Date().toISOString();
-
-    // Desactivar el banner del hero si existe
-    if (config.hero && config.hero.promocion) {
-      config.hero.promocion.habilitada = false;
+    if (!["planes", "revendedores"].includes(tipo)) {
+      return res.status(400).json({
+        error: 'tipo debe ser "planes" o "revendedores"',
+      });
     }
 
-    configService.guardarConfigPlanes(config);
+    const now = new Date().toISOString();
+
+    // Si es "planes"
+    if (tipo === "planes") {
+      const config = configService.leerConfigPlanes();
+      if (!config.promo_config) {
+        config.promo_config = {
+          activa: false,
+          activada_en: null,
+          duracion_horas: 12,
+          auto_desactivar: true,
+        };
+      }
+      config.promo_config.activa = false;
+      config.promo_config.activada_en = null;
+      config.ultima_actualizacion = now;
+
+      if (config.hero && config.hero.promocion) {
+        config.hero.promocion.habilitada = false;
+      }
+
+      configService.guardarConfigPlanes(config);
+      console.log("[CONFIG-ROUTE] ✅ Config de planes desactivada");
+    }
+
+    // Si es "revendedores"
+    if (tipo === "revendedores") {
+      const config = configService.leerConfigRevendedores();
+      if (!config.promo_config) {
+        config.promo_config = {
+          activa: false,
+          activada_en: null,
+          duracion_horas: 12,
+          auto_desactivar: true,
+        };
+      }
+      config.promo_config.activa = false;
+      config.promo_config.activada_en = null;
+      config.ultima_actualizacion = now;
+
+      if (config.hero && config.hero.promocion) {
+        config.hero.promocion.habilitada = false;
+      }
+
+      configService.guardarConfigRevendedores(config);
+      console.log("[CONFIG-ROUTE] ✅ Config de revendedores desactivada");
+    }
+
     configService.limpiarCache();
 
     return res.status(200).json({
       success: true,
-      mensaje: "Promoción desactivada",
-      timestamp: config.ultima_actualizacion,
+      mensaje: `Promoción de ${tipo} desactivada`,
+      timestamp: now,
     });
   } catch (error) {
     console.error("Error desactivando promo:", error);

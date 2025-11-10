@@ -145,13 +145,6 @@ else
     echo "  ⚠️  Advertencia en transferencia de backend"
 fi
 
-# Config JSONs
-echo "  Transferiendo configuraciones..."
-scp ./backend/public/config/planes.config.json $REMOTE_HOST:$BACKEND_PATH/public/config/ 2>/dev/null && echo "    ✓ planes.config.json" || echo "    ⚠️  planes.config.json"
-scp ./backend/public/config/revendedores.config.json $REMOTE_HOST:$BACKEND_PATH/public/config/ 2>/dev/null && echo "    ✓ revendedores.config.json" || echo "    ⚠️  revendedores.config.json"
-scp ./backend/public/config/cupones.config.json $REMOTE_HOST:$BACKEND_PATH/public/config/ 2>/dev/null && echo "    ✓ cupones.config.json" || echo "    ⚠️  cupones.config.json"
-scp ./backend/public/config/noticias.config.json $REMOTE_HOST:$BACKEND_PATH/public/config/ 2>/dev/null && echo "    ✓ noticias.config.json" || echo "    ⚠️  noticias.config.json"
-
 echo "✓ Transferencia completada"
 
 # ============================================================================

@@ -1,8 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { ServexService } from '../services/servex.service';
+import { ServexPollingService } from '../services/servex-polling.service';
 import { ApiResponse } from '../types';
 
-export function crearRutasClientes(servexService: ServexService): Router {
+export function crearRutasClientes(
+  servexService: ServexService,
+  pollingService?: ServexPollingService
+): Router {
   const router = Router();
 
   /**
@@ -32,11 +36,44 @@ export function crearRutasClientes(servexService: ServexService): Router {
 
       console.log('[Rutas Clientes] Parámetros:', params);
 
-      const clientes = await servexService.obtenerClientes(params);
+      const puedeUsarSnapshot = Boolean(
+        pollingService &&
+          params.page === 1 &&
+          !params.search &&
+          !params.status &&
+          !params.resellerId &&
+          (params.scope === 'meus' || !params.scope)
+      );
+
+      if (puedeUsarSnapshot) {
+        const snapshot = pollingService!.getSnapshot();
+        if (snapshot) {
+          const clientesSnapshot = snapshot.clients.slice(0, params.limit);
+          const response: ApiResponse = {
+            success: true,
+            data: clientesSnapshot,
+            meta: {
+              source: 'snapshot',
+              fetchedAt: snapshot.fetchedAt.toISOString(),
+            },
+          };
+
+          res.json(response);
+          return;
+        }
+      }
+
+      const clientes = await servexService.obtenerClientes(params, {
+        forceRefresh: puedeUsarSnapshot,
+      });
 
       const response: ApiResponse = {
         success: true,
         data: clientes,
+        meta: {
+          source: puedeUsarSnapshot ? 'servex-refresh' : 'servex',
+          fetchedAt: new Date().toISOString(),
+        },
       };
 
       res.json(response);

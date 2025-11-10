@@ -37,7 +37,19 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
    */
   router.post('/cliente', async (req: Request, res: Response) => {
     try {
-      const { busqueda, dias, precio, clienteEmail, clienteNombre, nuevoConnectionLimit } = req.body;
+      const {
+        busqueda,
+        dias,
+        precio,
+        clienteEmail,
+        clienteNombre,
+        nuevoConnectionLimit,
+        precioOriginal,
+        codigoCupon,
+        cuponId,
+        descuentoAplicado,
+        planId,
+      } = req.body;
 
       // Validaciones
       if (!busqueda || typeof busqueda !== 'string') {
@@ -59,7 +71,12 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
         precio: precio ? Number(precio) : undefined, // Pasar precio al servicio
         clienteEmail: clienteEmail.trim(),
         clienteNombre: clienteNombre.trim(),
-        nuevoConnectionLimit: nuevoConnectionLimit ? Number(nuevoConnectionLimit) : undefined
+        nuevoConnectionLimit: nuevoConnectionLimit ? Number(nuevoConnectionLimit) : undefined,
+        precioOriginal: precioOriginal ? Number(precioOriginal) : undefined,
+        codigoCupon: typeof codigoCupon === 'string' ? codigoCupon : undefined,
+        cuponId: cuponId ? Number(cuponId) : undefined,
+        descuentoAplicado: descuentoAplicado ? Number(descuentoAplicado) : undefined,
+        planId: planId ? Number(planId) : undefined
       });
 
       return res.json(resultado);

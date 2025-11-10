@@ -3,6 +3,7 @@ import { ServexService } from './servex.service';
 import { MercadoPagoService } from './mercadopago.service';
 import { configService } from './config.service';
 import emailService from './email.service';
+import { cuponesService } from './cupones.service';
 
 export class RenovacionService {
   constructor(
@@ -109,7 +110,12 @@ export class RenovacionService {
     clienteEmail: string;
     clienteNombre: string;
     nuevoConnectionLimit?: number;
-  }): Promise<{ renovacion: any; linkPago: string }> {
+    precioOriginal?: number;
+    codigoCupon?: string;
+    cuponId?: number;
+    descuentoAplicado?: number;
+    planId?: number;
+  }): Promise<{ renovacion: any; linkPago: string; descuentoAplicado?: number; cuponAplicado?: any }> {
     console.log('[Renovacion] Input recibido:', JSON.stringify(input, null, 2));
     
     // 1. Buscar cliente existente
@@ -129,35 +135,67 @@ export class RenovacionService {
     
     console.log(`[Renovacion] Límite actual: ${connectionLimitActual}, Nuevo límite: ${connectionLimitNuevo}, Hay cambio: ${hayCambioDispositivos}`);
 
-    // 3. Usar precio enviado desde frontend (ya tiene descuentos aplicados)
-    // Si no viene precio del frontend, calcular como fallback
-    let monto = input.precio;
-    
-    if (!monto || monto <= 0) {
-      console.log(`[Renovacion] ⚠️ No se recibió precio del frontend, calculando fallback...`);
-      
-      const planesDisponibles = this.db.obtenerPlanes();
-      const planReferencia = planesDisponibles.find(
-        (p: any) => p.dias === 30 && p.connection_limit === connectionLimitNuevo
-      );
-      
-      let precioPorDia: number;
-      if (planReferencia) {
-        precioPorDia = planReferencia.precio / 30;
-      } else {
-        switch(connectionLimitNuevo) {
-          case 1: precioPorDia = 200; break;
-          case 2: precioPorDia = 333.33; break;
-          case 3: precioPorDia = 400; break;
-          case 4: precioPorDia = 500; break;
-          default: precioPorDia = 200 * connectionLimitNuevo;
-        }
+    // 3. Calcular precio base considerando overrides actuales
+    const precioBaseCalculado = this.calcularPrecioBaseRenovacion(input.dias, connectionLimitNuevo);
+    let precioBase = precioBaseCalculado;
+
+    if (input.precioOriginal && input.precioOriginal > 0) {
+      if (Math.abs(input.precioOriginal - precioBaseCalculado) > 1) {
+        console.log(
+          `[Renovacion] ⚠️ Precio original recibido (${input.precioOriginal}) difiere del calculado (${precioBaseCalculado}). Usando recibido.`
+        );
       }
-      monto = Math.round(input.dias * precioPorDia);
+      precioBase = Math.round(input.precioOriginal);
+    }
+
+    let cuponAplicado: any = null;
+    let descuentoAplicado = 0;
+
+    if (input.codigoCupon) {
+      const codigoNormalizado = input.codigoCupon.trim().toUpperCase();
+      console.log(`[Renovacion] Validando cupón ${codigoNormalizado} para renovación`);
+
+      const validacion = await cuponesService.validarCupon(
+        codigoNormalizado,
+        input.planId,
+        input.clienteEmail
+      );
+
+      if (!validacion.valido || !validacion.cupon) {
+        throw new Error(validacion.mensaje_error || 'Cupón inválido');
+      }
+
+      cuponAplicado = validacion.cupon;
+      if (input.cuponId && cuponAplicado.id && input.cuponId !== cuponAplicado.id) {
+        console.warn(
+          `[Renovacion] ⚠️ ID de cupón recibido (${input.cuponId}) difiere del validado (${cuponAplicado.id})`
+        );
+      }
+
+      descuentoAplicado = Math.min(
+        precioBase,
+        Math.round(cuponesService.calcularDescuento(cuponAplicado, precioBase))
+      );
+
+      console.log(
+        `[Renovacion] Cupón ${cuponAplicado.codigo} válido. Descuento: $${descuentoAplicado}. Precio base: $${precioBase}`
+      );
+    }
+
+    let monto = Math.max(0, Math.round(precioBase - descuentoAplicado));
+
+    if (!monto || monto <= 0) {
+      throw new Error('El total a pagar con el cupón debe ser mayor a 0');
+    }
+
+    if (input.precio && Math.abs(input.precio - monto) > 1) {
+      console.log(
+        `[Renovacion] ⚠️ Diferencia entre precio recibido (${input.precio}) y calculado (${monto}). Se usará el calculado.`
+      );
     }
 
     console.log(`[Renovacion] ${hayCambioDispositivos ? 'Upgrade' : 'Renovación'}: ${connectionLimitActual} -> ${connectionLimitNuevo} dispositivos`);
-    console.log(`[Renovacion] Monto final a pagar: $${monto}`);
+    console.log(`[Renovacion] Precio base: $${precioBase}. Descuento aplicado: $${descuentoAplicado}. Monto final: $${monto}`);
 
     // 4. Crear registro de renovación
     const renovacionData: any = {
@@ -170,7 +208,9 @@ export class RenovacionService {
       metodo_pago: 'mercadopago',
       cliente_email: input.clienteEmail,
       cliente_nombre: input.clienteNombre,
-      estado: 'pendiente'
+      estado: 'pendiente',
+      cupon_id: cuponAplicado?.id || null,
+      descuento_aplicado: descuentoAplicado
     };
 
     if (hayCambioDispositivos) {
@@ -203,11 +243,60 @@ export class RenovacionService {
       return {
         renovacion,
         linkPago: initPoint,
+        descuentoAplicado: descuentoAplicado > 0 ? descuentoAplicado : undefined,
+        cuponAplicado: cuponAplicado
       };
     } catch (error: any) {
       this.db.actualizarEstadoRenovacion(renovacionId, 'rechazado');
       throw new Error(`Error creando link de pago: ${error.message}`);
     }
+  }
+
+  private calcularPrecioBaseRenovacion(dias: number, connectionLimit: number): number {
+    if (!dias || dias <= 0) {
+      return 0;
+    }
+
+    const planesBase = this.db.obtenerPlanes();
+    const planesConOverrides = configService.aceptarOverridesAListaPlanes(planesBase);
+
+    const planCoincidente = planesConOverrides.find(
+      (plan: any) => plan.dias === dias && plan.connection_limit === connectionLimit
+    );
+
+    if (planCoincidente) {
+      return Math.round(planCoincidente.precio);
+    }
+
+    // Fallback: tomar plan de 30 días con el mismo límite para estimar precio diario
+    const planReferencia = planesConOverrides.find(
+      (plan: any) => plan.dias === 30 && plan.connection_limit === connectionLimit
+    );
+
+    let precioPorDia: number;
+    if (planReferencia) {
+      precioPorDia = planReferencia.precio / 30;
+    } else {
+      switch (connectionLimit) {
+        case 1:
+          precioPorDia = 200;
+          break;
+        case 2:
+          precioPorDia = 333.33;
+          break;
+        case 3:
+          precioPorDia = 400;
+          break;
+        case 4:
+          precioPorDia = 500;
+          break;
+        default:
+          precioPorDia = 200 * Math.max(1, connectionLimit);
+          break;
+      }
+    }
+
+    return Math.max(0, Math.round(dias * precioPorDia));
   }
 
   /**
@@ -322,6 +411,8 @@ export class RenovacionService {
       throw new Error('Renovación no encontrada');
     }
 
+    const estadoPrevio = renovacion.estado;
+
     try {
       // 1. Actualizar estado a aprobado
       this.db.actualizarEstadoRenovacion(renovacionId, 'aprobado', mpPaymentId);
@@ -427,6 +518,16 @@ export class RenovacionService {
         }
 
         console.log(`[Renovacion] ✅ ${renovacion.tipo} renovado exitosamente`);
+      }
+
+      // Aplicar cupón si corresponde
+      if (renovacion.cupon_id && estadoPrevio !== 'aprobado') {
+        try {
+          await cuponesService.aplicarCupon(renovacion.cupon_id);
+          console.log(`[Renovacion] ✅ Cupón ${renovacion.cupon_id} marcado como utilizado`);
+        } catch (cuponError: any) {
+          console.error('[Renovacion] ⚠️ Error aplicando cupón:', cuponError.message);
+        }
       }
 
       // Notificar al administrador

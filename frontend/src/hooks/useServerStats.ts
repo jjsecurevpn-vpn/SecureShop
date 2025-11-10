@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface ServerStat {
   serverName: string;
@@ -23,44 +23,93 @@ interface ServerStatsData {
   loading: boolean;
 }
 
+interface ServerStatsRealtimePayload {
+  fetchedAt: string;
+  totalUsers: number;
+  onlineServers: number;
+  servers: ServerStat[];
+}
+
 export function useServerStats(
-  refreshInterval: number = 10000
+  _refreshInterval: number = 6000
 ): ServerStatsData {
   const [servers, setServers] = useState<ServerStat[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [onlineServers, setOnlineServers] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/stats/servidores`
-        );
-        const data = await response.json();
+  const apiBase = useMemo(() => {
+    const raw = import.meta.env.VITE_API_URL || "/api";
+    return raw.endsWith("/") ? raw.slice(0, -1) : raw;
+  }, []);
 
-        if (data.servidores) {
-          setServers(data.servidores);
-          const total = data.servidores.reduce(
-            (sum: number, server: ServerStat) => sum + server.connectedUsers,
-            0
-          );
-          setTotalUsers(total);
-          setOnlineServers(
-            data.servidores.filter((s: ServerStat) => s.status === "online")
-              .length
-          );
+  const snapshotUrl = useMemo(
+    () => `${apiBase}/realtime/snapshot`,
+    [apiBase]
+  );
+
+  const streamUrl = useMemo(
+    () => `${apiBase}/realtime/stream`,
+    [apiBase]
+  );
+
+  const applyPayload = useCallback((payload: ServerStatsRealtimePayload) => {
+    const normalizedServers = payload.servers.map((server) => ({
+      ...server,
+      lastUpdate: server.lastUpdate,
+    }));
+
+    setServers(normalizedServers);
+    setTotalUsers(payload.totalUsers);
+    setOnlineServers(payload.onlineServers);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchSnapshot = async () => {
+      try {
+        const response = await fetch(snapshotUrl);
+        const result = await response.json();
+        const payload: ServerStatsRealtimePayload | undefined =
+          result?.data?.serverStats;
+        if (payload && isMounted) {
+          applyPayload(payload);
         }
-        setLoading(false);
       } catch (error) {
-        setLoading(false);
+        console.error("Error fetching server stats snapshot", error);
       }
     };
 
-    fetchStats();
-    const interval = setInterval(fetchStats, refreshInterval);
-    return () => clearInterval(interval);
-  }, [refreshInterval]);
+    fetchSnapshot();
+
+  const eventSource = new EventSource(streamUrl, { withCredentials: false });
+
+    const handleServerStats = (event: MessageEvent) => {
+      try {
+        const payload = JSON.parse(event.data) as ServerStatsRealtimePayload;
+        if (isMounted) {
+          applyPayload(payload);
+        }
+      } catch (error) {
+        console.error("Error parsing server-stats event", error);
+      }
+    };
+
+    const listener = handleServerStats as unknown as EventListener;
+    eventSource.addEventListener("server-stats", listener);
+
+    eventSource.onerror = (error) => {
+      console.error("Server stats event stream error", error);
+    };
+
+    return () => {
+      isMounted = false;
+      eventSource.removeEventListener("server-stats", listener);
+      eventSource.close();
+    };
+  }, [applyPayload, snapshotUrl, streamUrl]);
 
   return {
     servers,

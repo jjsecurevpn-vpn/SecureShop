@@ -86,7 +86,7 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
 
             <div className="flex flex-col gap-4 justify-center max-w-xs mx-auto sm:max-w-none sm:flex-row sm:mx-0">
               <a
-                href="https://play.google.com/store/apps/details?id=com.jjsecure.pro"
+                href="https://play.google.com/store/apps/details?id=com.jjsecure.lite&hl=es_AR"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center hover:opacity-90 transition-opacity w-full sm:w-auto"
@@ -131,7 +131,7 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
                   Descarga directamente desde Google Play Store. Compatibilidad con Android 7.0 o superior.
                 </p>
                 <a
-                  href="https://play.google.com/store/apps/details?id=com.jjsecure.pro"
+                  href="https://play.google.com/store/apps/details?id=com.jjsecure.lite&hl=es_AR"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-block hover:opacity-90 transition-opacity"
@@ -314,7 +314,7 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
             </p>
             <div className="flex flex-col gap-4 justify-center sm:flex-row">
               <a
-                href="https://play.google.com/store/apps/details?id=com.jjsecure.pro"
+                href="https://play.google.com/store/apps/details?id=com.jjsecure.lite&hl=es_AR"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block hover:opacity-90 transition-opacity"

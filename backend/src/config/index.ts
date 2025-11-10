@@ -27,6 +27,9 @@ export const config: AppConfig = {
     apiKey: process.env.SERVEX_API_KEY!,
     baseUrl: process.env.SERVEX_BASE_URL!,
     timeout: parseInt(process.env.SERVEX_TIMEOUT || "30000", 10),
+    pollIntervalMs: parseInt(process.env.SERVEX_POLL_INTERVAL_MS || "5000", 10),
+    pollMaxBackoffMs: parseInt(process.env.SERVEX_POLL_MAX_BACKOFF_MS || "30000", 10),
+    pollClientsLimit: parseInt(process.env.SERVEX_POLL_CLIENTS_LIMIT || "50", 10),
   },
 
   mercadopago: {

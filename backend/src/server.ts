@@ -19,6 +19,9 @@ import configRoutes from "./routes/config.routes";
 import cuponesRoutes from "./routes/cupones.routes";
 // import promoRoutes from "./routes/promo.routes"; // DESACTIVADO por conflicto
 import { cuponesService } from "./services/cupones.service";
+import { ServexPollingService } from "./services/servex-polling.service";
+import { RealtimeService } from "./services/realtime.service";
+import { crearRutasRealtime } from "./routes/realtime.routes.js";
 import {
   corsMiddleware,
   loggerMiddleware,
@@ -33,6 +36,9 @@ class Server {
   private renovacionService!: RenovacionService;
   private wsService!: WebSocketService;
   private servexService!: ServexService;
+  private servexPollingService!: ServexPollingService;
+  private realtimeService!: RealtimeService;
+  private lastServexSnapshotLog = 0;
 
   constructor() {
     this.app = express();
@@ -64,6 +70,40 @@ class Server {
     this.servexService = servex;
     console.log("[Server] ✅ Servicio Servex inicializado");
 
+    this.realtimeService = new RealtimeService();
+
+    this.servexPollingService = new ServexPollingService(servex, {
+      intervalMs: config.servex.pollIntervalMs,
+      maxBackoffMs: config.servex.pollMaxBackoffMs,
+      clientsLimit: config.servex.pollClientsLimit,
+    });
+
+    this.servexPollingService.on("snapshot", (snapshot) => {
+      const now = Date.now();
+      if (now - this.lastServexSnapshotLog > 60_000) {
+        console.log(
+          `[Server] ♻️ Snapshot Servex actualizado (${snapshot.clients.length} clientes)`
+        );
+        this.lastServexSnapshotLog = now;
+      }
+      this.realtimeService.updateClients(snapshot);
+    });
+
+    this.servexPollingService.on("error", (error) => {
+      console.error("[Server] ❌ Error en ServexPollingService:", error);
+    });
+
+    this.servexPollingService.on("backoff", (info: any) => {
+      if (info && typeof info.delay === "number") {
+        console.warn(
+          `[Server] ⚠️ Servex rate limit (x${info.consecutive429 ?? "?"}). Reintentando en ${info.delay}ms`
+        );
+      }
+    });
+
+    this.servexPollingService.start();
+    console.log("[Server] ✅ Polling de Servex iniciado");
+
     // Inicializar servicio de MercadoPago
     const mercadopago = new MercadoPagoService(config.mercadopago);
     console.log("[Server] ✅ Servicio MercadoPago inicializado");
@@ -74,6 +114,10 @@ class Server {
       console.error("[Server] Error conectando WebSocket:", error);
     });
     console.log("[Server] ✅ Servicio de WebSocket inicializado");
+
+    this.wsService.on("server-stats", (stats) => {
+      this.realtimeService.updateServerStats(stats);
+    });
 
     // Inicializar servicio de tienda (DESPUÉS de wsService)
     this.tiendaService = new TiendaService(db, servex, mercadopago, this.wsService);
@@ -198,11 +242,17 @@ class Server {
     // Rutas de la API - Estadísticas
     this.app.use(
       "/api/stats",
-      crearRutasStats(this.wsService, this.servexService)
+      crearRutasStats(this.wsService, this.servexService, this.realtimeService)
     );
 
     // Rutas de la API - Clientes
-    this.app.use("/api", crearRutasClientes(this.servexService));
+    this.app.use(
+      "/api",
+      crearRutasClientes(this.servexService, this.servexPollingService)
+    );
+
+    // Rutas de la API - Realtime (SSE)
+    this.app.use("/api/realtime", crearRutasRealtime(this.realtimeService));
 
     // Rutas de la API - Config (Promociones, etc)
     this.app.use("/api/config", configRoutes);

@@ -309,20 +309,43 @@ export class CuponesService {
   }
 
   /**
-   * Elimina un cupón (solo si nunca se usó)
+   * Elimina un cupón (sin importar si fue usado)
    */
   async eliminarCupon(id: number): Promise<void> {
-    const cupon = await this.obtenerCuponPorId(id);
-    if (!cupon) {
-      throw new Error('Cupón no encontrado');
-    }
+    try {
+      const cupon = await this.obtenerCuponPorId(id);
+      if (!cupon) {
+        throw new Error('Cupón no encontrado');
+      }
 
-    if ((cupon.usos_actuales || 0) > 0) {
-      throw new Error('No se puede eliminar un cupón que ya fue usado');
-    }
+      // Deshabilitar restricciones de clave foránea temporalmente
+      this.db.exec('PRAGMA foreign_keys = OFF');
+      
+      try {
+        // Primero eliminar/limpiar referencias en otras tablas
+        // Actualizar registros de pagos que usan este cupón
+        const stmtPagos = this.db.prepare('UPDATE pagos SET cupon_id = NULL WHERE cupon_id = ?');
+        stmtPagos.run(id);
+        console.log(`[CUPONES] Limpiadas referencias en pagos`);
 
-    const stmt = this.db.prepare('DELETE FROM cupones WHERE id = ?');
-    stmt.run(id);
+        // Actualizar registros de renovaciones que usan este cupón
+        const stmtRenovaciones = this.db.prepare('UPDATE renovaciones SET cupon_id = NULL WHERE cupon_id = ?');
+        stmtRenovaciones.run(id);
+        console.log(`[CUPONES] Limpiadas referencias en renovaciones`);
+
+        // Ahora eliminar el cupón
+        const stmt = this.db.prepare('DELETE FROM cupones WHERE id = ?');
+        const result = stmt.run(id);
+        
+        console.log(`[CUPONES] Cupón ${id} eliminado correctamente. Cambios: ${result.changes}`);
+      } finally {
+        // Volver a habilitar restricciones de clave foránea
+        this.db.exec('PRAGMA foreign_keys = ON');
+      }
+    } catch (error) {
+      console.error(`[CUPONES] Error al eliminar cupón ${id}:`, error);
+      throw error;
+    }
   }
 
   /**

@@ -17,6 +17,7 @@ const PromoConfigSchema = z.object({
   activada_en: z.string().nullable().optional(),
   duracion_horas: z.number(),
   auto_desactivar: z.boolean(),
+  descuento_porcentaje: z.number().optional().default(20),
 });
 
 const HeroConfigSchema = z.object({
@@ -64,6 +65,7 @@ interface PromoConfig {
   activada_en: string | null;
   duracion_horas: number;
   auto_desactivar: boolean;
+  descuento_porcentaje?: number;
 }
 
 interface ConfigPlanes {

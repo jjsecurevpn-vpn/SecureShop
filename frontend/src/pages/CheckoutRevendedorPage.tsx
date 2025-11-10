@@ -228,7 +228,7 @@ const CheckoutRevendedorPage: React.FC = () => {
 
               {/* Error */}
               {error && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p- rounded-xl p-4 flex items-start gap-3">
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p- p-4 flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-red-200">{error}</p>
                 </div>

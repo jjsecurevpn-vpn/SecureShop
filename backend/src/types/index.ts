@@ -165,6 +165,9 @@ export interface ServexApiConfig {
   apiKey: string;
   baseUrl: string;
   timeout: number;
+  pollIntervalMs: number;
+  pollMaxBackoffMs: number;
+  pollClientsLimit: number;
 }
 
 export interface ClienteServex {
@@ -301,6 +304,7 @@ export interface ApiResponse<T = any> {
   data?: T;
   error?: string;
   message?: string;
+  meta?: Record<string, any>;
 }
 
 // ============================================

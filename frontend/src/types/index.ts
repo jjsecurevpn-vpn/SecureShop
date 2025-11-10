@@ -85,6 +85,20 @@ export interface Usuario {
   status: "active" | "expired" | "suspended";
 }
 
+export interface Cupon {
+  id: number;
+  codigo: string;
+  tipo: "porcentaje" | "monto_fijo";
+  valor: number;
+  limite_uso?: number | null;
+  usos_actuales?: number;
+  fecha_expiracion?: string | null;
+  activo: boolean;
+  planes_aplicables?: number[];
+  creado_en?: string;
+  actualizado_en?: string;
+}
+
 export interface NoticiaConfig {
   enabled: boolean;
   version: string;
@@ -95,5 +109,54 @@ export interface NoticiaConfig {
     bgColor?: string;
     textColor?: string;
     subtitulo?: string;
+    variant?: string;
+    icon?: string;
   };
+  _instrucciones?: Record<string, string>;
+}
+
+export interface RenovacionClienteRequest {
+  busqueda: string;
+  dias: number;
+  precio?: number;
+  clienteEmail: string;
+  clienteNombre: string;
+  nuevoConnectionLimit?: number;
+  precioOriginal?: number;
+  codigoCupon?: string;
+  cuponId?: number;
+  descuentoAplicado?: number;
+  planId?: number;
+}
+
+export interface RenovacionRevendedorRequest {
+  busqueda: string;
+  dias: number;
+  clienteEmail: string;
+  clienteNombre: string;
+  tipoRenovacion?: "validity" | "credit";
+  cantidadSeleccionada?: number;
+}
+
+export interface RenovacionResponse {
+  renovacion: {
+    id: number;
+    tipo: "cliente" | "revendedor";
+    servex_username: string;
+    dias_agregados: number;
+    monto: number;
+    operacion: string;
+    datos_nuevos?: string | null;
+    cupon_id?: number | null;
+    descuento_aplicado?: number | null;
+    [key: string]: any;
+  };
+  linkPago: string;
+  descuentoAplicado?: number;
+  cuponAplicado?: {
+    id?: number;
+    codigo: string;
+    tipo: "porcentaje" | "monto_fijo";
+    valor: number;
+  } | null;
 }

@@ -88,7 +88,7 @@ export default function HeroSection() {
                 </button>
 
                 <a
-                  href="https://play.google.com/store/apps/details?id=com.jjsecure.pro"
+                  href="https://play.google.com/store/apps/details?id=com.jjsecure.lite&hl=es_AR"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block hover:opacity-90 transition-opacity"

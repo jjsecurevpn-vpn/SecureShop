@@ -12,6 +12,10 @@ import {
 
 export class ServexService {
   private client: AxiosInstance;
+  private clientesCache: { key: string; data: any[]; timestamp: number } | null = null;
+  private clientesCachePromise: { key: string; promise: Promise<any[]> } | null = null;
+  private readonly CLIENTES_CACHE_TTL = 60 * 1000; // 60s
+  private readonly debugLogging: boolean;
 
   constructor(config: ServexApiConfig) {
     this.client = axios.create({
@@ -23,14 +27,18 @@ export class ServexService {
       },
     });
 
+    this.debugLogging = (process.env.NODE_ENV || "development") !== "production";
+
     // Interceptor para logging y manejo de errores
     this.client.interceptors.response.use(
       (response) => {
-        console.log(
-          `[Servex] ✅ ${response.config.method?.toUpperCase()} ${
-            response.config.url
-          } - ${response.status}`
-        );
+        if (this.debugLogging) {
+          console.log(
+            `[Servex] ✅ ${response.config.method?.toUpperCase()} ${
+              response.config.url
+            } - ${response.status}`
+          );
+        }
         return response;
       },
       (error) => {
@@ -788,35 +796,139 @@ export class ServexService {
   /**
    * Obtiene la lista de clientes con filtros opcionales
    */
-  async obtenerClientes(params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    status?: string;
-    scope?: string;
-    resellerId?: number;
-  }): Promise<any[]> {
-    try {
-      console.log(
-        "[Servex] Obteniendo lista de clientes con parámetros:",
-        params
-      );
+  async obtenerClientes(
+    params?: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status?: string;
+      scope?: string;
+      resellerId?: number;
+    },
+    options: { forceRefresh?: boolean } = {}
+  ): Promise<any[]> {
+    const normalizedParams = {
+      page: params?.page ?? 1,
+      limit: params?.limit ?? 10,
+      search: params?.search,
+      status: params?.status,
+      scope: params?.scope ?? "meus",
+      resellerId: params?.resellerId,
+    };
 
-      const response = await this.client.get("/clients", { params });
+    const forceRefresh = options.forceRefresh ?? false;
 
-      console.log(
-        "[Servex] Respuesta de clientes:",
-        JSON.stringify(response.data, null, 2)
-      );
+    const hasFilters = Boolean(
+      normalizedParams.search ||
+        normalizedParams.status ||
+        normalizedParams.resellerId
+    );
+
+    const shouldCache = !hasFilters && normalizedParams.page === 1;
+    const cacheKey = shouldCache
+      ? JSON.stringify({
+          page: normalizedParams.page,
+          limit: normalizedParams.limit,
+          scope: normalizedParams.scope,
+        })
+      : "";
+
+    const now = Date.now();
+
+    if (
+      shouldCache &&
+      !forceRefresh &&
+      this.clientesCache &&
+      this.clientesCache.key === cacheKey &&
+      now - this.clientesCache.timestamp < this.CLIENTES_CACHE_TTL
+    ) {
+      if (this.debugLogging) {
+        console.log("[Servex] Clientes desde cache local", cacheKey);
+      }
+      return this.clientesCache.data;
+    }
+
+    if (
+      shouldCache &&
+      !forceRefresh &&
+      this.clientesCachePromise &&
+      this.clientesCachePromise.key === cacheKey
+    ) {
+      if (this.debugLogging) {
+        console.log("[Servex] Esperando promesa de clientes en curso", cacheKey);
+      }
+      return this.clientesCachePromise.promise;
+    }
+
+    const fetchClientes = async () => {
+      if (this.debugLogging) {
+        console.log(
+          "[Servex] Obteniendo lista de clientes con parámetros:",
+          normalizedParams
+        );
+      }
+
+      const response = await this.client.get("/clients", {
+        params: normalizedParams,
+      });
+
+      if (this.debugLogging) {
+        console.log(
+          "[Servex] Respuesta de clientes:",
+          JSON.stringify(response.data, null, 2)
+        );
+      }
       const clientes = response.data?.clients || [];
 
-      console.log(`[Servex] ✅ Obtenidos ${clientes.length} clientes`);
+      if (this.debugLogging) {
+        console.log(`[Servex] ✅ Obtenidos ${clientes.length} clientes`);
+      }
       return clientes;
+    };
+
+    try {
+      if (shouldCache) {
+        const promise = fetchClientes()
+          .then((clientes) => {
+            this.clientesCache = {
+              key: cacheKey,
+              data: clientes,
+              timestamp: Date.now(),
+            };
+            return clientes;
+          })
+          .finally(() => {
+            if (
+              this.clientesCachePromise &&
+              this.clientesCachePromise.key === cacheKey
+            ) {
+              this.clientesCachePromise = null;
+            }
+          });
+
+        if (!forceRefresh) {
+          this.clientesCachePromise = { key: cacheKey, promise };
+        }
+        return await promise;
+      }
+
+      return await fetchClientes();
     } catch (error: any) {
       const mensaje =
         error.response?.data?.message ||
         error.response?.data?.error ||
         error.message;
+      if (
+        shouldCache &&
+        this.clientesCache &&
+        this.clientesCache.key === cacheKey
+      ) {
+        console.warn(
+          "[Servex] ⚠️ Usando cache de clientes por error en Servex:",
+          mensaje
+        );
+        return this.clientesCache.data;
+      }
       console.error("[Servex] Error obteniendo clientes:", mensaje);
       throw new Error(`Error obteniendo clientes de Servex: ${mensaje}`);
     }
