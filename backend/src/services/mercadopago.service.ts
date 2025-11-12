@@ -59,7 +59,8 @@ export class MercadoPagoService {
       | "cliente"
       | "revendedor"
       | "renovacion-cliente"
-      | "renovacion-revendedor" = "cliente"
+      | "renovacion-revendedor"
+      | "donacion" = "cliente"
   ): Promise<{ id: string; initPoint: string }> {
     try {
       // Construir URLs de retorno - usar frontendUrl directamente
@@ -70,16 +71,23 @@ export class MercadoPagoService {
       // Determinar si es una renovación o un pago normal
       const esRenovacion =
         tipo === "renovacion-cliente" || tipo === "renovacion-revendedor";
+      const esDonacion = tipo === "donacion";
 
       // Construir URLs según el tipo de operación
       const successUrl = esRenovacion
         ? `${baseUrl}/api/renovacion/success/${pagoId}?t=${timestamp}`
+        : esDonacion
+        ? `${baseUrl}/donaciones/success?donacion_id=${pagoId}&t=${timestamp}`
         : `${baseUrl}/success?pago_id=${pagoId}&tipo=${tipo}&t=${timestamp}`;
       const failureUrl = esRenovacion
         ? `${baseUrl}/?error=pago-rechazado&ref=${pagoId}&t=${timestamp}`
+        : esDonacion
+        ? `${baseUrl}/donaciones?status=error&t=${timestamp}`
         : `${baseUrl}/?error=pago-fallido&tipo=${tipo}&t=${timestamp}`;
       const pendingUrl = esRenovacion
         ? `${baseUrl}/?info=pago-pendiente&ref=${pagoId}&t=${timestamp}`
+        : esDonacion
+        ? `${baseUrl}/donaciones?status=pending&t=${timestamp}`
         : `${baseUrl}/?info=pago-pendiente&tipo=${tipo}&t=${timestamp}`;
 
       const preferencia: PreferenciaMercadoPago = {

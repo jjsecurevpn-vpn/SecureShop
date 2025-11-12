@@ -6,7 +6,6 @@ import AboutPage from "./pages/AboutPage";
 import SuccessPage from "./pages/SuccessPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
-import DownloadPage from "./pages/DownloadPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutRevendedorPage from "./pages/CheckoutRevendedorPage";
 import CheckoutRenovacionPage from "./pages/CheckoutRenovacionPage";
@@ -15,6 +14,9 @@ import MobilePageHeader from "./components/MobilePageHeader";
 import ScrollToTop from "./components/ScrollToTop";
 import { useState } from "react";
 import AdminToolsPage from "./pages/AdminToolsPage";
+import DonacionesPage from "./pages/DonacionesPage";
+import DonationSuccessPage from "./pages/DonationSuccessPage";
+import SponsorsPage from "./pages/SponsorsPage";
 
 const App = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -38,12 +40,16 @@ const App = () => {
         return "Compra Revendedor";
       case "/success":
         return "¡Éxito!";
+      case "/donaciones":
+        return "Donaciones";
+      case "/donaciones/success":
+        return "Gracias";
+      case "/sponsors":
+        return "Sponsors";
       case "/terminos":
         return "Términos";
       case "/privacidad":
         return "Privacidad";
-      case "/descargar":
-        return "Descargar";
       case "/155908348":
         return "Panel interno";
       default:
@@ -51,7 +57,7 @@ const App = () => {
     }
   };
 
-  const showMobileHeader = !["/checkout", "/checkout-revendedor", "/checkout-renovacion", "/success"].includes(
+  const showMobileHeader = !["/checkout", "/checkout-revendedor", "/checkout-renovacion", "/success", "/donaciones/success"].includes(
     location.pathname
   );
 
@@ -78,9 +84,11 @@ const App = () => {
           <Route path="/revendedores" element={<RevendedoresPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/sobre-nosotros" element={<AboutPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/success" element={<SuccessPage />} />
+          <Route path="/donaciones" element={<DonacionesPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
+          <Route path="/donaciones/success" element={<DonationSuccessPage />} />
+          <Route path="/sponsors" element={<SponsorsPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/terminos" element={<TermsPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/privacidad" element={<PrivacyPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
-          <Route path="/descargar" element={<DownloadPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/155908348" element={<AdminToolsPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
         </Routes>
         </main>

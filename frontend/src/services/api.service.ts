@@ -13,6 +13,10 @@ import {
   RenovacionClienteRequest,
   RenovacionRevendedorRequest,
   RenovacionResponse,
+  Donacion,
+  Sponsor,
+  CrearSponsorPayload,
+  ActualizarSponsorPayload,
 } from "../types";
 
 export interface ValidacionCupon {
@@ -35,6 +39,13 @@ interface CrearCuponPayload {
   limite_uso?: number;
   fecha_expiracion?: string;
   planes_aplicables?: number[];
+}
+
+interface CrearDonacionPayload {
+  monto: number;
+  donanteEmail?: string;
+  donanteNombre?: string;
+  mensaje?: string;
 }
 
 class ApiService {
@@ -195,6 +206,38 @@ class ApiService {
       );
     }
     return response.data.data!;
+  }
+
+  /**
+   * Crea una donación y devuelve el link/preferencia de pago
+   */
+  async crearDonacion(
+    payload: CrearDonacionPayload
+  ): Promise<{ donacion: Donacion; linkPago: string; preferenceId: string }> {
+    const response = await this.client.post<
+      ApiResponse<{ donacion: Donacion; linkPago: string; preferenceId: string }>
+    >("/donaciones", payload);
+
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.error || "Error creando donación");
+    }
+
+    return response.data.data;
+  }
+
+  /**
+   * Obtiene una donación y fuerza la verificación de estado
+   */
+  async obtenerDonacion(id: string): Promise<Donacion> {
+    const response = await this.client.get<ApiResponse<Donacion>>(
+      `/donaciones/${id}`
+    );
+
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.error || "Donación no encontrada");
+    }
+
+    return response.data.data;
   }
 
   /**
@@ -566,6 +609,48 @@ class ApiService {
       throw new Error(response.data.error || "Error desactivando promoción");
     }
     return response.data.data || response.data;
+  }
+
+  async obtenerSponsors(): Promise<Sponsor[]> {
+    const response = await this.client.get<ApiResponse<Sponsor[]>>(
+      "/sponsors"
+    );
+    if (!response.data.success) {
+      throw new Error(response.data.error || "Error obteniendo sponsors");
+    }
+    return response.data.data || [];
+  }
+
+  async crearSponsor(payload: CrearSponsorPayload): Promise<Sponsor> {
+    const response = await this.client.post<ApiResponse<Sponsor>>(
+      "/sponsors",
+      payload
+    );
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.error || "Error creando sponsor");
+    }
+    return response.data.data;
+  }
+
+  async actualizarSponsor(
+    id: number,
+    payload: ActualizarSponsorPayload
+  ): Promise<Sponsor> {
+    const response = await this.client.put<ApiResponse<Sponsor>>(
+      `/sponsors/${id}`,
+      payload
+    );
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.error || "Error actualizando sponsor");
+    }
+    return response.data.data;
+  }
+
+  async eliminarSponsor(id: number): Promise<void> {
+    const response = await this.client.delete(`/sponsors/${id}`);
+    if (response.status !== 204) {
+      throw new Error("Error eliminando sponsor");
+    }
   }
 }
 

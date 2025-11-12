@@ -13,6 +13,7 @@ import { PromoTimerService } from "./services/promo-timer.service";
 import { crearRutasTienda } from "./routes/tienda.routes";
 import { crearRutasRevendedores } from "./routes/tienda-revendedores.routes";
 import { crearRutasRenovacion } from "./routes/renovacion.routes";
+import { crearRutasDonaciones } from "./routes/donaciones.routes";
 import { crearRutasStats } from "./routes/stats.routes";
 import { crearRutasClientes } from "./routes/clientes.routes";
 import configRoutes from "./routes/config.routes";
@@ -22,7 +23,10 @@ import { cuponesService } from "./services/cupones.service";
 import { ServexPollingService } from "./services/servex-polling.service";
 import { RealtimeService } from "./services/realtime.service";
 import { crearRutasRealtime } from "./routes/realtime.routes.js";
+import { crearRutasSponsors } from "./routes/sponsors.routes";
 import { crearRutasVisitantes } from "./routes/visitors.routes";
+import { DonacionesService } from "./services/donaciones.service";
+import { SponsorsService } from "./services/sponsors.service";
 import {
   corsMiddleware,
   loggerMiddleware,
@@ -36,6 +40,8 @@ class Server {
   private tiendaService!: TiendaService;
   private tiendaRevendedoresService!: TiendaRevendedoresService;
   private renovacionService!: RenovacionService;
+  private donacionesService!: DonacionesService;
+  private sponsorsService!: SponsorsService;
   private wsService!: WebSocketService;
   private servexService!: ServexService;
   private servexPollingService!: ServexPollingService;
@@ -56,6 +62,9 @@ class Server {
     // Inicializar base de datos
     this.db = new DatabaseService(config.database.path);
     console.log("[Server] ✅ Base de datos inicializada");
+
+  this.sponsorsService = new SponsorsService(this.db);
+  console.log("[Server] ✅ Servicio de sponsors inicializado");
 
     // Inicializar cupones desde configuración
     cuponesService.cargarCuponesDesdeConfig().then((resultado) => {
@@ -109,6 +118,10 @@ class Server {
     // Inicializar servicio de MercadoPago
     const mercadopago = new MercadoPagoService(config.mercadopago);
     console.log("[Server] ✅ Servicio MercadoPago inicializado");
+
+  // Inicializar servicio de donaciones
+  this.donacionesService = new DonacionesService(this.db, mercadopago);
+  console.log("[Server] ✅ Servicio de donaciones inicializado");
 
     // Inicializar WebSocket para estadísticas en tiempo real (ANTES de tienda)
     this.wsService = new WebSocketService();
@@ -235,6 +248,9 @@ class Server {
           this.renovacionService.procesarWebhook(req.body).catch((error) => {
             console.error("[Webhook Renovación] Error:", error);
           }),
+          this.donacionesService.procesarWebhook(req.body).catch((error) => {
+            console.error("[Webhook Donaciones] Error:", error);
+          }),
         ]);
 
         // Responder inmediatamente a MercadoPago
@@ -248,6 +264,9 @@ class Server {
 
     // Rutas de la API - Clientes
     this.app.use("/api", crearRutasTienda(this.tiendaService, this.wsService));
+
+    // Rutas de la API - Donaciones
+    this.app.use("/api", crearRutasDonaciones(this.donacionesService));
 
     // Rutas de la API - Revendedores
     this.app.use(
@@ -281,6 +300,11 @@ class Server {
 
     // Rutas de la API - Cupones
     this.app.use("/api/cupones", cuponesRoutes);
+
+    this.app.use(
+      "/api/sponsors",
+      crearRutasSponsors(this.sponsorsService),
+    );
 
     // Rutas de la API - Visitantes (con BD real)
     this.app.use("/api/visitors", crearRutasVisitantes(this.db.getDatabase()));

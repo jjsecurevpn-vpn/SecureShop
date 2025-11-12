@@ -349,31 +349,31 @@ const TermsPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: TermsPageProps) =>
       <BottomSheet
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
-        title="Términos y Condiciones"
-        subtitle="Navega por las secciones"
+        title="Navegación"
+        subtitle="Secciones"
       >
-        {sections.map((section) => (
-          <button
-            key={section.id}
-            onClick={() => {
-              setActiveSection(section.id);
-              document
-                .getElementById(section.id)
-                ?.scrollIntoView({ behavior: "smooth", block: "center" });
-              setIsMobileMenuOpen(false);
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-4 border-b border-neutral-800/30 ${
-              activeSection === section.id
-                ? "bg-violet-600/10 border-l-4 border-violet-500"
-                : "hover:bg-neutral-800"
-            }`}
-          >
-            {section.icon}
-            <div className="text-left">
-              <div className="font-medium">{section.label}</div>
-            </div>
-          </button>
-        ))}
+        <div className="space-y-1">
+          {sections.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => {
+                setActiveSection(section.id);
+                setIsMobileMenuOpen(false);
+                setTimeout(() => {
+                  document.getElementById(section.id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }, 300);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                activeSection === section.id
+                  ? "bg-violet-900/20 text-violet-300"
+                  : "text-neutral-400 hover:bg-neutral-800"
+              }`}
+            >
+              {section.icon}
+              {section.label}
+            </button>
+          ))}
+        </div>
       </BottomSheet>
     </div>
   );

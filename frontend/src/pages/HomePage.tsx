@@ -80,34 +80,30 @@ const HomePage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: HomePageProps) => {
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         title="Navegación"
+        subtitle="Secciones"
       >
-        {homeSections.map((section) => (
-          <button
-            key={section.id}
-            onClick={() => {
-              setActiveSection(section.id);
-              setIsMobileMenuOpen(false);
-              const element = document.getElementById(`section-${section.id}`);
-              if (element) {
-                element.scrollIntoView({
-                  behavior: "smooth",
-                  block: "center",
-                });
-              }
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-              activeSection === section.id
-                ? "bg-violet-600/20 text-violet-300 border border-violet-500/40"
-                : "text-neutral-400 hover:text-white hover:bg-neutral-800/50"
-            }`}
-          >
-            {section.icon}
-            <div className="text-left">
-              <div>{section.label}</div>
-              <div className="text-xs opacity-70">{section.subtitle}</div>
-            </div>
-          </button>
-        ))}
+        <div className="space-y-1">
+          {homeSections.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => {
+                setActiveSection(section.id);
+                setIsMobileMenuOpen(false);
+                setTimeout(() => {
+                  document.getElementById(`section-${section.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }, 300);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                activeSection === section.id
+                  ? "bg-violet-900/20 text-violet-300"
+                  : "text-neutral-400 hover:bg-neutral-800"
+              }`}
+            >
+              {section.icon}
+              {section.label}
+            </button>
+          ))}
+        </div>
       </BottomSheet>
 
       {/* Main Content */}

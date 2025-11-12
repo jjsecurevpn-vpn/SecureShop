@@ -8,11 +8,11 @@ import {
   Info,
   CheckCircle,
   XCircle,
-  Download,
-  Ticket,
+  HandHeart,
 } from "lucide-react";
 import Sidebar from "./Sidebar";
 import ContactButton from "./ContactButton";
+import { CuponIcon } from "./Icons";
 import { useNoticias } from "../hooks/useNoticias";
 import { useCuponesActivos } from "../hooks/useCuponesActivos";
 
@@ -61,7 +61,7 @@ const Header = () => {
   return (
     <>
       {/* Fixed Header */}
-      <header className="sticky top-0 left-0 right-0 bg-neutral-900 text-white text-sm py-3 w-full border-b border-neutral-800 z-[9999] flex items-center justify-between px-4">
+      <header className="sticky top-0 left-0 right-0 bg-neutral-900 text-white text-sm py-3 w-full z-[9999] flex items-center justify-between px-4">
         {/* Left side: Menu button and logo */}
         <div className="flex items-center gap-4">
           <button
@@ -89,16 +89,15 @@ const Header = () => {
 
         {/* Right side: Download button, Notifications and user info */}
         <div className="flex items-center gap-3">
+          <Link
+            to="/donaciones"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-500/10 text-rose-200 text-sm font-medium hover:bg-rose-500/20 transition-colors"
+          >
+            <HandHeart className="w-4 h-4" />
+            <span className="hidden sm:inline">Donar</span>
+          </Link>
           {/* Contact Button */}
           <ContactButton />
-          {/* Download Button */}
-          <Link
-            to="/descargar"
-            className="flex items-center justify-center w-8 h-8 text-neutral-400 hover:text-white hover:bg-neutral-800 border border-neutral-600 rounded-full transition-colors duration-200"
-            aria-label="Descargar aplicación"
-          >
-            <Download size={16} />
-          </Link>
           {/* Cupones Button */}
           <button
             onClick={() => setCuponesOpen(!cuponesOpen)}
@@ -109,7 +108,7 @@ const Header = () => {
             }`}
             aria-label="Ver cupones activos"
           >
-            <Ticket size={20} />
+            <CuponIcon className="w-5 h-5" />
             {cuponesActivos.length > 0 && (
               <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-neutral-900 flex items-center justify-center">
                 <span className="text-xs font-bold text-white">{cuponesActivos.length}</span>
@@ -143,7 +142,7 @@ const Header = () => {
           className="fixed inset-0 z-[10000]"
           onClick={() => setNoticiasOpen(false)}
         >
-          <div className="absolute top-16 right-4 w-80 bg-neutral-900 border border-neutral-800 rounded-xl shadow-xl z-[10001]">
+          <div className="absolute top-16 right-4 w-80 bg-neutral-900 rounded-xl shadow-xl z-[10001]">
             {/* Arrow pointing up */}
             <div className="absolute -top-2 right-8 w-0 h-0 border-l-6 border-r-6 border-b-6 border-transparent border-b-neutral-900"></div>
             {/* Arrow border for better visibility */}
@@ -204,7 +203,7 @@ const Header = () => {
           className="fixed inset-0 z-[10000]"
           onClick={() => setCuponesOpen(false)}
         >
-          <div className="absolute top-16 right-4 w-96 bg-neutral-900 border border-neutral-800 rounded-xl shadow-xl z-[10001]">
+          <div className="absolute top-16 right-4 w-96 bg-neutral-900 rounded-xl shadow-xl z-[10001]">
             {/* Arrow pointing up */}
             <div className="absolute -top-2 right-12 w-0 h-0 border-l-6 border-r-6 border-b-6 border-transparent border-b-neutral-900"></div>
             {/* Arrow border for better visibility */}
@@ -213,7 +212,7 @@ const Header = () => {
             <div className="p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                  <Ticket size={16} className="text-green-400" />
+                  <CuponIcon className="w-4 h-4 text-green-400" />
                   Cupones Activos
                 </h3>
                 <button
@@ -229,7 +228,7 @@ const Header = () => {
                   {cuponesActivos.map((cupon) => (
                     <div
                       key={cupon.id}
-                      className="p-3 rounded-lg bg-neutral-800/50 border border-green-500/30 hover:border-green-500/60 transition-colors"
+                      className="p-3 rounded-lg bg-neutral-800/50 hover:bg-neutral-800/70 transition-colors"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
@@ -260,7 +259,7 @@ const Header = () => {
                 </div>
               ) : (
                 <div className="text-center py-6">
-                  <Ticket className="w-8 h-8 text-neutral-500 mx-auto mb-2" />
+                  <CuponIcon className="w-8 h-8 text-neutral-500 mx-auto mb-2" />
                   <p className="text-xs text-neutral-400">
                     No hay cupones activos disponibles.
                   </p>

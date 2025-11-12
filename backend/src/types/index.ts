@@ -106,6 +106,83 @@ export interface CrearPagoInput {
   codigoCupon?: string;
 }
 
+export interface Donacion {
+  id: string;
+  monto: number;
+  estado: "pendiente" | "aprobado" | "rechazado" | "cancelado";
+  metodo_pago: string;
+  donante_email?: string;
+  donante_nombre?: string;
+  mensaje?: string;
+  mp_payment_id?: string;
+  mp_preference_id?: string;
+  agradecimiento_enviado: boolean;
+  fecha_creacion: Date;
+  fecha_actualizacion: Date;
+}
+
+export interface CrearDonacionInput {
+  monto: number;
+  donanteEmail?: string;
+  donanteNombre?: string;
+  mensaje?: string;
+}
+
+// ============================================
+// TIPOS PARA SPONSORS
+// ============================================
+
+export type SponsorCategory = "empresa" | "persona";
+
+export interface Sponsor {
+  id: number;
+  name: string;
+  category: SponsorCategory;
+  role: string;
+  message: string;
+  avatarInitials: string;
+  avatarClass: string;
+  avatarUrl?: string;
+  highlight: boolean;
+  link?: string;
+  order: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SponsorRow {
+  id: number;
+  nombre: string;
+  categoria: string;
+  rol: string;
+  mensaje: string;
+  avatar_initials: string;
+  avatar_class: string;
+  avatar_url: string | null;
+  destacado: number;
+  link: string | null;
+  orden: number;
+  creado_en: string;
+  actualizado_en: string;
+}
+
+export interface SponsorInput {
+  name: string;
+  category: SponsorCategory;
+  role: string;
+  message: string;
+  avatarInitials: string;
+  avatarClass: string;
+  avatarUrl?: string;
+  highlight?: boolean;
+  link?: string;
+  order?: number;
+}
+
+export type CrearSponsorInput = SponsorInput;
+
+export type ActualizarSponsorInput = SponsorInput;
+
 export interface PagoRevendedor {
   id: string;
   plan_revendedor_id: number;
@@ -329,6 +406,21 @@ export interface PagoRow {
   servex_connection_limit: number | null;
   cupon_id: number | null;
   descuento_aplicado: number | null;
+  fecha_creacion: string;
+  fecha_actualizacion: string;
+}
+
+export interface DonacionRow {
+  id: string;
+  monto: number;
+  estado: string;
+  metodo_pago: string;
+  donante_email: string | null;
+  donante_nombre: string | null;
+  mensaje: string | null;
+  mp_payment_id: string | null;
+  mp_preference_id: string | null;
+  agradecimiento_enviado: number;
   fecha_creacion: string;
   fecha_actualizacion: string;
 }

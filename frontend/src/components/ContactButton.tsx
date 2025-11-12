@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, ChevronRight } from "lucide-react";
+import { X, ChevronRight } from "lucide-react";
+import { ContactIcon } from "./Icons";
 
 const WhatsAppIcon = () => (
   <img src="/whatsapp-color.svg" alt="WhatsApp" className="w-8 h-8" />
@@ -65,24 +66,24 @@ export default function ContactButton() {
       {/* Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-center w-9 h-9 rounded-xl border transition-all ${
+        className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all ${
           isOpen
-            ? "bg-neutral-800 border-neutral-700 text-neutral-200"
-            : "bg-transparent border-neutral-700 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 hover:border-neutral-600"
+            ? "bg-neutral-800 text-neutral-200"
+            : "bg-transparent text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
         }`}
         aria-label="Contacto"
       >
-        {isOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
+        {isOpen ? <X className="w-5 h-5" /> : <ContactIcon className="w-5 h-5" />}
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-full -right-20 md:right-0 mt-2 w-80 md:w-96 bg-neutral-900 rounded-xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-neutral-800">
+          <div className="px-4 py-3">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-violet-500/10 border border-violet-500/20 rounded-xl">
-                <MessageCircle className="w-4 h-4 text-violet-400" />
+              <div className="p-1.5 bg-violet-500/10 rounded-xl">
+                <ContactIcon className="w-4 h-4 text-violet-400" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-neutral-200">Contáctanos</h3>
@@ -123,7 +124,7 @@ export default function ContactButton() {
           </div>
 
           {/* Footer */}
-          <div className="px-4 py-3 border-t border-neutral-800 bg-neutral-900/50">
+          <div className="px-4 py-3 bg-neutral-900/50">
             <p className="text-xs text-neutral-500 text-center">
               Disponible 24/7 para ayudarte
             </p>

@@ -6,6 +6,7 @@ export interface Plan {
   dias: number;
   connection_limit: number;
   activo?: boolean;
+  avatarUrl?: string;
   fecha_creacion?: string;
   popular?: boolean;
 }
@@ -19,6 +20,7 @@ export interface PlanRevendedor {
   account_type: "validity" | "credit";
   dias?: number;
   activo?: boolean;
+  avatarUrl?: string;
   fecha_creacion?: string;
   popular?: boolean;
 }
@@ -39,6 +41,21 @@ export interface Pago {
   servex_categoria?: string;
   servex_expiracion?: string;
   servex_connection_limit?: number;
+  fecha_creacion: string;
+  fecha_actualizacion: string;
+}
+
+export interface Donacion {
+  id: string;
+  monto: number;
+  estado: "pendiente" | "aprobado" | "rechazado" | "cancelado";
+  metodo_pago: string;
+  donante_email?: string;
+  donante_nombre?: string;
+  mensaje?: string;
+  mp_payment_id?: string;
+  mp_preference_id?: string;
+  agradecimiento_enviado: boolean;
   fecha_creacion: string;
   fecha_actualizacion: string;
 }
@@ -160,3 +177,36 @@ export interface RenovacionResponse {
     valor: number;
   } | null;
 }
+
+export type SponsorCategory = "empresa" | "persona";
+
+export interface Sponsor {
+  id: number;
+  name: string;
+  role: string;
+  message: string;
+  highlight: boolean;
+  link?: string;
+  avatarInitials: string;
+  avatarClass: string;
+  avatarUrl?: string;
+  order: number;
+  category: SponsorCategory;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CrearSponsorPayload {
+  name: string;
+  role: string;
+  message: string;
+  highlight?: boolean;
+  link?: string;
+  avatarInitials: string;
+  avatarClass: string;
+  avatarUrl?: string;
+  order?: number;
+  category: SponsorCategory;
+}
+
+export type ActualizarSponsorPayload = Partial<CrearSponsorPayload>;

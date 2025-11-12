@@ -1,6 +1,12 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { apiService } from "../../services/api.service";
-import { Cupon, NoticiaConfig } from "../../types";
+import {
+  Cupon,
+  NoticiaConfig,
+  Sponsor,
+  CrearSponsorPayload,
+  ActualizarSponsorPayload,
+} from "../../types";
 import NavigationSidebar from "../../components/NavigationSidebar";
 import {
   OverviewSection,
@@ -9,6 +15,7 @@ import {
   DeleteCuponModal,
   NoticiasSection,
   DescuentosGlobalesSection,
+  SponsorsSection,
 } from "./components";
 import { CuponFormState, PromoConfig, HeroPromoConfig } from "./types";
 
@@ -19,6 +26,7 @@ interface AdminToolsPageProps {
 
 const SECTIONS = [
   { id: "section-overview", label: "Resumen", icon: "📊" },
+  { id: "section-sponsors", label: "Sponsors", icon: "⭐" },
   { id: "section-cupones", label: "Cupones", icon: "🎫" },
   { id: "section-noticias", label: "Avisos", icon: "📢" },
   { id: "section-descuentos-globales", label: "Descuentos", icon: "💰" },
@@ -36,6 +44,12 @@ const INITIAL_CUPON_FORM: CuponFormState = {
 const FEEDBACK_TIMEOUT = 3000;
 
 export default function AdminToolsPage({ }: AdminToolsPageProps) {
+  // Estado de sponsors
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [sponsorsLoading, setSponsorsLoading] = useState(true);
+  const [sponsorsSuccess, setSponsorsSuccess] = useState<string | null>(null);
+  const [sponsorsError, setSponsorsError] = useState<string | null>(null);
+
   // Estado de cupones
   const [cupones, setCupones] = useState<Cupon[]>([]);
   const [cuponForm, setCuponForm] = useState<CuponFormState>(INITIAL_CUPON_FORM);
@@ -119,11 +133,37 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
     }
   };
 
+  const sortSponsors = (items: Sponsor[]) =>
+    [...items].sort((a, b) => {
+      if (a.highlight === b.highlight) {
+        if (a.order === b.order) {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        return (a.order ?? 0) - (b.order ?? 0);
+      }
+      return a.highlight ? -1 : 1;
+    });
+
+  const loadSponsors = async () => {
+    try {
+      setSponsorsLoading(true);
+      const data = await apiService.obtenerSponsors();
+      setSponsors(sortSponsors(data));
+      setSponsorsError(null);
+    } catch (error) {
+      console.error("Error al cargar sponsors:", error);
+      setSponsorsError(error instanceof Error ? error.message : "Error al cargar sponsors");
+    } finally {
+      setSponsorsLoading(false);
+    }
+  };
+
   // Efectos de carga inicial
   useEffect(() => {
     loadCupones();
     loadNoticias();
     loadPromoConfigs();
+    loadSponsors();
   }, []);
 
   // Efectos de limpieza de mensajes
@@ -140,6 +180,20 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
       return () => clearTimeout(timer);
     }
   }, [cuponError]);
+
+  useEffect(() => {
+    if (sponsorsSuccess) {
+      const timer = setTimeout(() => setSponsorsSuccess(null), FEEDBACK_TIMEOUT);
+      return () => clearTimeout(timer);
+    }
+  }, [sponsorsSuccess]);
+
+  useEffect(() => {
+    if (sponsorsError) {
+      const timer = setTimeout(() => setSponsorsError(null), FEEDBACK_TIMEOUT);
+      return () => clearTimeout(timer);
+    }
+  }, [sponsorsError]);
 
   useEffect(() => {
     if (noticiasSuccess) {
@@ -345,6 +399,54 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
     }
   };
 
+  // Handlers para sponsors
+  const handleCreateSponsor = async (payload: CrearSponsorPayload) => {
+    try {
+      setSponsorsError(null);
+      const nuevo = await apiService.crearSponsor(payload);
+      setSponsors((prev) => sortSponsors([...prev, nuevo]));
+      setSponsorsSuccess("Sponsor agregado exitosamente");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error al crear sponsor";
+      setSponsorsError(message);
+      throw error;
+    }
+  };
+
+  const handleDeleteSponsor = async (sponsorId: number) => {
+    try {
+      setSponsorsError(null);
+      await apiService.eliminarSponsor(sponsorId);
+      setSponsors((prev) => prev.filter((s) => s.id !== sponsorId));
+      setSponsorsSuccess("Sponsor eliminado");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error al eliminar sponsor";
+      setSponsorsError(message);
+      throw error;
+    }
+  };
+
+  const handleUpdateSponsor = async (
+    sponsorId: number,
+    payload: ActualizarSponsorPayload,
+  ) => {
+    try {
+      setSponsorsError(null);
+      const actualizado = await apiService.actualizarSponsor(sponsorId, payload);
+      setSponsors((prev) =>
+        sortSponsors(prev.map((s) => (s.id === sponsorId ? actualizado : s)))
+      );
+      setSponsorsSuccess("Sponsor actualizado");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error al actualizar sponsor";
+      setSponsorsError(message);
+      throw error;
+    }
+  };
+
   // Formateador de números
   const numberFormatter = useMemo(() => {
     return new Intl.NumberFormat("es-CO", {
@@ -377,6 +479,24 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
               numberFormatter={numberFormatter}
               onRefreshCupones={handleRefreshCupones}
             />
+          </section>
+
+          {/* Sponsors Section */}
+          <section id="section-sponsors" className="py-16 border-b border-neutral-800">
+            <div className="space-y-6">
+              <h2 className="text-3xl font-bold">Gestionar Sponsors</h2>
+              <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
+                <SponsorsSection
+                  sponsors={sponsors}
+                  loading={sponsorsLoading}
+                  onCreate={handleCreateSponsor}
+                  onDelete={handleDeleteSponsor}
+                  onUpdate={handleUpdateSponsor}
+                  success={sponsorsSuccess}
+                  error={sponsorsError}
+                />
+              </div>
+            </div>
           </section>
 
           {/* Cupones Form */}

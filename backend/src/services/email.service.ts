@@ -365,6 +365,115 @@ class EmailService {
       html,
     });
   }
+
+  async enviarAgradecimientoDonacion(
+    email: string,
+    datos: {
+      nombre: string;
+      monto: number;
+      mensaje?: string;
+    }
+  ): Promise<boolean> {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 24px; background: #f9f9f9; border-radius: 12px; }
+          .header { text-align: center; margin-bottom: 24px; }
+          .header h1 { color: #28a745; }
+          .card { background: white; border-radius: 10px; padding: 20px; border-left: 4px solid #28a745; }
+          .monto { font-size: 28px; font-weight: bold; color: #28a745; text-align: center; margin: 24px 0; }
+          .mensaje { background: #f0f9f4; padding: 16px; border-radius: 8px; font-style: italic; color: #1e7e34; }
+          .footer { text-align: center; margin-top: 24px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>¡Gracias por tu aporte!</h1>
+            <p>Hola ${datos.nombre}, apreciamos tu apoyo a JJSecure VPN.</p>
+          </div>
+          <div class="card">
+            <p>Recibimos tu donación y queremos agradecerte por confiar en nuestro trabajo. Este aporte nos ayuda a seguir mejorando nuestros servicios y mantener la infraestructura segura para todos los usuarios.</p>
+            <div class="monto">$${datos.monto.toFixed(2)}</div>
+            ${datos.mensaje ? `<div class="mensaje">"${datos.mensaje}"</div>` : ""}
+            <p>Si necesitas factura o deseas ponerte en contacto con nosotros, simplemente responde este correo.</p>
+          </div>
+          <div class="footer">
+            <p>© ${new Date().getFullYear()} JJSecure VPN</p>
+            <p>Este es un mensaje automático. Muchas gracias nuevamente.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.enviarEmail({
+      to: email,
+      subject: "🙏 ¡Gracias por apoyar a JJSecure VPN!",
+      html,
+    });
+  }
+
+  async notificarDonacionAdmin(datos: {
+    monto: number;
+    nombre: string;
+    email?: string;
+    mensaje?: string;
+    donacionId: string;
+  }): Promise<boolean> {
+    const adminEmail = process.env.EMAIL_USER;
+    if (!adminEmail) {
+      console.error("[Email] ❌ EMAIL_USER no configurado para notificación de donaciones");
+      return false;
+    }
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 24px; background: #f9f9f9; border-radius: 12px; }
+          .header { text-align: center; margin-bottom: 24px; }
+          .header h1 { color: #007bff; }
+          .card { background: white; border-radius: 10px; padding: 20px; border-left: 4px solid #007bff; }
+          .info { margin: 12px 0; }
+          .label { font-weight: bold; color: #007bff; }
+          .monto { font-size: 28px; font-weight: bold; color: #28a745; text-align: center; margin: 24px 0; }
+          .mensaje { background: #eef5ff; padding: 16px; border-radius: 8px; font-style: italic; color: #0d47a1; }
+          .footer { text-align: center; margin-top: 24px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>💝 Nueva donación recibida</h1>
+            <p>ID de referencia: ${datos.donacionId}</p>
+          </div>
+          <div class="card">
+            <div class="info"><span class="label">Nombre:</span> ${datos.nombre}</div>
+            <div class="info"><span class="label">Email:</span> ${datos.email || "No informado"}</div>
+            <div class="monto">$${datos.monto.toFixed(2)}</div>
+            ${datos.mensaje ? `<div class="mensaje">"${datos.mensaje}"</div>` : ""}
+            <p>La donación ha sido marcada como aprobada en el sistema.</p>
+          </div>
+          <div class="footer">
+            <p>Enviado automáticamente por SecureShop VPN</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.enviarEmail({
+      to: adminEmail,
+      subject: `💝 Nueva donación $${datos.monto.toFixed(2)} - ${datos.nombre}`,
+      html,
+    });
+  }
   /**
    * Envía credenciales de revendedor
    */

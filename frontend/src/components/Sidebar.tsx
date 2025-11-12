@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Users, CreditCard, Store, FileText, Shield, ChevronLeft } from "lucide-react";
+import { Home, Users, CreditCard, Store, FileText, Shield, ChevronLeft, HandHeart, Star } from "lucide-react";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -41,6 +41,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       action: () => navigate("/planes"),
       section: "main",
       path: "/planes",
+    },
+    {
+      icon: HandHeart,
+      label: "Donaciones",
+      action: () => navigate("/donaciones"),
+      section: "main",
+      path: "/donaciones",
+    },
+    {
+      icon: Star,
+      label: "Sponsors",
+      action: () => navigate("/sponsors"),
+      section: "main",
+      path: "/sponsors",
     },
     {
       icon: Store,
@@ -92,7 +106,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             {menuItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
-              const needsSeparator = index === 4;
+              const needsSeparator =
+                item.section === "legal" && menuItems[index - 1]?.section !== "legal";
 
               return (
                 <React.Fragment key={index}>
