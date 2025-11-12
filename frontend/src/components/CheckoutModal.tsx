@@ -110,12 +110,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 pt-24">
       <div className="bg-neutral-900 rounded-xl shadow-2xl max-w-lg w-full border border-neutral-800 max-h-[90vh] overflow-hidden animate-in fade-in zoom-in duration-200 overscroll-contain">
         {/* Header with gradient */}
-        <div className="relative bg-gradient-to-br from-purple-600/10 to-blue-600/10 border-b border-neutral-800 p-4">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-blue-500/5" />
+        <div className="relative bg-gradient-to-br from-violet-600/10 to-blue-600/10 border-b border-neutral-800 p-4">
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-blue-500/5" />
           <div className="relative flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-purple-500/10 border border-purple-500/20 rounded-xl">
-                <Sparkles className="w-5 h-5 text-purple-400" />
+              <div className="p-2.5 bg-violet-500/10 border border-violet-500/20 rounded-xl">
+                <Sparkles className="w-5 h-5 text-violet-400" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-neutral-100">Finalizar compra</h2>
@@ -144,23 +144,23 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <p className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-1">Plan Seleccionado</p>
                 <h3 className="text-lg font-bold text-neutral-200">{plan.nombre}</h3>
               </div>
-              <div className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full">
-                <span className="text-xs font-semibold text-purple-400">{plan.dias} días</span>
+              <div className="px-3 py-1 bg-violet-500/10 border border-violet-500/20 rounded-full">
+                <span className="text-xs font-semibold text-violet-400">{plan.dias} días</span>
               </div>
             </div>
 
             {/* Features */}
             <div className="space-y-2 mb-4">
               <div className="flex items-center gap-2 text-sm text-neutral-300">
-                <div className="w-1 h-1 rounded-full bg-purple-400" />
+                <div className="w-1 h-1 rounded-full bg-violet-400" />
                 <span>{plan.connection_limit} {plan.connection_limit === 1 ? 'dispositivo' : 'dispositivos'} simultáneos</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-neutral-300">
-                <div className="w-1 h-1 rounded-full bg-purple-400" />
+                <div className="w-1 h-1 rounded-full bg-violet-400" />
                 <span>Velocidad ilimitada</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-neutral-300">
-                <div className="w-1 h-1 rounded-full bg-purple-400" />
+                <div className="w-1 h-1 rounded-full bg-violet-400" />
                 <span>Activación instantánea</span>
               </div>
             </div>
@@ -182,7 +182,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
               )}
               <div className="flex justify-between items-center pt-2 border-t border-neutral-700">
                 <span className="text-base font-semibold text-neutral-200">Total</span>
-                <span className="text-2xl font-bold text-purple-400">${precioFinal.toLocaleString("es-AR")}</span>
+                <span className="text-2xl font-bold text-violet-400">${precioFinal.toLocaleString("es-AR")}</span>
               </div>
             </div>
           </div>
@@ -214,7 +214,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
           {/* Security Badge */}
           <div className="flex items-center justify-center gap-2 pt-4 border-t border-neutral-800">
-            <Shield className="w-4 h-4 text-purple-400" />
+            <Shield className="w-4 h-4 text-violet-400" />
             <span className="text-xs text-neutral-500">Pago seguro mediante <span className="text-neutral-400 font-medium">MercadoPago</span></span>
           </div>
         </div>

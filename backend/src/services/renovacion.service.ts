@@ -4,6 +4,7 @@ import { MercadoPagoService } from './mercadopago.service';
 import { configService } from './config.service';
 import emailService from './email.service';
 import { cuponesService } from './cupones.service';
+import { RenovacionAutoRetryConfig } from '../types';
 
 export class RenovacionService {
   constructor(
@@ -11,6 +12,100 @@ export class RenovacionService {
     private servex: ServexService,
     private mercadopago: MercadoPagoService
   ) {}
+
+  private autoRetryTimer: NodeJS.Timeout | null = null;
+  private autoRetryRunning = false;
+  private autoRetryAttempts = new Map<number, number>();
+
+  iniciarAutoRevisionesPendientes(config: RenovacionAutoRetryConfig): void {
+    if (!config.enabled) {
+      console.log('[Renovacion] Auto-revisión de pendientes deshabilitada por configuración');
+      return;
+    }
+
+    if (this.autoRetryTimer) {
+      return;
+    }
+
+    const revisarPendientes = async () => {
+      if (this.autoRetryRunning) {
+        return;
+      }
+
+      this.autoRetryRunning = true;
+
+      try {
+        const pendientes = this.db.obtenerRenovacionesPendientes({
+          updatedBeforeMinutes: config.minPendingAgeMinutes,
+          limit: config.batchSize,
+        });
+
+        if (!pendientes.length) {
+          return;
+        }
+
+        console.log(`[Renovacion] 🔄 Revisando ${pendientes.length} renovaciones pendientes automaticamente`);
+
+        for (const pendiente of pendientes) {
+          const renovacionId = Number(pendiente.id);
+          if (!Number.isFinite(renovacionId)) {
+            continue;
+          }
+
+          if (typeof config.maxAttempts === 'number' && config.maxAttempts > 0) {
+            const intentosPrevios = this.autoRetryAttempts.get(renovacionId) ?? 0;
+            if (intentosPrevios >= config.maxAttempts) {
+              console.warn(
+                `[Renovacion] ⚠️ Renovación ${renovacionId} alcanzó el máximo de reintentos automáticos (${config.maxAttempts})`
+              );
+              this.db.refrescarTimestampRenovacion(renovacionId);
+              continue;
+            }
+          }
+
+          try {
+            const resultado = await this.verificarYProcesarRenovacion(renovacionId, false);
+
+            if (resultado && resultado.estado === 'aprobado') {
+              this.autoRetryAttempts.delete(renovacionId);
+              console.log(`[Renovacion] ✅ Renovación ${renovacionId} aprobada mediante auto-revisión`);
+            } else {
+              const intentosPrevios = this.autoRetryAttempts.get(renovacionId) ?? 0;
+              this.autoRetryAttempts.set(renovacionId, intentosPrevios + 1);
+              this.db.refrescarTimestampRenovacion(renovacionId);
+              console.log(`[Renovacion] ⏳ Renovación ${renovacionId} sigue pendiente tras auto-revisión`);
+            }
+          } catch (error: any) {
+            console.error(
+              `[Renovacion] ❌ Error en auto-revisión de renovación ${renovacionId}:`,
+              error?.message || error
+            );
+            this.db.refrescarTimestampRenovacion(renovacionId);
+          }
+        }
+      } finally {
+        this.autoRetryRunning = false;
+      }
+    };
+
+    const programarIntervalo = () => {
+      const intervalo = Math.max(config.intervalMs, 60_000);
+      this.autoRetryTimer = setInterval(() => {
+        revisarPendientes().catch((error) =>
+          console.error('[Renovacion] ❌ Error inesperado en auto-revisión programada:', error?.message || error)
+        );
+      }, intervalo);
+    };
+
+    const delayInicial = Math.max(0, config.initialDelayMs);
+    setTimeout(() => {
+      revisarPendientes()
+        .catch((error) =>
+          console.error('[Renovacion] ❌ Error inesperado en auto-revisión inicial:', error?.message || error)
+        )
+        .finally(programarIntervalo);
+    }, delayInicial);
+  }
 
   /**
    * Busca un cliente o revendedor por username en Servex

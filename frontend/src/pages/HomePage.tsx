@@ -97,7 +97,7 @@ const HomePage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: HomePageProps) => {
             }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
               activeSection === section.id
-                ? "bg-purple-600/20 text-purple-300 border border-purple-500/40"
+                ? "bg-violet-600/20 text-violet-300 border border-violet-500/40"
                 : "text-neutral-400 hover:text-white hover:bg-neutral-800/50"
             }`}
           >

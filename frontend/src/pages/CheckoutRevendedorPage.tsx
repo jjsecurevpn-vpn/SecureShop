@@ -8,7 +8,7 @@ import { mercadoPagoService } from "../services/mercadopago.service";
 
 /**
  * CheckoutRevendedorPage - Página de checkout elegante y minimalista para revendedores
- * Estilo similar a Stripe/Vercel pero con colores JJSecure (purple/neutral)
+ * Estilo similar a Stripe/Vercel pero con colores JJSecure (violet/neutral)
  */
 const CheckoutRevendedorPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -192,7 +192,7 @@ const CheckoutRevendedorPage: React.FC = () => {
                   ref={nombreInputRef}
                   type="text"
                   defaultValue=""
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors hover:border-neutral-600"
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors hover:border-neutral-600"
                   placeholder="Juan Pérez"
                 />
               </div>
@@ -206,7 +206,7 @@ const CheckoutRevendedorPage: React.FC = () => {
                   ref={emailInputRef}
                   type="email"
                   defaultValue=""
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors hover:border-neutral-600"
+                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors hover:border-neutral-600"
                   placeholder="tu@email.com"
                 />
               </div>
@@ -274,7 +274,7 @@ const CheckoutRevendedorPage: React.FC = () => {
 
                 <div className="border-t border-neutral-800 pt-3 flex justify-between items-center">
                   <span className="text-neutral-300 font-medium">Total</span>
-                  <span className="text-3xl font-bold text-purple-400">
+                  <span className="text-3xl font-bold text-violet-400">
                     ${precioFinal.toLocaleString("es-AR")}
                   </span>
                 </div>
@@ -302,7 +302,7 @@ const CheckoutRevendedorPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                  <Clock className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
                   <div>
                     <div className="font-medium text-neutral-200">
                       Acceso inmediato

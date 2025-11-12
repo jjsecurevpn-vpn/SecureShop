@@ -102,7 +102,7 @@ export function RenovacionPanel({
             <div
               className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
                 pasoRenovacion === step.paso || (pasoRenovacion === "configurar" && idx === 0)
-                  ? "bg-purple-600 text-white"
+                  ? "bg-violet-600 text-white"
                   : "bg-neutral-800 text-neutral-500"
               }`}
             >
@@ -151,7 +151,7 @@ export function RenovacionPanel({
                   }
                 }}
                 placeholder="ejemplo@email.com o usuario"
-                className="w-full pl-11 pr-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-50 placeholder-neutral-500 focus:outline-none focus:border-purple-500 transition-colors"
+                className="w-full pl-11 pr-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-50 placeholder-neutral-500 focus:outline-none focus:border-violet-500 transition-colors"
                 disabled={buscando}
               />
             </div>
@@ -163,7 +163,7 @@ export function RenovacionPanel({
           <button
             onClick={onBuscar}
             disabled={buscando || !busqueda.trim()}
-            className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="w-full py-2.5 bg-violet-600 hover:bg-violet-700 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             {buscando ? (
               <>
@@ -184,9 +184,9 @@ export function RenovacionPanel({
       {pasoRenovacion === "configurar" && revendedor && (
         <div className="space-y-6">
           {/* Account Info */}
-          <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4">
+          <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-4">
             <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+              <CheckCircle className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
               <div className="space-y-1 text-sm">
                 <p className="font-semibold text-neutral-50">Cuenta encontrada</p>
                 <p className="text-neutral-400">
@@ -215,13 +215,13 @@ export function RenovacionPanel({
                   tipoActual !== "validity"
                     ? "border-neutral-800/40 bg-neutral-900/40 cursor-not-allowed opacity-50"
                     : tipoSeleccionado === "validity"
-                    ? "border-purple-500 bg-purple-500/10"
+                    ? "border-violet-500 bg-violet-500/10"
                     : "border-neutral-700 bg-neutral-800/50 hover:bg-neutral-800"
                 }`}
               >
                 <Calendar
                   className={`w-5 h-5 mb-2 ${
-                    tipoSeleccionado === "validity" ? "text-purple-400" : "text-neutral-500"
+                    tipoSeleccionado === "validity" ? "text-violet-400" : "text-neutral-500"
                   }`}
                 />
                 <p className="text-sm font-semibold text-neutral-50">Validez</p>
@@ -234,13 +234,13 @@ export function RenovacionPanel({
                   tipoActual !== "credit"
                     ? "border-neutral-800/40 bg-neutral-900/40 cursor-not-allowed opacity-50"
                     : tipoSeleccionado === "credit"
-                    ? "border-purple-500 bg-purple-500/10"
+                    ? "border-violet-500 bg-violet-500/10"
                     : "border-neutral-700 bg-neutral-800/50 hover:bg-neutral-800"
                 }`}
               >
                 <CreditCard
                   className={`w-5 h-5 mb-2 ${
-                    tipoSeleccionado === "credit" ? "text-purple-400" : "text-neutral-500"
+                    tipoSeleccionado === "credit" ? "text-violet-400" : "text-neutral-500"
                   }`}
                 />
                 <p className="text-sm font-semibold text-neutral-50">Créditos</p>
@@ -270,7 +270,7 @@ export function RenovacionPanel({
                       onClick={() => onCantidadChange(plan.max_users)}
                       className={`p-3 rounded-lg border transition-all text-left ${
                         esSeleccionado
-                          ? "border-purple-500 bg-purple-500/10"
+                          ? "border-violet-500 bg-violet-500/10"
                           : "border-neutral-700 bg-neutral-800/50 hover:bg-neutral-800"
                       }`}
                     >
@@ -317,7 +317,7 @@ export function RenovacionPanel({
                   value={nombre}
                   onChange={(event) => onNombreChange(event.target.value)}
                   placeholder="Nombre del responsable"
-                  className="w-full pl-11 pr-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-50 placeholder-neutral-500 focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full pl-11 pr-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-50 placeholder-neutral-500 focus:outline-none focus:border-violet-500 transition-colors"
                 />
               </div>
               <div className="relative">
@@ -327,7 +327,7 @@ export function RenovacionPanel({
                   value={email}
                   onChange={(event) => onEmailChange(event.target.value)}
                   placeholder="email@empresa.com"
-                  className="w-full pl-11 pr-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-50 placeholder-neutral-500 focus:outline-none focus:border-purple-500 transition-colors"
+                  className="w-full pl-11 pr-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-50 placeholder-neutral-500 focus:outline-none focus:border-violet-500 transition-colors"
                 />
               </div>
             </div>
@@ -381,7 +381,7 @@ export function RenovacionPanel({
             <button
               onClick={onProcesar}
               disabled={!puedeProcesar || procesando}
-              className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               {procesando ? (
                 <>

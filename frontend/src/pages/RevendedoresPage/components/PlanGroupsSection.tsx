@@ -104,7 +104,7 @@ export function PlanGroupsSection({ groups, expandedPlanId, onTogglePlan, onConf
                   id={`plan-${plan.id}`}
                   className={`bg-neutral-900 border rounded-xl overflow-hidden transition-all ${
                     expandedPlanId === plan.id
-                      ? "ring-2 ring-purple-500/50 border-purple-500/50 bg-purple-500/5"
+                      ? "ring-2 ring-violet-500/50 border-violet-500/50 bg-violet-500/5"
                       : "border-neutral-800 hover:border-neutral-700"
                   }`}
                 >

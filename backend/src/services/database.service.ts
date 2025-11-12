@@ -646,6 +646,35 @@ export class DatabaseService {
     stmt.run(datosAnteriores, datosNuevos, id);
   }
 
+  obtenerRenovacionesPendientes(options: {
+    updatedBeforeMinutes?: number;
+    limit?: number;
+  } = {}): any[] {
+    const updatedBeforeMinutes = Math.max(0, options.updatedBeforeMinutes ?? 5);
+    const limit = Math.max(1, options.limit ?? 10);
+
+    const stmt = this.db.prepare(`
+      SELECT *
+      FROM renovaciones
+      WHERE estado = 'pendiente'
+        AND datetime(COALESCE(fecha_actualizacion, fecha_creacion)) <= datetime('now', ?)
+      ORDER BY fecha_actualizacion ASC
+      LIMIT ?
+    `);
+
+    return stmt.all(`-${updatedBeforeMinutes} minutes`, limit);
+  }
+
+  refrescarTimestampRenovacion(id: number): void {
+    const stmt = this.db.prepare(`
+      UPDATE renovaciones
+      SET fecha_actualizacion = datetime('now')
+      WHERE id = ?
+    `);
+
+    stmt.run(id);
+  }
+
   // ============================================
   // UTILIDADES
   // ============================================

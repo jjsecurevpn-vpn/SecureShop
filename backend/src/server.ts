@@ -22,6 +22,7 @@ import { cuponesService } from "./services/cupones.service";
 import { ServexPollingService } from "./services/servex-polling.service";
 import { RealtimeService } from "./services/realtime.service";
 import { crearRutasRealtime } from "./routes/realtime.routes.js";
+import { crearRutasVisitantes } from "./routes/visitors.routes";
 import {
   corsMiddleware,
   loggerMiddleware,
@@ -31,6 +32,7 @@ import {
 
 class Server {
   private app: express.Application;
+  private db!: DatabaseService;
   private tiendaService!: TiendaService;
   private tiendaRevendedoresService!: TiendaRevendedoresService;
   private renovacionService!: RenovacionService;
@@ -52,7 +54,7 @@ class Server {
     console.log("[Server] Inicializando servicios...");
 
     // Inicializar base de datos
-    const db = new DatabaseService(config.database.path);
+    this.db = new DatabaseService(config.database.path);
     console.log("[Server] ✅ Base de datos inicializada");
 
     // Inicializar cupones desde configuración
@@ -120,20 +122,21 @@ class Server {
     });
 
     // Inicializar servicio de tienda (DESPUÉS de wsService)
-    this.tiendaService = new TiendaService(db, servex, mercadopago, this.wsService);
+    this.tiendaService = new TiendaService(this.db, servex, mercadopago, this.wsService);
     console.log("[Server] ✅ Servicio de tienda inicializado");
 
     // Inicializar servicio de tienda para revendedores
     this.tiendaRevendedoresService = new TiendaRevendedoresService(
-      db,
+      this.db,
       servex,
       mercadopago
     );
     console.log("[Server] ✅ Servicio de revendedores inicializado");
 
     // Inicializar servicio de renovaciones
-    this.renovacionService = new RenovacionService(db, servex, mercadopago);
+    this.renovacionService = new RenovacionService(this.db, servex, mercadopago);
     console.log("[Server] ✅ Servicio de renovaciones inicializado");
+      this.renovacionService.iniciarAutoRevisionesPendientes(config.renovaciones);
 
     // Inicializar planes por defecto
     this.tiendaService.inicializarPlanes().catch((error) => {
@@ -152,6 +155,8 @@ class Server {
     const limiter = rateLimit({
       windowMs: config.rateLimit.windowMs,
       max: config.rateLimit.max,
+      standardHeaders: true,
+      legacyHeaders: false,
       message: {
         success: false,
         error: "Demasiadas solicitudes, por favor intente más tarde",
@@ -161,8 +166,25 @@ class Server {
         return req.ip || req.connection.remoteAddress || "unknown";
       },
       skip: (req) => {
-        // No aplicar rate limit a health check
-        return req.path === "/health";
+        if (req.path === "/health") {
+          return true;
+        }
+
+        // Endpoints de lectura que se consultan con alta frecuencia desde el frontend
+        const readHeavyPrefixes = [
+          "/api/realtime",
+          "/api/visitors",
+          "/api/config",
+          "/api/cupones",
+          "/api/clients",
+          "/api/stats",
+        ];
+
+        if (req.method === "GET" && readHeavyPrefixes.some((prefix) => req.path.startsWith(prefix))) {
+          return true;
+        }
+
+        return false;
       },
     });
     this.app.use(limiter);
@@ -259,6 +281,9 @@ class Server {
 
     // Rutas de la API - Cupones
     this.app.use("/api/cupones", cuponesRoutes);
+
+    // Rutas de la API - Visitantes (con BD real)
+    this.app.use("/api/visitors", crearRutasVisitantes(this.db.getDatabase()));
 
     // Rutas de la API - Promo (para revendedores) - DESACTIVADO por conflicto
     // this.app.use("/api/config", promoRoutes);

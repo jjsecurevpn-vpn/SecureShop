@@ -40,7 +40,7 @@ export function PlanSelector({
               onClick={() => onSelectDias(dias)}
               className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                 diasSeleccionados === dias
-                  ? "bg-purple-600 text-white"
+                  ? "bg-violet-600 text-white"
                   : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
               }`}
             >
@@ -64,12 +64,12 @@ export function PlanSelector({
               onClick={() => onSelectDispositivos(dispositivos)}
               className={`relative p-4 rounded-lg border transition-all duration-200 ${
                 dispositivosSeleccionados === dispositivos
-                  ? "border-purple-500 bg-purple-500/10"
+                  ? "border-violet-500 bg-violet-500/10"
                   : "border-neutral-700 bg-neutral-900/50 hover:border-neutral-600"
               }`}
             >
               {dispositivosSeleccionados === dispositivos && (
-                <div className="absolute -top-2 -right-2 bg-purple-600 rounded-full p-1">
+                <div className="absolute -top-2 -right-2 bg-violet-600 rounded-full p-1">
                   <Check className="w-3 h-3 text-white" />
                 </div>
               )}
@@ -106,7 +106,7 @@ export function PlanSelector({
             </button>
             <button
               onClick={onComprar}
-              className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-semibold text-white transition-colors"
+              className="flex-1 px-6 py-3 bg-violet-600 hover:bg-violet-700 rounded-lg text-sm font-semibold text-white transition-colors"
             >
               Comprar ahora
             </button>
@@ -135,7 +135,7 @@ export function PlanSelector({
               const Icon = feature.icon;
               return (
                 <div key={index} className="flex gap-3">
-                  <Icon className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                  <Icon className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-neutral-50">{feature.title}</p>
                     <p className="text-xs text-neutral-500 mt-0.5">{feature.desc}</p>

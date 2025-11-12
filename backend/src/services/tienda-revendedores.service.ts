@@ -251,6 +251,9 @@ export class TiendaRevendedoresService {
       console.log(
         `[TiendaRevendedores] Username generado: ${username} para cliente: ${pago.cliente_nombre}`
       );
+      console.log(
+        `[TiendaRevendedores] Nombre visible normalizado para Servex: ${name}`
+      );
 
       // 3. Obtener categorías activas (no expiradas)
       const categorias = await this.servex.obtenerCategoriasActivas();
@@ -270,7 +273,7 @@ export class TiendaRevendedoresService {
 
       // Preparar datos del revendedor
       const revendedorData: RevendedorServex = {
-        name: `${name} - ${pago.cliente_nombre}`,
+        name,
         username,
         password,
         max_users: plan.max_users,

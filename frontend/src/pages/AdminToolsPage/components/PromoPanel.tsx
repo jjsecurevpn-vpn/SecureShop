@@ -91,7 +91,7 @@ export function PromoPanel({
                 type="number"
                 min="1"
                 max="100"
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-850 px-3 py-2 text-sm text-white placeholder-neutral-500 transition focus:border-purple-500 focus:outline-none"
+                className="w-full rounded-lg border border-neutral-700 bg-neutral-850 px-3 py-2 text-sm text-white placeholder-neutral-500 transition focus:border-violet-500 focus:outline-none"
                 value={discountPercentageInput}
                 onChange={(e) => onDiscountPercentageChange(e.target.value)}
                 placeholder="Ej: 20"
@@ -105,7 +105,7 @@ export function PromoPanel({
                 type="number"
                 min="1"
                 max="720"
-                className="w-full rounded-lg border border-neutral-700 bg-neutral-850 px-3 py-2 text-sm text-white placeholder-neutral-500 transition focus:border-purple-500 focus:outline-none"
+                className="w-full rounded-lg border border-neutral-700 bg-neutral-850 px-3 py-2 text-sm text-white placeholder-neutral-500 transition focus:border-violet-500 focus:outline-none"
                 value={durationInput}
                 onChange={(e) => onDurationChange(e.target.value)}
                 placeholder="Horas"
@@ -115,7 +115,7 @@ export function PromoPanel({
           <button
             onClick={onActivate}
             disabled={isSaving || !discountPercentageInput}
-            className="w-full rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSaving ? "Activando..." : `Activar ${discountPercentageInput || "0"}% OFF`}
           </button>
@@ -127,7 +127,7 @@ export function PromoPanel({
         <label className="block text-xs font-semibold text-neutral-300 mb-2">Texto del hero</label>
         <input
           type="text"
-          className="w-full rounded-lg border border-neutral-700 bg-neutral-850 px-3 py-2 text-sm text-white placeholder-neutral-500 transition focus:border-purple-500 focus:outline-none"
+          className="w-full rounded-lg border border-neutral-700 bg-neutral-850 px-3 py-2 text-sm text-white placeholder-neutral-500 transition focus:border-violet-500 focus:outline-none"
           value={heroPromo?.texto || ""}
           onChange={(e) => onTextoChange(e.target.value)}
           placeholder="Ej: 20% OFF en todos los planes"

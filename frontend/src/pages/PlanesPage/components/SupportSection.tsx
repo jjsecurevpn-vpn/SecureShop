@@ -14,14 +14,14 @@ export function SupportSection() {
             href="https://t.me/+rAuU1_uHGZthMWZh"
             target="_blank"
             rel="noopener noreferrer"
-            className="group p-6 bg-neutral-900/50 border border-neutral-800 hover:border-purple-500/50 rounded-lg transition-colors"
+            className="group p-6 bg-neutral-900/50 border border-neutral-800 hover:border-violet-500/50 rounded-lg transition-colors"
           >
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-semibold text-neutral-50 mb-1">Telegram</h3>
                 <p className="text-sm text-neutral-400">Respuesta inmediata</p>
               </div>
-              <MessageCircle className="w-5 h-5 text-neutral-500 group-hover:text-purple-400 transition-colors" />
+              <MessageCircle className="w-5 h-5 text-neutral-500 group-hover:text-violet-400 transition-colors" />
             </div>
           </a>
 
@@ -29,14 +29,14 @@ export function SupportSection() {
             href="https://chat.whatsapp.com/LU16SUptp4xFQ4zTNta7Ja"
             target="_blank"
             rel="noopener noreferrer"
-            className="group p-6 bg-neutral-900/50 border border-neutral-800 hover:border-purple-500/50 rounded-lg transition-colors"
+            className="group p-6 bg-neutral-900/50 border border-neutral-800 hover:border-violet-500/50 rounded-lg transition-colors"
           >
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-semibold text-neutral-50 mb-1">WhatsApp</h3>
                 <p className="text-sm text-neutral-400">Ayuda especializada</p>
               </div>
-              <Phone className="w-5 h-5 text-neutral-500 group-hover:text-purple-400 transition-colors" />
+              <Phone className="w-5 h-5 text-neutral-500 group-hover:text-violet-400 transition-colors" />
             </div>
           </a>
         </div>

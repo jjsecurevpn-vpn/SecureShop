@@ -14,13 +14,13 @@ export function ModeSelector({ mode, onSelectCompra, onSelectRenovacion }: ModeS
         onClick={onSelectCompra}
         className={`p-4 rounded-2xl border transition-all text-left ${
           mode === "compra"
-            ? "border-purple-500 bg-purple-500/10 text-neutral-100 shadow-[0_0_0_1px_rgba(168,85,247,0.15)]"
+            ? "border-violet-500 bg-violet-500/10 text-neutral-100 shadow-[0_0_0_1px_rgba(168,85,247,0.15)]"
             : "border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
         }`}
       >
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-            <Zap className="w-5 h-5 text-purple-400" />
+          <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+            <Zap className="w-5 h-5 text-violet-400" />
           </div>
           <div>
             <p className="font-semibold text-sm">Comprar nuevo plan</p>
@@ -35,7 +35,7 @@ export function ModeSelector({ mode, onSelectCompra, onSelectRenovacion }: ModeS
         onClick={onSelectRenovacion}
         className={`p-4 rounded-2xl border transition-all text-left ${
           mode === "renovacion"
-            ? "border-purple-500 bg-purple-500/10 text-neutral-100 shadow-[0_0_0_1px_rgba(168,85,247,0.15)]"
+            ? "border-violet-500 bg-violet-500/10 text-neutral-100 shadow-[0_0_0_1px_rgba(168,85,247,0.15)]"
             : "border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
         }`}
       >

@@ -8,6 +8,7 @@ import {
   Users,
 } from "lucide-react";
 import DemoModal from "../components/DemoModal";
+import VisitorsCounter from "../components/VisitorsCounter";
 
 export default function HeroSection() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function HeroSection() {
         className="relative min-h-screen pt-20 overflow-hidden"
       >
         {/* Efecto de luz sutil */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/5 blur-3xl rounded-full"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600/5 blur-3xl rounded-full"></div>
 
         {/* Contenido principal */}
         <div className="relative container mx-auto px-6 py-16 lg:py-20">
@@ -52,10 +53,15 @@ export default function HeroSection() {
                 </p>
               </div>
 
+              {/* Contador de Visitantes */}
+              <div className="py-4">
+                <VisitorsCounter />
+              </div>
+
               {/* Features ultra-compactos */}
               <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-xs">
                 <div className="flex items-center gap-1.5 text-neutral-400">
-                  <Shield className="w-3.5 h-3.5 text-purple-500" />
+                  <Shield className="w-3.5 h-3.5 text-violet-500" />
                   <span>AES-256</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-neutral-400">
@@ -63,7 +69,7 @@ export default function HeroSection() {
                   <span>Alta velocidad</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-neutral-400">
-                  <Globe className="w-3.5 h-3.5 text-purple-400" />
+                  <Globe className="w-3.5 h-3.5 text-violet-400" />
                   <span>+50 países</span>
                 </div>
               </div>
@@ -72,7 +78,7 @@ export default function HeroSection() {
               <div className="flex flex-col gap-2 justify-center lg:justify-start pt-2 w-48 mx-auto lg:mx-0">
                 <button
                   onClick={goToPlans}
-                  className="group w-full px-6 py-2.5 bg-purple-900/20 hover:bg-purple-900/30 border border-purple-400/30 rounded-xl text-sm font-medium text-purple-300 hover:text-purple-200 transition-all"
+                  className="group w-full px-6 py-2.5 bg-violet-900/20 hover:bg-violet-900/30 border border-violet-400/30 rounded-xl text-sm font-medium text-violet-300 hover:text-violet-200 transition-all"
                 >
                   <span className="flex items-center justify-center gap-1.5">
                     Ver Planes
@@ -105,14 +111,14 @@ export default function HeroSection() {
               <div className="flex flex-wrap justify-center lg:justify-start gap-4 pt-2 text-xs">
                 <button
                   onClick={goToResellers}
-                  className="flex items-center gap-1.5 text-gray-400 hover:text-purple-400 transition-colors"
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-violet-400 transition-colors"
                 >
                   <Users className="w-3.5 h-3.5" />
                   <span>Revendedores</span>
                 </button>
                 <button
                   onClick={goToAbout}
-                  className="text-gray-400 hover:text-purple-400 transition-colors"
+                  className="text-gray-400 hover:text-violet-400 transition-colors"
                 >
                   ¿Cómo funciona?
                 </button>
@@ -123,7 +129,7 @@ export default function HeroSection() {
             <div className="relative order-1 lg:order-2 flex justify-center lg:justify-end">
               <div className="relative">
                 {/* Glow sutil */}
-                <div className="absolute inset-0 bg-purple-600/20 blur-3xl rounded-full" />
+                <div className="absolute inset-0 bg-violet-600/20 blur-3xl rounded-full" />
 
                 {/* Device mockup */}
                 <div className="relative z-10">
@@ -141,4 +147,4 @@ export default function HeroSection() {
     </>
   );
 }
-<Globe className="w-3.5 h-3.5 text-purple-400" />;
+<Globe className="w-3.5 h-3.5 text-violet-400" />;

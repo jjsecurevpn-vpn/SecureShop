@@ -21,7 +21,7 @@ export function MobileMenu({ isOpen, onClose, sections, activeSection, onSelectS
           }}
           className={`w-full flex items-center gap-3 px-4 py-4 border-b border-neutral-800/30 text-left ${
             activeSection === section.id
-              ? "bg-purple-600/10 border-l-4 border-purple-500"
+              ? "bg-violet-600/10 border-l-4 border-violet-500"
               : "hover:bg-neutral-800/50"
           }`}
         >

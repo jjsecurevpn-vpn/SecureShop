@@ -40,7 +40,7 @@ export default function HeroReventa() {
               </div>
             )}
 
-            <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-full px-4 py-2 mb-6">
+            <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-full px-4 py-2 mb-6">
               <Sparkles className="w-4 h-4" />
               <span className="text-sm font-medium">
                 Programa de Revendedores

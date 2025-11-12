@@ -342,43 +342,16 @@ export class ServexService {
   } {
     const password = this.generarPasswordSeguro();
 
-    // Si no hay nombre, usar el método anterior
-    if (!nombreCliente || nombreCliente.trim().length === 0) {
-      const timestamp = Date.now().toString(36);
-      const random = Math.random().toString(36).substring(2, 7);
-      const username = `r${timestamp}${random}`.substring(0, 12); // Limitar a 12 caracteres
-      const name = `Revendedor ${timestamp}`;
-      return { username, password, name };
-    }
-
-    // Limpiar el nombre: solo letras y números, convertir a minúsculas
-    const nombreLimpio = nombreCliente
-      .trim()
+    const baseNormalizada = nombreCliente
+      ?.trim()
       .toLowerCase()
-      .normalize("NFD") // Descomponer acentos
-      .replace(/[\u0300-\u036f]/g, "") // Eliminar marcas diacríticas
-      .replace(/[^a-z0-9]/g, ""); // Letras y números
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "") || "";
 
-    // Si después de limpiar no queda nada, usar método anterior
-    if (nombreLimpio.length === 0) {
-      const timestamp = Date.now().toString(36);
-      const random = Math.random().toString(36).substring(2, 7);
-      const username = `r${timestamp}${random}`.substring(0, 12); // Limitar a 12 caracteres
-      const name = `Revendedor ${timestamp}`;
-      return { username, password, name };
-    }
-
-    // IMPORTANTE: Servex requiere máximo 12 caracteres para username
-    // Usamos máximo 5 caracteres del nombre + "r" (revendedor) + 3 caracteres aleatorios + 2 números
-    // Total: 1 + 5 + 3 + 2 = 11 caracteres (bien dentro del límite de 12)
-    
-    const prefijo = "r"; // Identificador de revendedor
-    const nombreTruncado = nombreLimpio.substring(0, 5).toLowerCase();
-    
-    // Generar 2 números aleatorios (10-99)
+    const prefijo = "r";
+    const nombreTruncado = baseNormalizada.substring(0, 5);
     const numerosAleatorios = Math.floor(Math.random() * 90) + 10;
-
-    // Generar 3 caracteres aleatorios (letras o números)
     const charsAleatorios = "abcdefghijklmnopqrstuvwxyz0123456789";
     let sufijo = "";
     for (let i = 0; i < 3; i++) {
@@ -387,18 +360,62 @@ export class ServexService {
       );
     }
 
-    // Formato: r + NombreTruncado (5) + Números (2) + SufijoAleatorio (3) = máximo 11 caracteres
-    const username = `${prefijo}${nombreTruncado}${numerosAleatorios}${sufijo}`;
+    let username = `${prefijo}${nombreTruncado}${numerosAleatorios}${sufijo}`;
 
-    // Validación de seguridad: asegurarse de que no exceda 12 caracteres
-    if (username.length > 12) {
-      console.warn(`[Servex] ⚠️ Username revendedor '${username}' excede 12 caracteres, truncando...`);
-      return { username: username.substring(0, 12), password, name: `Revendedor ${nombreCliente}` };
+    if (baseNormalizada.length === 0) {
+      const timestamp = Date.now().toString(36);
+      const random = Math.random().toString(36).substring(2, 7);
+      username = `r${timestamp}${random}`.substring(0, 12);
     }
 
-    const name = `Revendedor ${nombreCliente}`;
+    if (username.length > 12) {
+      console.warn(
+        `[Servex] ⚠️ Username revendedor '${username}' excede 12 caracteres, truncando...`
+      );
+      username = username.substring(0, 12);
+    }
+
+    const name = this.normalizarNombreVisibleRevendedor(nombreCliente);
 
     return { username, password, name };
+  }
+
+  private normalizarNombreVisibleRevendedor(nombreCliente?: string): string {
+    const MAX_LEN = 12;
+    const FALLBACK = "Revendedor";
+
+    if (!nombreCliente || nombreCliente.trim().length === 0) {
+      return FALLBACK.substring(0, MAX_LEN);
+    }
+
+    const sinDiacriticos = nombreCliente
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!sinDiacriticos) {
+      return FALLBACK.substring(0, MAX_LEN);
+    }
+
+    let compacto = sinDiacriticos.replace(/\s+/g, "");
+
+    if (!compacto) {
+      compacto = FALLBACK;
+    }
+
+    let base = compacto.substring(0, MAX_LEN).toLowerCase();
+
+    if (base.length < 3) {
+      base = (base + FALLBACK.toLowerCase()).substring(0, Math.max(3, base.length));
+    }
+
+    if (/^[0-9]/.test(base)) {
+      base = `rev${base}`.substring(0, MAX_LEN);
+    }
+
+    return base.charAt(0).toUpperCase() + base.slice(1);
   }
 
   /**

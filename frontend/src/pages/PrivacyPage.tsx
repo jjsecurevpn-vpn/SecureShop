@@ -101,7 +101,7 @@ const sectionsData = [
           Soporte oficial:{" "}
           <a
             href="https://t.me/SoporteJHS_bot"
-            className="text-purple-400 hover:text-purple-300 font-medium underline"
+            className="text-violet-400 hover:text-violet-300 font-medium underline"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -165,11 +165,11 @@ const PrivacyPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: PrivacyPageProps
       <main className="md:ml-[312px]">
         {/* Header */}
         <section className="relative pt-20 pb-20 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 via-transparent to-blue-600/10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-600/10 via-transparent to-blue-600/10" />
           <div className="relative max-w-4xl mx-auto px-6 lg:px-8">
             <div className="text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-800 border border-neutral-700 mb-6">
-                <ShieldCheck className="w-4 h-4 text-purple-400" />
+                <ShieldCheck className="w-4 h-4 text-violet-400" />
                 <span className="text-sm text-neutral-400">
                   Política de Privacidad
                 </span>
@@ -204,22 +204,22 @@ const PrivacyPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: PrivacyPageProps
                     id={sectionId}
                     className={`group relative bg-neutral-900/50 border border-neutral-800 rounded-xl p-8 hover:border-neutral-700 transition-all duration-300 scroll-mt-24 ${
                       activeSection === sectionId
-                        ? "ring-2 ring-purple-400 bg-purple-900/10"
+                        ? "ring-2 ring-violet-400 bg-violet-900/10"
                         : ""
                     }`}
                   >
                     <div className="flex items-start gap-6">
                       <div className="flex-shrink-0">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-purple-600/20 border border-purple-500/30 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                          <Icon className="w-6 h-6 text-purple-400" />
+                        <div className="w-12 h-12 bg-gradient-to-br from-violet-500/20 to-violet-600/20 border border-violet-500/30 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                          <Icon className="w-6 h-6 text-violet-400" />
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-4">
-                          <span className="text-sm font-medium text-purple-400/60">
+                          <span className="text-sm font-medium text-violet-400/60">
                             {String(index + 1).padStart(2, "0")}
                           </span>
-                          <h2 className="text-2xl font-bold text-white group-hover:text-purple-300 transition-colors">
+                          <h2 className="text-2xl font-bold text-white group-hover:text-violet-300 transition-colors">
                             {section.title}
                           </h2>
                         </div>
@@ -235,10 +235,10 @@ const PrivacyPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: PrivacyPageProps
 
             {/* Contact CTA */}
             <div className="mt-16 relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-purple-500/10 to-purple-600/20 blur-3xl" />
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-600/20 via-violet-500/10 to-violet-600/20 blur-3xl" />
               <div className="relative bg-neutral-900/80 border border-neutral-800 rounded-2xl p-8 md:p-12 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-purple-600/20 border border-purple-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <MessageCircle className="w-8 h-8 text-purple-400" />
+                <div className="w-16 h-16 bg-gradient-to-br from-violet-500/20 to-violet-600/20 border border-violet-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <MessageCircle className="w-8 h-8 text-violet-400" />
                 </div>
                 <h2 className="text-3xl font-bold text-white mb-4">
                   ¿Tienes preguntas sobre privacidad?
@@ -252,7 +252,7 @@ const PrivacyPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: PrivacyPageProps
                     href="https://t.me/SoporteJHS_bot"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-8 py-4 rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300 font-semibold"
+                    className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-violet-700 text-white px-8 py-4 rounded-xl hover:shadow-lg hover:shadow-violet-500/25 transition-all duration-300 font-semibold"
                   >
                     <MessageCircle className="w-5 h-5" />
                     Soporte en Telegram
@@ -301,7 +301,7 @@ const PrivacyPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: PrivacyPageProps
             }}
             className={`w-full flex items-center gap-3 px-4 py-4 border-b border-neutral-800/30 ${
               activeSection === section.id
-                ? "bg-purple-600/10 border-l-4 border-purple-500"
+                ? "bg-violet-600/10 border-l-4 border-violet-500"
                 : "hover:bg-neutral-800"
             }`}
           >

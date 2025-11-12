@@ -14,10 +14,10 @@ export function SupportSection() {
             href="https://t.me/+rAuU1_uHGZthMWZh"
             target="_blank"
             rel="noopener noreferrer"
-            className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-xl p-6 text-center transition-all"
+            className="group bg-neutral-900 border border-neutral-800 hover:border-violet-500/50 rounded-xl p-6 text-center transition-all"
           >
-            <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <MessageCircle className="w-6 h-6 text-purple-400" />
+            <div className="w-12 h-12 bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <MessageCircle className="w-6 h-6 text-violet-400" />
             </div>
             <h3 className="text-lg font-semibold text-neutral-200 mb-2">Telegram</h3>
             <p className="text-sm text-neutral-400">Respuesta inmediata</p>
@@ -27,10 +27,10 @@ export function SupportSection() {
             href="https://chat.whatsapp.com/LU16SUptp4xFQ4zTNta7Ja"
             target="_blank"
             rel="noopener noreferrer"
-            className="group bg-neutral-900 border border-neutral-800 hover:border-purple-500/50 rounded-xl p-6 text-center transition-all"
+            className="group bg-neutral-900 border border-neutral-800 hover:border-violet-500/50 rounded-xl p-6 text-center transition-all"
           >
-            <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Phone className="w-6 h-6 text-purple-400" />
+            <div className="w-12 h-12 bg-violet-500/10 border border-violet-500/20 rounded-xl flex items-center justify-center mx-auto mb-4">
+              <Phone className="w-6 h-6 text-violet-400" />
             </div>
             <h3 className="text-lg font-semibold text-neutral-200 mb-2">WhatsApp</h3>
             <p className="text-sm text-neutral-400">Ayuda especializada</p>

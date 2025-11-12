@@ -33,7 +33,7 @@ export function OverviewSection({
           <button
             onClick={onRefreshCupones}
             disabled={loadingCupones || isRefreshingCupones}
-            className="rounded-lg border border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-200 transition hover:border-purple-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg border border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-200 transition hover:border-violet-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isRefreshingCupones ? "Actualizando..." : "Actualizar"}
           </button>

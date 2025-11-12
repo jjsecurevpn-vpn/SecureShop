@@ -110,7 +110,7 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
               ref={nombreInputRef}
               type="text"
               disabled={loading}
-              className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
               placeholder="Juan Pérez"
             />
           </div>
@@ -134,7 +134,7 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
               ref={emailInputRef}
               type="email"
               disabled={loading}
-              className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
               placeholder="tu@email.com"
             />
           </div>
@@ -146,7 +146,7 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
             <span className="w-1 h-1 rounded-full bg-red-400 inline-block" />
           </p>
           <p className="text-neutral-500 text-xs mt-2 flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5 text-purple-400" />
+            <Shield className="w-3.5 h-3.5 text-violet-400" />
             Recibirás tus credenciales VPN en este email
           </p>
         </div>

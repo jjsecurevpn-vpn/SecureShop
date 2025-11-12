@@ -8,7 +8,7 @@ import { mercadoPagoService } from "../services/mercadopago.service";
 
 /**
  * CheckoutPage - Página de checkout elegante e minimalista
- * Estilo similar a Stripe/Vercel pero con colores JJSecure (purple/neutral)
+ * Estilo similar a Stripe/Vercel pero con colores JJSecure (violet/neutral)
  */
 const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -226,7 +226,7 @@ const CheckoutPage: React.FC = () => {
                   </p>
                   <h3 className="text-lg font-semibold text-neutral-100">{plan.nombre}</h3>
                   <p className="text-xs text-neutral-400 mt-1 flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-purple-400" />
+                    <Clock className="w-3 h-3 text-violet-400" />
                     {plan.dias} días de acceso
                   </p>
                 </div>
@@ -234,19 +234,19 @@ const CheckoutPage: React.FC = () => {
                 {/* Features */}
                 <div className="space-y-3 mb-6 pb-6 border-b border-neutral-800">
                   <div className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
                     <span className="text-xs text-neutral-300">{plan.connection_limit} dispositivo{plan.connection_limit !== 1 ? "s" : ""} simultáneo{plan.connection_limit !== 1 ? "s" : ""}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
                     <span className="text-xs text-neutral-300">Velocidad ilimitada</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
                     <span className="text-xs text-neutral-300">Activación instantánea</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <Check className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+                    <Check className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
                     <span className="text-xs text-neutral-300">Soporte 24/7</span>
                   </div>
                 </div>
@@ -269,7 +269,7 @@ const CheckoutPage: React.FC = () => {
                   )}
                   <div className="flex justify-between items-baseline pt-2 border-t border-neutral-700">
                     <span className="text-xs font-semibold text-neutral-200">Total</span>
-                    <span className="text-lg font-semibold text-purple-400">
+                    <span className="text-lg font-semibold text-violet-400">
                       ${precioFinal.toLocaleString("es-AR")}
                     </span>
                   </div>
@@ -285,7 +285,7 @@ const CheckoutPage: React.FC = () => {
                 <button
                   onClick={handlePaymentButtonClick}
                   disabled={processingPayment}
-                  className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 disabled:bg-neutral-600 text-white text-sm font-semibold rounded-md transition-colors hidden"
+                  className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 disabled:bg-neutral-600 text-white text-sm font-semibold rounded-md transition-colors hidden"
                   id="fallback-payment-button"
                 >
                   {processingPayment ? 'Procesando...' : 'Ir a Pagar'}

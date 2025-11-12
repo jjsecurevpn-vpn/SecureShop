@@ -20,16 +20,16 @@ export function PlanRevendedorCard({ plan, onSelect }: PlanRevendedorCardProps) 
 
   return (
     <div
-      className={`relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 border-2 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 ${
+      className={`relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 border-2 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-violet-500/20 ${
         plan.popular
-          ? 'border-purple-500 shadow-lg shadow-purple-500/50'
-          : 'border-gray-700 hover:border-purple-400'
+          ? 'border-violet-500 shadow-lg shadow-violet-500/50'
+          : 'border-gray-700 hover:border-violet-400'
       }`}
     >
       {/* Badge Popular */}
       {plan.popular && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+          <span className="bg-gradient-to-r from-violet-500 to-pink-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
             MÁS POPULAR
           </span>
         </div>
@@ -57,7 +57,7 @@ export function PlanRevendedorCard({ plan, onSelect }: PlanRevendedorCardProps) 
       {/* Precio */}
       <div className="mb-6">
         <div className="flex items-baseline gap-1">
-          <span className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+          <span className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-pink-400">
             {formatPrecio(plan.precio)}
           </span>
         </div>
@@ -67,8 +67,8 @@ export function PlanRevendedorCard({ plan, onSelect }: PlanRevendedorCardProps) 
       {/* Características */}
       <div className="space-y-3 mb-6">
         <div className="flex items-center gap-3 text-gray-300">
-          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center">
-            <Users className="w-3 h-3 text-purple-400" />
+          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center">
+            <Users className="w-3 h-3 text-violet-400" />
           </div>
           <span className="text-sm">
             Hasta <strong className="text-white">{plan.max_users} usuarios</strong>
@@ -98,22 +98,22 @@ export function PlanRevendedorCard({ plan, onSelect }: PlanRevendedorCardProps) 
         )}
 
         <div className="flex items-center gap-3 text-gray-300">
-          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center">
-            <Check className="w-3 h-3 text-purple-400" />
+          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center">
+            <Check className="w-3 h-3 text-violet-400" />
           </div>
           <span className="text-sm">Panel de administración</span>
         </div>
 
         <div className="flex items-center gap-3 text-gray-300">
-          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center">
-            <Check className="w-3 h-3 text-purple-400" />
+          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center">
+            <Check className="w-3 h-3 text-violet-400" />
           </div>
           <span className="text-sm">Soporte técnico</span>
         </div>
 
         <div className="flex items-center gap-3 text-gray-300">
-          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center">
-            <Check className="w-3 h-3 text-purple-400" />
+          <div className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center">
+            <Check className="w-3 h-3 text-violet-400" />
           </div>
           <span className="text-sm">Gestión de subcuentas</span>
         </div>
@@ -124,7 +124,7 @@ export function PlanRevendedorCard({ plan, onSelect }: PlanRevendedorCardProps) 
         onClick={() => onSelect(plan)}
         className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 ${
           plan.popular
-            ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/50'
+            ? 'bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white shadow-lg shadow-violet-500/50'
             : 'bg-gray-800 hover:bg-gray-700 text-white border border-gray-700'
         }`}
       >

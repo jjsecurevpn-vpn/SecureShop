@@ -173,13 +173,30 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
   const handleCrearCupon = async (e: FormEvent) => {
     e.preventDefault();
     try {
+      // Convertir fecha_expiracion a ISO si existe
+      let fechaExpiracionISO: string | undefined = undefined;
+      if (cuponForm.fecha_expiracion) {
+        const fecha = new Date(cuponForm.fecha_expiracion);
+        if (!isNaN(fecha.getTime())) {
+          fechaExpiracionISO = fecha.toISOString();
+        }
+      }
+
+      // Parsear planes_aplicables
+      let planesAplicables: number[] | undefined = undefined;
+      if (cuponForm.planes_aplicables && (cuponForm.planes_aplicables as any[]).length > 0) {
+        planesAplicables = (cuponForm.planes_aplicables as any[])
+          .map(p => typeof p === 'string' ? parseInt(p) : p)
+          .filter(p => !isNaN(p));
+      }
+
       await apiService.crearCupon({
         codigo: cuponForm.codigo,
         tipo: cuponForm.tipo as "porcentaje" | "monto_fijo",
         valor: parseFloat(cuponForm.valor),
         limite_uso: cuponForm.limite_uso ? parseInt(cuponForm.limite_uso) : undefined,
-        fecha_expiracion: cuponForm.fecha_expiracion || undefined,
-        planes_aplicables: cuponForm.planes_aplicables.length > 0 ? (cuponForm.planes_aplicables as any) : undefined,
+        fecha_expiracion: fechaExpiracionISO,
+        planes_aplicables: planesAplicables,
       });
 
       setCuponSuccess("Cupón creado exitosamente");
@@ -192,9 +209,19 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
   };
 
   const handleInputChange = (field: keyof CuponFormState, value: any) => {
+    let finalValue = value;
+    
+    // Si es planes_aplicables, parsear string separado por comas
+    if (field === 'planes_aplicables' && typeof value === 'string') {
+      finalValue = value
+        .split(',')
+        .map((p: string) => p.trim())
+        .filter((p: string) => p !== '');
+    }
+    
     setCuponForm((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: finalValue,
     }));
   };
 

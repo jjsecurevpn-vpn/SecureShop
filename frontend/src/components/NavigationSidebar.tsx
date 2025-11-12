@@ -47,7 +47,7 @@ export default function NavigationSidebar({
             onClick={() => handleSectionClick(section.id)}
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 ${
               activeSection === section.id
-                ? "bg-purple-900/20 text-purple-300 border-l-2 border-purple-400"
+                ? "bg-violet-900/20 text-violet-300 border-l-2 border-violet-400"
                 : "text-gray-400 hover:text-white hover:bg-white/5"
             }`}
           >

@@ -155,8 +155,8 @@ const CuponInput: React.FC<CuponInputProps> = ({
     <div className="space-y-3">
       <label className="block text-sm font-medium text-neutral-300">
         <div className="flex items-center gap-2 mb-3">
-          <div className="p-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
-            <Tag className="w-4 h-4 text-purple-400" />
+          <div className="p-1.5 rounded-xl bg-violet-500/10 border border-violet-500/20">
+            <Tag className="w-4 h-4 text-violet-400" />
           </div>
           <span className="font-medium">Código de descuento</span>
         </div>
@@ -164,7 +164,7 @@ const CuponInput: React.FC<CuponInputProps> = ({
 
       <div className="flex gap-2">
         <div className="flex-1 relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-violet-600/20 to-blue-600/20 rounded-xl blur opacity-0 group-focus-within:opacity-100 transition-all duration-300" />
           
           <input
             type="text"
@@ -173,14 +173,14 @@ const CuponInput: React.FC<CuponInputProps> = ({
             onKeyPress={handleKeyPress}
             placeholder="CODIGO2024"
             disabled={isValidating}
-            className="relative w-full px-4 py-3 bg-neutral-800/80 border border-neutral-700/60 rounded-xl text-neutral-100 placeholder-neutral-500/60 focus:outline-none focus:border-purple-500/30 transition-all duration-200 uppercase disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
+            className="relative w-full px-4 py-3 bg-neutral-800/80 border border-neutral-700/60 rounded-xl text-neutral-100 placeholder-neutral-500/60 focus:outline-none focus:border-violet-500/30 transition-all duration-200 uppercase disabled:opacity-50 disabled:cursor-not-allowed backdrop-blur-sm"
           />
           
           {/* Indicador de estado sutil */}
           {isValidating && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               <div className={`w-5 h-5 flex items-center justify-center transition-all duration-300 ${
-                validationStep === 'applying' ? 'text-emerald-400' : 'text-purple-400'
+                validationStep === 'applying' ? 'text-emerald-400' : 'text-violet-400'
               }`}>
                 {validationStep === 'searching' && (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -198,7 +198,7 @@ const CuponInput: React.FC<CuponInputProps> = ({
               <div 
                 className={`h-full rounded-full transition-all ${
                   validationStep === 'searching' 
-                    ? 'w-2/3 bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500 opacity-80 animate-pulse' 
+                    ? 'w-2/3 bg-gradient-to-r from-violet-500 via-blue-500 to-violet-500 opacity-80 animate-pulse' 
                     : 'w-full bg-gradient-to-r from-emerald-500 to-cyan-400 opacity-100'
                 }`}
               />
@@ -209,7 +209,7 @@ const CuponInput: React.FC<CuponInputProps> = ({
         <button
           onClick={handleValidarCupon}
           disabled={isValidating || !codigo.trim()}
-          className="group relative px-5 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl flex items-center gap-2 transition-all duration-300 overflow-hidden"
+          className="group relative px-5 py-3 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl flex items-center gap-2 transition-all duration-300 overflow-hidden"
         >
           {/* Efecto de brillo */}
           <div className="absolute -inset-full bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-full group-hover:translate-x-0 transition-transform duration-500 group-disabled:opacity-0" />

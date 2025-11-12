@@ -1,5 +1,17 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Mail, Send, Phone, ChevronRight } from "lucide-react";
+import { MessageCircle, X, ChevronRight } from "lucide-react";
+
+const WhatsAppIcon = () => (
+  <img src="/whatsapp-color.svg" alt="WhatsApp" className="w-8 h-8" />
+);
+
+const InstagramIcon = () => (
+  <img src="/instagram-2016-logo-svgrepo-com.svg" alt="Instagram" className="w-8 h-8" />
+);
+
+const TelegramIcon = () => (
+  <img src="/telegramicon.svg" alt="Telegram" className="w-8 h-8" />
+);
 
 export default function ContactButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +37,7 @@ export default function ContactButton() {
     {
       name: "WhatsApp",
       href: "https://wa.me/5493812531123",
-      icon: <Phone className="w-4 h-4" />,
+      icon: <WhatsAppIcon />,
       description: "Chat directo",
       color: "hover:border-green-500/30 hover:bg-green-500/5",
       iconColor: "text-green-400",
@@ -33,18 +45,18 @@ export default function ContactButton() {
     {
       name: "Telegram",
       href: "https://t.me/JHServices",
-      icon: <Send className="w-4 h-4" />,
+      icon: <TelegramIcon />,
       description: "Respuesta rápida",
       color: "hover:border-blue-500/30 hover:bg-blue-500/5",
       iconColor: "text-blue-400",
     },
     {
-      name: "Email",
-      href: "mailto:jjsecurevpn@gmail.com",
-      icon: <Mail className="w-4 h-4" />,
-      description: "Soporte técnico",
-      color: "hover:border-purple-500/30 hover:bg-purple-500/5",
-      iconColor: "text-purple-400",
+      name: "Instagram",
+      href: "https://www.instagram.com/jjsecure.vpn/",
+      icon: <InstagramIcon />,
+      description: "Síguenos",
+      color: "hover:border-pink-500/30 hover:bg-pink-500/5",
+      iconColor: "text-pink-400",
     },
   ];
 
@@ -65,12 +77,12 @@ export default function ContactButton() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-72 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Header */}
           <div className="px-4 py-3 border-b border-neutral-800">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-purple-500/10 border border-purple-500/20 rounded-xl">
-                <MessageCircle className="w-4 h-4 text-purple-400" />
+              <div className="p-1.5 bg-violet-500/10 border border-violet-500/20 rounded-xl">
+                <MessageCircle className="w-4 h-4 text-violet-400" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-neutral-200">Contáctanos</h3>
@@ -90,9 +102,15 @@ export default function ContactButton() {
                 onClick={() => setIsOpen(false)}
                 className={`group flex items-center gap-3 px-3 py-3 rounded-xl border border-transparent transition-all ${option.color}`}
               >
-                <div className={`p-2 bg-neutral-800 border border-neutral-700 rounded-xl ${option.iconColor} group-hover:scale-110 transition-transform`}>
-                  {option.icon}
-                </div>
+                {option.name === "Instagram" || option.name === "WhatsApp" || option.name === "Telegram" ? (
+                  <div className="group-hover:scale-110 transition-transform">
+                    {option.icon}
+                  </div>
+                ) : (
+                  <div className={`p-2 bg-neutral-800 border border-neutral-700 rounded-xl ${option.iconColor} group-hover:scale-110 transition-transform`}>
+                    {option.icon}
+                  </div>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-neutral-200">{option.name}</span>

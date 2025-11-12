@@ -87,9 +87,9 @@ export default function ServerStatsSection() {
       return { start: "#f472b6", end: "#fb7185" };
     }
     if (value >= 60) {
-      return { start: "#c084fc", end: "#a855f7" };
+      return { start: "#d8b4fe", end: "#c084fc" };
     }
-    return { start: "#a855f7", end: "#7c3aed" };
+    return { start: "#c084fc", end: "#a78bfa" };
   };
 
   const CircularProgress = ({ value, label, icon: Icon }: { value: number; label: string; icon: any }) => {
@@ -134,7 +134,7 @@ export default function ServerStatsSection() {
           </svg>
           
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <Icon className="w-5 h-5 text-purple-300 mb-0.5" />
+            <Icon className="w-5 h-5 text-violet-300 mb-0.5" />
             <div className="text-lg font-bold text-white">{value.toFixed(0)}%</div>
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function ServerStatsSection() {
         {/* Header */}
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-purple-600 rounded-full" />
+            <div className="w-1 h-6 bg-gradient-to-b from-violet-500 to-violet-600 rounded-full" />
             <span className="text-xs font-semibold text-neutral-400 uppercase tracking-[2px]">
               Monitoreo Infraestructura
             </span>
@@ -197,10 +197,10 @@ export default function ServerStatsSection() {
               icon: HardDrive,
             },
           ].map((kpi, i) => (
-            <div key={i} className="bg-neutral-900/60 border border-neutral-800/60 rounded-lg p-5 hover:border-purple-500/30 transition-colors duration-200 group">
+            <div key={i} className="bg-neutral-900/60 border border-neutral-800/60 rounded-lg p-5 hover:border-violet-500/30 transition-colors duration-200 group">
               <div className="flex items-center gap-4">
-                <div className="p-3 rounded-lg bg-purple-500/10 group-hover:bg-purple-500/20 transition-colors">
-                  <kpi.icon className="w-5 h-5 text-purple-400" />
+                <div className="p-3 rounded-lg bg-violet-500/10 group-hover:bg-violet-500/20 transition-colors">
+                  <kpi.icon className="w-5 h-5 text-violet-400" />
                 </div>
                 <div>
                   <div className="text-xs text-neutral-500 uppercase tracking-wide font-medium">{kpi.label}</div>
@@ -221,7 +221,7 @@ export default function ServerStatsSection() {
               className={`group relative overflow-visible rounded-xl border bg-neutral-900/50 hover:transition-colors duration-200 p-6 ${
                 isSaturated 
                   ? "border-rose-500 hover:border-rose-400" 
-                  : "border-neutral-800/60 hover:border-purple-500/30"
+                  : "border-neutral-800/60 hover:border-violet-500/30"
               }`}
             >
               {/* Etiqueta SATURADO - Posicionada en el borde */}
@@ -267,9 +267,9 @@ export default function ServerStatsSection() {
                     <p className="text-xs text-neutral-500 mb-1">Usuarios Conectados</p>
                     <p className="text-xl font-bold text-white">{server.connectedUsers}</p>
                   </div>
-                  <div className="bg-purple-500/10 rounded-lg p-3 hover:bg-purple-500/20 transition-colors duration-200 border border-purple-500/10">
+                  <div className="bg-violet-500/10 rounded-lg p-3 hover:bg-violet-500/20 transition-colors duration-200 border border-violet-500/10">
                     <p className="text-xs text-neutral-500 mb-1">Total Registrados</p>
-                    <p className="text-xl font-bold text-purple-300">{server.totalUsuarios || 0}</p>
+                    <p className="text-xl font-bold text-violet-300">{server.totalUsuarios || 0}</p>
                   </div>
                 </div>
               </div>

@@ -14,7 +14,7 @@ export function ModeSelector({ mode, onSelectCompra, onSelectRenovacion }: ModeS
         onClick={onSelectCompra}
         className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-colors border ${
           mode === "compra"
-            ? "bg-purple-600 text-white border-purple-500"
+            ? "bg-violet-600 text-white border-violet-500"
             : "bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-700"
         }`}
       >
@@ -24,7 +24,7 @@ export function ModeSelector({ mode, onSelectCompra, onSelectRenovacion }: ModeS
         onClick={onSelectRenovacion}
         className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-colors border inline-flex items-center justify-center gap-2 ${
           mode === "renovacion"
-            ? "bg-purple-600 text-white border-purple-500"
+            ? "bg-violet-600 text-white border-violet-500"
             : "bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-700"
         }`}
       >

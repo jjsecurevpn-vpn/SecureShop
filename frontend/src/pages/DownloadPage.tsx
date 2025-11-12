@@ -51,7 +51,7 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Tamaño</span>
-              <span className="font-medium text-purple-300">25.4 MB</span>
+              <span className="font-medium text-violet-300">25.4 MB</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Rating</span>
@@ -75,7 +75,7 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
 
             <h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-white mb-6 text-center lg:text-left">
               Descarga JJSecure
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-purple-300 to-emerald-400">
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-violet-300 to-emerald-400">
                 VPN para Android
               </span>
             </h1>
@@ -145,7 +145,7 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
               </div>
               <div className="bg-white/5 border border-white/10 rounded-xl p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <BarChart3 className="w-5 h-5 text-purple-300" />
+                  <BarChart3 className="w-5 h-5 text-violet-300" />
                   <h3 className="font-semibold">Estadísticas</h3>
                 </div>
                 <div className="space-y-3 text-sm text-gray-400">
@@ -171,13 +171,13 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
             id="caracteristicas"
             className={`mb-12 scroll-mt-24 ${
               activeSection === "caracteristicas"
-                ? "ring-2 ring-purple-400 bg-purple-900/10 rounded-xl p-4"
+                ? "ring-2 ring-violet-400 bg-violet-900/10 rounded-xl p-4"
                 : ""
             }`}
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded bg-purple-900/20 flex items-center justify-center border border-purple-400/30">
-                <Wifi className="w-4 h-4 text-purple-300" />
+              <div className="w-8 h-8 rounded bg-violet-900/20 flex items-center justify-center border border-violet-400/30">
+                <Wifi className="w-4 h-4 text-violet-300" />
               </div>
               <h2 className="text-xl font-semibold">Características Principales</h2>
             </div>
@@ -187,7 +187,7 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
                   icon: <Shield className="w-5 h-5" />,
                   title: "Encriptación AES-256",
                   desc: "Protección de nivel militar para todos tus datos.",
-                  color: "purple",
+                  color: "violet",
                 },
                 {
                   icon: <Zap className="w-5 h-5" />,
@@ -199,7 +199,7 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
                   icon: <Globe className="w-5 h-5" />,
                   title: "Acceso Global",
                   desc: "Más de 100 servidores en 50+ países alrededor del mundo.",
-                  color: "purple",
+                  color: "violet",
                 },
                 {
                   icon: <Lock className="w-5 h-5" />,
@@ -229,13 +229,13 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
             id="compatibilidad"
             className={`mb-12 scroll-mt-24 ${
               activeSection === "compatibilidad"
-                ? "ring-2 ring-purple-400 bg-purple-900/10 rounded-xl p-4"
+                ? "ring-2 ring-violet-400 bg-violet-900/10 rounded-xl p-4"
                 : ""
             }`}
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded bg-purple-900/20 flex items-center justify-center border border-purple-400/30">
-                <Smartphone className="w-4 h-4 text-purple-300" />
+              <div className="w-8 h-8 rounded bg-violet-900/20 flex items-center justify-center border border-violet-400/30">
+                <Smartphone className="w-4 h-4 text-violet-300" />
               </div>
               <h2 className="text-xl font-semibold">Compatibilidad</h2>
             </div>
@@ -251,8 +251,8 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded bg-purple-900/20 flex items-center justify-center border border-purple-400/30">
-                    <Users className="w-5 h-5 text-purple-300" />
+                  <div className="w-10 h-10 rounded bg-violet-900/20 flex items-center justify-center border border-violet-400/30">
+                    <Users className="w-5 h-5 text-violet-300" />
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Múltiples Dispositivos</h3>
@@ -294,7 +294,7 @@ const DownloadPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: DownloadPagePro
                 <p className="text-sm text-gray-400">Servidores confiables y disponibles 24/7.</p>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-xl p-6 text-center">
-                <div className="text-3xl font-bold text-purple-300 mb-2">~50ms</div>
+                <div className="text-3xl font-bold text-violet-300 mb-2">~50ms</div>
                 <h3 className="font-semibold mb-2">Latencia</h3>
                 <p className="text-sm text-gray-400">Conexiones rápidas sin lag perceptible.</p>
               </div>

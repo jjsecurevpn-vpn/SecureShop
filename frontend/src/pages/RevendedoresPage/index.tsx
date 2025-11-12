@@ -358,8 +358,8 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
         label: "Renovación",
         subtitle: "Renueva tu plan actual",
         icon: (
-          <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
-            <RefreshCw className="w-2.5 h-2.5 text-purple-400" />
+          <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center">
+            <RefreshCw className="w-2.5 h-2.5 text-violet-400" />
           </div>
         ),
         scrollId: "plan-renovacion",
@@ -403,8 +403,8 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
                 : `${extractUsersFromName(plan.nombre)} usuarios`,
             subtitle: plan.account_type === "credit" ? "Sistema de créditos" : "30 días",
             icon: (
-              <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-purple-400" />
+              <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-violet-400" />
               </div>
             ),
             isPlan: true,

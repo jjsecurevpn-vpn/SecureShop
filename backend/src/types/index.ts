@@ -364,6 +364,16 @@ export interface AppConfig {
     max: number;
   };
   logLevel: string;
+  renovaciones: RenovacionAutoRetryConfig;
+}
+
+export interface RenovacionAutoRetryConfig {
+  enabled: boolean;
+  intervalMs: number;
+  initialDelayMs: number;
+  minPendingAgeMinutes: number;
+  batchSize: number;
+  maxAttempts?: number;
 }
 
 // ============================================

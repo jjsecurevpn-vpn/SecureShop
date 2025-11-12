@@ -46,11 +46,20 @@ export const config: AppConfig = {
   cors: {
     origin: process.env.CORS_ORIGIN || "http://localhost:3000",
   },
-
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000", 10), // 15 minutos
     max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "500", 10), // 500 solicitudes por ventana
   },
 
   logLevel: process.env.LOG_LEVEL || "info",
+  renovaciones: {
+    enabled: (process.env.RENOVACIONES_AUTORETRY_ENABLED || "true").toLowerCase() !== "false",
+    intervalMs: parseInt(process.env.RENOVACIONES_RETRY_INTERVAL_MS || "300000", 10),
+    initialDelayMs: parseInt(process.env.RENOVACIONES_RETRY_INITIAL_DELAY_MS || "120000", 10),
+    minPendingAgeMinutes: parseInt(process.env.RENOVACIONES_RETRY_MIN_PENDING_MINUTES || "5", 10),
+    batchSize: parseInt(process.env.RENOVACIONES_RETRY_BATCH_SIZE || "10", 10),
+    maxAttempts: process.env.RENOVACIONES_RETRY_MAX_ATTEMPTS
+      ? parseInt(process.env.RENOVACIONES_RETRY_MAX_ATTEMPTS, 10)
+      : undefined,
+  },
 };

@@ -277,7 +277,7 @@ const CheckoutRenovacionPage: React.FC = () => {
                           setNombre(event.target.value);
                           setError("");
                         }}
-                        className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                        className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                         placeholder="Juan Pérez"
                       />
                     </div>
@@ -294,12 +294,12 @@ const CheckoutRenovacionPage: React.FC = () => {
                           setEmail(event.target.value);
                           setError("");
                         }}
-                        className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                        className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
                         placeholder="tu@email.com"
                       />
                     </div>
                     <p className="text-neutral-500 text-xs mt-2 flex items-center gap-1.5">
-                      <Shield className="w-3.5 h-3.5 text-purple-400" />
+                      <Shield className="w-3.5 h-3.5 text-violet-400" />
                       Te enviaremos la confirmación de la renovación a este correo
                     </p>
                   </div>
@@ -327,8 +327,8 @@ const CheckoutRenovacionPage: React.FC = () => {
                         <p className="text-xs text-neutral-500 mt-1">Plan actual: {planNombre}</p>
                       )}
                     </div>
-                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-                      <RefreshCw className="w-5 h-5 text-purple-400" />
+                    <div className="w-10 h-10 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+                      <RefreshCw className="w-5 h-5 text-violet-400" />
                     </div>
                   </div>
 
@@ -351,7 +351,7 @@ const CheckoutRenovacionPage: React.FC = () => {
                           {connectionDestino || connectionActual} dispositivos
                         </p>
                         {hayCambioDispositivos ? (
-                          <p className="text-[11px] text-purple-300 mt-1">
+                          <p className="text-[11px] text-violet-300 mt-1">
                             Upgrade desde {connectionActual} dispositivos
                           </p>
                         ) : (
@@ -432,7 +432,7 @@ const CheckoutRenovacionPage: React.FC = () => {
 
                     <div className="flex justify-between items-baseline">
                       <span className="text-neutral-300 font-semibold">Total a pagar</span>
-                      <span className="text-3xl font-bold text-purple-400">
+                      <span className="text-3xl font-bold text-violet-400">
                         ${precio.toLocaleString("es-AR")}
                       </span>
                     </div>
@@ -458,7 +458,7 @@ const CheckoutRenovacionPage: React.FC = () => {
                   <button
                     onClick={handleFallbackPayment}
                     disabled={processingPayment}
-                    className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 disabled:bg-neutral-600 text-white text-sm font-semibold rounded-md transition-colors"
+                    className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 disabled:bg-neutral-600 text-white text-sm font-semibold rounded-md transition-colors"
                   >
                     {processingPayment ? (
                       <span className="flex items-center justify-center gap-2">

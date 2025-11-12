@@ -167,7 +167,7 @@ function TextInput({
       <input
         type={type}
         min={min}
-        className="rounded-lg border border-neutral-700 bg-neutral-850 px-3 py-2 text-white placeholder-neutral-500 transition focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
+        className="rounded-lg border border-neutral-700 bg-neutral-850 px-3 py-2 text-white placeholder-neutral-500 transition focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500/20"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -201,7 +201,7 @@ function SelectInput({
         <p className="text-xs text-neutral-500">{description}</p>
       )}
       <select
-        className="rounded-lg border border-neutral-700 bg-neutral-850 px-3 py-2 text-white transition focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500/20"
+        className="rounded-lg border border-neutral-700 bg-neutral-850 px-3 py-2 text-white transition focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500/20"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
@@ -261,7 +261,7 @@ function SubmitButton({ isLoading }: SubmitButtonProps) {
       <button
         type="submit"
         disabled={isLoading}
-        className="rounded-lg bg-purple-600 px-6 py-2 text-sm font-medium text-white transition hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-lg bg-violet-600 px-6 py-2 text-sm font-medium text-white transition hover:bg-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isLoading ? (
           <>
