@@ -7,7 +7,6 @@ import {
   CrearSponsorPayload,
   ActualizarSponsorPayload,
 } from "../../types";
-import NavigationSidebar from "../../components/NavigationSidebar";
 import {
   OverviewSection,
   CuponesForm,
@@ -16,6 +15,7 @@ import {
   NoticiasSection,
   DescuentosGlobalesSection,
   SponsorsSection,
+  PlanesSection,
 } from "./components";
 import { CuponFormState, PromoConfig, HeroPromoConfig } from "./types";
 
@@ -23,14 +23,6 @@ interface AdminToolsPageProps {
   isMobileMenuOpen?: boolean;
   setIsMobileMenuOpen?: (value: boolean) => void;
 }
-
-const SECTIONS = [
-  { id: "section-overview", label: "Resumen", icon: "📊" },
-  { id: "section-sponsors", label: "Sponsors", icon: "⭐" },
-  { id: "section-cupones", label: "Cupones", icon: "🎫" },
-  { id: "section-noticias", label: "Avisos", icon: "📢" },
-  { id: "section-descuentos-globales", label: "Descuentos", icon: "💰" },
-];
 
 const INITIAL_CUPON_FORM: CuponFormState = {
   codigo: "",
@@ -53,7 +45,6 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
   // Estado de cupones
   const [cupones, setCupones] = useState<Cupon[]>([]);
   const [cuponForm, setCuponForm] = useState<CuponFormState>(INITIAL_CUPON_FORM);
-  const [activeSection, setActiveSection] = useState("section-overview");
   const [loadingCupones, setLoadingCupones] = useState(true);
   const [cuponSuccess, setCuponSuccess] = useState<string | null>(null);
   const [cuponError, setCuponError] = useState<string | null>(null);
@@ -118,13 +109,40 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
   const loadPromoConfigs = async () => {
     try {
       setIsLoadingPromo(true);
-      const [planesConfig, revendedoresConfig] = await Promise.all([
+      const [planesConfig, revendedoresConfig, heroPlanes, heroRevendedores] = await Promise.all([
         apiService.obtenerPromoStatus().catch(() => null),
         apiService.obtenerPromoStatusRevendedores().catch(() => null),
+        apiService.obtenerConfigHero().catch(() => null),
+        apiService.obtenerConfigHeroRevendedores().catch(() => null),
       ]);
 
       setPromoConfigPlanes(planesConfig);
       setPromoConfigRevendedores(revendedoresConfig);
+
+      // Cargar la configuración del hero
+      if (heroPlanes?.promocion) {
+        setHeroPromoPlanes({
+          habilitada: heroPlanes.promocion.habilitada,
+          texto: heroPlanes.promocion.texto,
+          textColor: heroPlanes.promocion.textColor,
+          bgColor: heroPlanes.promocion.bgColor,
+          borderColor: heroPlanes.promocion.borderColor,
+          iconColor: heroPlanes.promocion.iconColor,
+          shadowColor: heroPlanes.promocion.shadowColor,
+        });
+      }
+
+      if (heroRevendedores?.promocion) {
+        setHeroPromoRevendedores({
+          habilitada: heroRevendedores.promocion.habilitada,
+          texto: heroRevendedores.promocion.texto,
+          textColor: heroRevendedores.promocion.textColor,
+          bgColor: heroRevendedores.promocion.bgColor,
+          borderColor: heroRevendedores.promocion.borderColor,
+          iconColor: heroRevendedores.promocion.iconColor,
+          shadowColor: heroRevendedores.promocion.shadowColor,
+        });
+      }
     } catch (error) {
       console.error("Error al cargar configuraciones de promo:", error);
       setPromoError("Error al cargar descuentos globales");
@@ -391,6 +409,9 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
       }
 
       setPromoSuccess("Texto de promoción guardado");
+      // Notificar a otras páginas que se actualizó la configuración
+      // pero no recargar en AdminTools para mantener el estado de edición
+      window.dispatchEvent(new Event("hero-config-saved"));
     } catch (error) {
       console.error("Error al guardar texto de promoción:", error);
       setPromoError("Error al guardar texto");
@@ -458,16 +479,7 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
 
   return (
     <div className="min-h-screen text-white">
-      <NavigationSidebar
-        title="Panel de Administración"
-        subtitle="Gestiona cupones, avisos y descuentos"
-        sections={SECTIONS}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
-        sectionIdPrefix="section-"
-      />
-
-      <main className="md:ml-[312px] pt-16 md:pt-0">
+      <main className="pt-16 md:pt-0 md:ml-14">
         <div className="w-full max-w-6xl mx-auto px-4 py-12">
           {/* Overview Section */}
           <section className="py-16 border-b border-neutral-800">
@@ -479,6 +491,25 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
               numberFormatter={numberFormatter}
               onRefreshCupones={handleRefreshCupones}
             />
+          </section>
+
+          {/* Planes Section */}
+          <section id="section-planes" className="py-16 border-b border-neutral-800">
+            <div className="space-y-6">
+              <h2 className="text-3xl font-bold">Gestionar Planes</h2>
+              
+              {/* Planes normales */}
+              <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
+                <h3 className="text-xl font-semibold mb-4 text-neutral-200">Planes Normales</h3>
+                <PlanesSection tipo="normales" />
+              </div>
+
+              {/* Planes revendedores */}
+              <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
+                <h3 className="text-xl font-semibold mb-4 text-neutral-200">Planes Revendedor</h3>
+                <PlanesSection tipo="revendedores" />
+              </div>
+            </div>
           </section>
 
           {/* Sponsors Section */}

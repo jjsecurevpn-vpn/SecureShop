@@ -6,7 +6,19 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Poppins', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        display: ['Poppins', 'sans-serif'],
+      },
       colors: {
+        neutral: {
+          850: '#1a202c',
+        },
+        proton: {
+          purple: '#6B4EFF',
+          darkPurple: '#240053',
+          light: '#F8F7FF',
+        },
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',

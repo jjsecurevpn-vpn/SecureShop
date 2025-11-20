@@ -1,53 +1,92 @@
-import { MessageCircle, Shield, Signal, Users } from "lucide-react";
+import { MessageCircle, Signal } from "lucide-react";
 import { PlanStatsConfig } from "../types";
+import Lottie from "lottie-react";
+import heroAnimation from "../../../assets/lottie/planes-hero.json";
 
 interface HeroSectionProps {
   config?: PlanStatsConfig | null;
-  totalUsers: number;
-  onlineServers: number;
+  modoSeleccion: "compra" | "renovacion";
+  onActivarModoCompra: () => void;
+  onActivarModoRenovacion: () => void;
 }
 
-export function HeroSection({ config, totalUsers, onlineServers }: HeroSectionProps) {
+export function HeroSection({ config, modoSeleccion, onActivarModoCompra, onActivarModoRenovacion }: HeroSectionProps) {
   const stats = [
     { value: "99.9%", label: "Uptime", icon: Signal },
     { value: "24/7", label: "Soporte", icon: MessageCircle },
-    { value: totalUsers > 0 ? `${totalUsers}+` : "—", label: "Usuarios", icon: Users },
-    { value: onlineServers > 0 ? onlineServers.toString() : "—", label: "Servidores", icon: Shield },
   ];
 
   return (
-    <section className="pt-6 pb-16 md:pt-16 md:pb-20 border-b border-neutral-800">
-      <div className="max-w-4xl mx-auto px-6 md:px-8">
+    <section className="bg-gradient-to-b from-purple-200/50 via-purple-50/30 to-white py-8 sm:py-12 lg:py-16 xl:py-20">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 text-center">
         {config?.promocion?.habilitada && config.promocion.texto && (
-          <div className="mb-8">
-            <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg px-3 py-1.5 text-xs font-medium">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
-              {config.promocion.texto}
-            </div>
-          </div>
+          <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-indigo-700 font-semibold mb-6">
+            {config.promocion.texto}
+          </p>
         )}
 
-        <h1 className="text-5xl md:text-6xl font-bold text-neutral-50 mb-4">
-          {config?.titulo || "Planes VPN Premium"}
-        </h1>
+        <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-[11px] uppercase tracking-[0.3em] text-indigo-700 mb-6">
+          <span>Planes VPN</span>
+        </div>
 
-        <p className="text-lg text-neutral-400 mb-12 max-w-2xl">
-          {config?.descripcion || "Conecta de forma segura y privada. Elige el plan perfecto para ti."}
-        </p>
+        <div className="space-y-4">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900">
+            {config?.titulo || "Planes VPN"}
+          </h1>
+          <p className="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-600">
+            {config?.descripcion ||
+              "Selecciona la duración y cantidad de dispositivos que necesitas. Sin sorpresas, sin compromisos ocultos."}
+          </p>
+        </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {stats.map((stat, index) => {
+        {/* Toggle Compra/Renovación */}
+        <div className="flex justify-center mt-8 mb-12">
+          <div className="inline-flex items-center gap-2 bg-gray-100 rounded-full p-1">
+            <button
+              onClick={onActivarModoCompra}
+              className={`px-6 py-2 rounded-full font-medium transition ${
+                modoSeleccion === "compra"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Comprar
+            </button>
+            <button
+              onClick={onActivarModoRenovacion}
+              className={`px-6 py-2 rounded-full font-medium transition ${
+                modoSeleccion === "renovacion"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Renovar
+            </button>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 max-w-2xl mx-auto">
+          {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <div key={index} className="p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Icon className="w-4 h-4 text-neutral-400" />
-                  <span className="text-2xl font-bold text-neutral-50">{stat.value}</span>
-                </div>
-                <p className="text-xs text-neutral-500">{stat.label}</p>
+              <div
+                key={stat.label}
+                className="rounded-lg bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10"
+              >
+                <Icon className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14 text-indigo-600 mx-auto mb-4" />
+                <p className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">{stat.label}</p>
               </div>
             );
           })}
+        </div>
+
+        {/* Lottie Animation */}
+        <div className="flex items-center justify-center mt-8 sm:mt-10 lg:mt-12 xl:mt-16 w-full">
+          <div className="w-full max-w-sm mx-auto">
+            <Lottie animationData={heroAnimation as unknown as object} loop autoplay />
+          </div>
         </div>
       </div>
     </section>

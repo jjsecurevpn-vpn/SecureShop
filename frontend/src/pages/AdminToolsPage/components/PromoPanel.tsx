@@ -125,17 +125,36 @@ export function PromoPanel({
       {/* Texto del hero */}
       <div className="pt-2 border-t border-neutral-700">
         <label className="block text-xs font-semibold text-neutral-300 mb-2">Texto del hero</label>
-        <input
-          type="text"
-          className="w-full rounded-lg border border-neutral-700 bg-neutral-850 px-3 py-2 text-sm text-white placeholder-neutral-500 transition focus:border-violet-500 focus:outline-none"
-          value={heroPromo?.texto || ""}
-          onChange={(e) => onTextoChange(e.target.value)}
-          placeholder="Ej: 20% OFF en todos los planes"
-        />
+        <div className="mb-2">
+          <input
+            type="text"
+            className="w-full rounded-lg border border-neutral-700 bg-neutral-850 px-3 py-2 text-sm text-white placeholder-neutral-500 transition focus:border-violet-500 focus:outline-none"
+            value={heroPromo?.texto || ""}
+            onChange={(e) => onTextoChange(e.target.value)}
+            placeholder="Ej: DESCUENTO 20%"
+          />
+          {/* Preview */}
+          {heroPromo?.texto && (
+            <div className="mt-2 p-2 rounded-lg bg-neutral-800/50 border border-neutral-700">
+              <p className="text-xs text-neutral-300">
+                {heroPromo.texto.split(/(\d+%)/g).map((part, idx) => {
+                  if (part.match(/\d+%/)) {
+                    return (
+                      <span key={idx} style={{backgroundColor: '#fbbf24', color: '#059669', fontWeight: 'bold', padding: '2px 4px', borderRadius: '3px'}}>
+                        {part}
+                      </span>
+                    );
+                  }
+                  return part;
+                })}
+              </p>
+            </div>
+          )}
+        </div>
         <button
           onClick={onGuardarTexto}
           disabled={isSaving}
-          className="w-full mt-2 rounded-lg bg-neutral-700 px-3 py-1 text-xs font-medium text-neutral-200 transition hover:bg-neutral-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full rounded-lg bg-neutral-700 px-3 py-1 text-xs font-medium text-neutral-200 transition hover:bg-neutral-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSaving ? "Guardando..." : "Guardar texto"}
         </button>

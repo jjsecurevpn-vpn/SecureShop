@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 interface ServerStat {
+  serverId?: number;
   serverName: string;
   location: string;
   status: "online" | "offline";

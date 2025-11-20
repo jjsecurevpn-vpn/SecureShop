@@ -185,76 +185,71 @@ export class ServexService {
         "[Servex] ⚠️ La API no devolvió el objeto reseller, buscando por username..."
       );
 
-      try {
-        // Esperar 1 segundo para que Servex procese la creación
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Buscar el revendedor recién creado (reintentar 3 veces)
+      for (let intento = 1; intento <= 3; intento++) {
+        try {
+          // Esperar antes de reintentar (más tiempo en reintentos posteriores)
+          const delay = intento === 1 ? 500 : 1000 * intento;
+          await new Promise((resolve) => setTimeout(resolve, delay));
 
-        // Buscar el revendedor recién creado
-        console.log(
-          "[Servex] Buscando revendedor con username:",
-          revendedorData.username
-        );
-        const searchResponse = await this.client.get("/resellers", {
-          params: {
-            search: revendedorData.username,
-            limit: 1,
-          },
-        });
-
-        console.log(
-          "[Servex] Respuesta de búsqueda:",
-          JSON.stringify(searchResponse.data, null, 2)
-        );
-
-        if (searchResponse.data.data && searchResponse.data.data.length > 0) {
-          const revendedor = searchResponse.data.data[0];
           console.log(
-            "[Servex] ✅ Revendedor encontrado con ID:",
-            revendedor.id
+            `[Servex] Intento ${intento} de búsqueda del revendedor por username: ${revendedorData.username}`
           );
-          return {
-            id: revendedor.id,
-            name: revendedor.name || revendedorData.name,
-            username: revendedor.username,
-            max_users: revendedor.max_users,
-            account_type: revendedor.account_type,
-            expiration_date: revendedor.expiration_date,
-            category_ids:
-              revendedor.category_ids || revendedorData.category_ids,
-            status: revendedor.status || "active",
-            created_at: revendedor.created_at || new Date().toISOString(),
-            obs: revendedor.obs,
-          };
-        } else {
-          console.warn("[Servex] ⚠️ La búsqueda no devolvió resultados");
+          const searchResponse = await this.client.get("/resellers", {
+            params: {
+              search: revendedorData.username,
+              scope: "todos",
+              limit: 10,
+            },
+          });
+
+          // Intentar parse con ambas claves posibles (resellers o data)
+          const lista = searchResponse.data?.resellers || searchResponse.data?.data || [];
+          console.log(
+            `[Servex] Búsqueda intento ${intento}: ${lista.length} revendedores encontrados`
+          );
+
+          if (lista.length > 0) {
+            const revendedor = lista.find((r: any) => r.username === revendedorData.username) || lista[0];
+            
+            if (revendedor && revendedor.id) {
+              console.log(
+                "[Servex] ✅ Revendedor encontrado con ID:",
+                revendedor.id
+              );
+              return {
+                id: revendedor.id,
+                name: revendedor.name || revendedorData.name,
+                username: revendedor.username,
+                max_users: revendedor.max_users,
+                account_type: revendedor.account_type,
+                expiration_date: revendedor.expiration_date,
+                category_ids:
+                  revendedor.category_ids || revendedorData.category_ids,
+                status: revendedor.status || "active",
+                created_at: revendedor.created_at || new Date().toISOString(),
+                obs: revendedor.obs,
+              };
+            }
+          }
+        } catch (searchError: any) {
+          console.error(
+            `[Servex] ❌ Intento ${intento} fallido, error:`,
+            searchError.message
+          );
+          if (intento === 3) {
+            console.error(
+              "[Servex] ❌ Error completo después de 3 intentos:",
+              JSON.stringify(searchError.response?.data || searchError, null, 2)
+            );
+          }
         }
-      } catch (searchError: any) {
-        console.error(
-          "[Servex] ❌ Error buscando revendedor:",
-          searchError.message
-        );
-        console.error(
-          "[Servex] ❌ Error completo:",
-          JSON.stringify(searchError.response?.data || searchError, null, 2)
-        );
       }
 
-      // Fallback: construir manualmente sin ID (último recurso)
-      console.warn(
-        "[Servex] ⚠️ No se pudo obtener el ID del revendedor, usando ID temporal"
-      );
-      return {
-        id: 0, // ID temporal
-        name: revendedorData.name,
-        username: revendedorData.username,
-        max_users: revendedorData.max_users,
-        account_type: revendedorData.account_type,
-        expiration_date: revendedorData.expiration_date,
-        category_ids: revendedorData.category_ids,
-        status: "active",
-        created_at: new Date().toISOString(),
-        obs: revendedorData.obs,
-      };
+      // NO retornar ID temporal: lanzar error en su lugar
+      const errorMsg = `No se pudo obtener el ID del revendedor ${revendedorData.username} después de 3 reintentos. El revendedor fue creado en Servex pero no se puede recuperar su ID. Por favor, contacte al administrador.`;
+      console.error("[Servex] ❌", errorMsg);
+      throw new Error(errorMsg);
     } catch (error: any) {
       const mensaje =
         error.response?.data?.message ||

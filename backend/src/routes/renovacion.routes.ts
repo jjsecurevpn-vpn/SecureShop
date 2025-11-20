@@ -20,9 +20,10 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
         });
       }
 
-      // Si tipo=cliente, solo busca clientes
+      // Si tipo=cliente, solo busca clientes; si tipo=revendedor, solo busca revendedores
       const soloClientes = tipo === 'cliente';
-      const resultado = await renovacionService.buscarCliente(busqueda.trim(), soloClientes);
+      const soloRevendedores = tipo === 'revendedor';
+      const resultado = await renovacionService.buscarCliente(busqueda.trim(), soloClientes, soloRevendedores);
 
       return res.json(resultado);
     } catch (error: any) {
@@ -92,7 +93,20 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
    */
   router.post('/revendedor', async (req: Request, res: Response) => {
     try {
-      const { busqueda, dias, clienteEmail, clienteNombre, tipoRenovacion, cantidadSeleccionada } = req.body;
+      const {
+        busqueda,
+        dias,
+        clienteEmail,
+        clienteNombre,
+        tipoRenovacion,
+        cantidadSeleccionada,
+        precio,
+        precioOriginal,
+        codigoCupon,
+        cuponId,
+        descuentoAplicado,
+        planId,
+      } = req.body;
 
       // Validaciones
       if (!busqueda || typeof busqueda !== 'string') {
@@ -108,13 +122,56 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
         return res.status(400).json({ error: 'El campo "clienteNombre" es requerido' });
       }
 
+      const parsedCantidad = cantidadSeleccionada !== undefined && cantidadSeleccionada !== null && cantidadSeleccionada !== ''
+        ? Number(cantidadSeleccionada)
+        : undefined;
+      const parsedPrecio = precio !== undefined && precio !== null && precio !== '' ? Number(precio) : undefined;
+      const parsedPrecioOriginal = precioOriginal !== undefined && precioOriginal !== null && precioOriginal !== ''
+        ? Number(precioOriginal)
+        : undefined;
+      const parsedCuponId = cuponId !== undefined && cuponId !== null && cuponId !== '' ? Number(cuponId) : undefined;
+      const parsedDescuento = descuentoAplicado !== undefined && descuentoAplicado !== null && descuentoAplicado !== ''
+        ? Number(descuentoAplicado)
+        : undefined;
+      const parsedPlanId = planId !== undefined && planId !== null && planId !== '' ? Number(planId) : undefined;
+
+      if (parsedCantidad !== undefined && Number.isNaN(parsedCantidad)) {
+        return res.status(400).json({ error: 'El campo "cantidadSeleccionada" es inválido' });
+      }
+
+      if (parsedPrecio !== undefined && Number.isNaN(parsedPrecio)) {
+        return res.status(400).json({ error: 'El campo "precio" es inválido' });
+      }
+
+      if (parsedPrecioOriginal !== undefined && Number.isNaN(parsedPrecioOriginal)) {
+        return res.status(400).json({ error: 'El campo "precioOriginal" es inválido' });
+      }
+
+      if (parsedCuponId !== undefined && Number.isNaN(parsedCuponId)) {
+        return res.status(400).json({ error: 'El campo "cuponId" es inválido' });
+      }
+
+      if (parsedDescuento !== undefined && Number.isNaN(parsedDescuento)) {
+        return res.status(400).json({ error: 'El campo "descuentoAplicado" es inválido' });
+      }
+
+      if (parsedPlanId !== undefined && Number.isNaN(parsedPlanId)) {
+        return res.status(400).json({ error: 'El campo "planId" es inválido' });
+      }
+
       const resultado = await renovacionService.procesarRenovacionRevendedor({
         busqueda: busqueda.trim(),
         dias,
         clienteEmail: clienteEmail.trim(),
         clienteNombre: clienteNombre.trim(),
         tipoRenovacion: tipoRenovacion || 'validity',
-        cantidadSeleccionada: cantidadSeleccionada ? Number(cantidadSeleccionada) : undefined
+        cantidadSeleccionada: parsedCantidad,
+        precio: parsedPrecio,
+        precioOriginal: parsedPrecioOriginal,
+        codigoCupon: typeof codigoCupon === 'string' ? codigoCupon : undefined,
+        cuponId: parsedCuponId,
+        descuentoAplicado: parsedDescuento,
+        planId: parsedPlanId,
       });
 
       return res.json(resultado);
@@ -164,26 +221,46 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
         return res.redirect(`/?error=renovacion-no-encontrada`);
       }
 
-      // Obtener información actualizada del cliente desde Servex para la fecha de expiración
+      // Obtener información actualizada desde Servex para mostrar expiración/limites
       let fechaExpiracion = 'N/A';
+      let usuariosActuales = '';
+      let creditosActuales = '';
       try {
-        const clienteActualizado = await renovacionService.obtenerClienteActualizado(renovacion.servex_username);
-        if (clienteActualizado?.expiration_date) {
-          fechaExpiracion = clienteActualizado.expiration_date;
+        if (renovacion.tipo === 'revendedor') {
+          const revendedorActualizado = await renovacionService.obtenerRevendedorActualizado(renovacion.servex_username);
+          if (revendedorActualizado) {
+            if (revendedorActualizado.expiration_date) {
+              fechaExpiracion = revendedorActualizado.expiration_date;
+            }
+            if (revendedorActualizado.account_type === 'credit') {
+              creditosActuales = String(revendedorActualizado.max_users ?? '');
+            } else {
+              usuariosActuales = String(revendedorActualizado.max_users ?? '');
+            }
+          }
+        } else {
+          const clienteActualizado = await renovacionService.obtenerClienteActualizado(renovacion.servex_username);
+          if (clienteActualizado?.expiration_date) {
+            fechaExpiracion = clienteActualizado.expiration_date;
+          }
         }
       } catch (error) {
-        console.error('[Renovacion API] Error obteniendo fecha de expiración:', error);
+        console.error('[Renovacion API] Error obteniendo información de expiración:', error);
       }
+
+      const datosNuevos = renovacion.datos_nuevos ? JSON.parse(renovacion.datos_nuevos) : null;
 
       // Redirigir a la página de éxito con parámetros de renovación
       const params = new URLSearchParams({
         pago_id: renovacionId.toString(),
         renovacion: 'true',
+        tipo: renovacion.tipo,
         username: renovacion.servex_username,
         dias: renovacion.dias_agregados.toString(),
         operacion: renovacion.operacion,
         monto: renovacion.monto.toString(),
-        connection_limit: renovacion.datos_nuevos ? JSON.parse(renovacion.datos_nuevos).connection_limit : '',
+        connection_limit: datosNuevos?.connection_limit || usuariosActuales,
+        creditos: datosNuevos?.cantidad && datosNuevos?.tipo_renovacion === 'credit' ? String(datosNuevos.cantidad) : creditosActuales,
         email: renovacion.cliente_email || '',
         fecha_expiracion: fechaExpiracion
       });
@@ -225,7 +302,7 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
       }
 
       // Forzar ejecución
-      await renovacionService.confirmarRenovacion(renovacionId, renovacion.mp_payment_id || 'MANUAL');
+      await renovacionService.confirmarRenovacion(renovacionId, renovacion.mp_payment_id || `ADMIN-FORCE-${renovacionId}`);
       
       return res.json({
         success: true,
@@ -238,6 +315,50 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
         error: error.message
       });
     }
+  });
+
+  /**
+   * GET /api/renovacion/failure
+   * Página de fallo después del pago de renovación
+   */
+  router.get('/failure', (req: Request, res: Response) => {
+    const { external_reference, tipo, reason } = req.query;
+    res.redirect(
+      `${
+        process.env.CORS_ORIGIN || "http://localhost:3000"
+      }/error?code=PAYMENT_REJECTED&pago_id=${external_reference}&tipo=${
+        tipo || "cliente"
+      }&operacion=renovacion${reason ? `&message=${encodeURIComponent(reason as string)}` : ""}`
+    );
+  });
+
+  /**
+   * GET /api/renovacion/pending
+   * Página de pago pendiente de renovación
+   */
+  router.get('/pending', (req: Request, res: Response) => {
+    const { external_reference, tipo } = req.query;
+
+    res.redirect(
+      `${
+        process.env.CORS_ORIGIN || "http://localhost:3000"
+      }/error?code=PAYMENT_PENDING&pago_id=${external_reference}&tipo=${tipo || "cliente"}&operacion=renovacion`
+    );
+  });
+
+  /**
+   * GET /api/renovacion/error
+   * Ruta genérica para errores de renovación
+   */
+  router.get('/error', (req: Request, res: Response) => {
+    const { external_reference, tipo, message } = req.query;
+    res.redirect(
+      `${
+        process.env.CORS_ORIGIN || "http://localhost:3000"
+      }/error?code=PAYMENT_ERROR&pago_id=${external_reference}&tipo=${
+        tipo || "cliente"
+      }&operacion=renovacion${message ? `&message=${encodeURIComponent(message as string)}` : ""}`
+    );
   });
 
   return router;

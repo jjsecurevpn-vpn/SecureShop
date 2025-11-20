@@ -1,21 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 import DemoModal from "../../components/DemoModal";
-import NavigationSidebar from "../../components/NavigationSidebar";
-import { PromoTimer } from "../../components/PromoTimer";
+import { PromoHeader } from "../../components/PromoHeader";
 import { Plan } from "../../types";
 import { apiService } from "../../services/api.service";
 import type { ValidacionCupon } from "../../services/api.service";
 import { useServerStats } from "../../hooks/useServerStats";
-import { useHeroConfig } from "../../hooks/useHeroConfig";
-import { HeroSection } from "./components/HeroSection";
-import { BenefitsSection } from "./components/BenefitsSection";
-import { ModeSelector } from "./components/ModeSelector";
-import { PlanSelector } from "./components/PlanSelector";
 import { RenovacionPanel } from "./components/RenovacionPanel";
 import { SupportSection } from "./components/SupportSection";
-import { MobileMenu } from "./components/MobileMenu";
-import { PLAN_SECTIONS } from "./constants";
+import { BenefitsSection } from "./components/BenefitsSection";
+import { HeroSection } from "./components/HeroSection";
 import {
   calcularPrecioDiario,
   calcularPrecioRenovacion,
@@ -30,14 +25,13 @@ import {
 import { CuentaRenovacion, ModoSeleccion, PasoRenovacion, PlanesPageProps } from "./types";
 export type { PlanesPageProps } from "./types";
 
-export default function PlanesPage({ isMobileMenuOpen, setIsMobileMenuOpen }: PlanesPageProps) {
+export default function PlanesPage({ }: PlanesPageProps) {
   const navigate = useNavigate();
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [modoSeleccion, setModoSeleccion] = useState<ModoSeleccion>("compra");
   const [isDemoOpen, setIsDemoOpen] = useState(false);
   const [diasSeleccionados, setDiasSeleccionados] = useState(30);
   const [dispositivosSeleccionados, setDispositivosSeleccionados] = useState(1);
-  const [activeSection, setActiveSection] = useState("selector");
 
   const [pasoRenovacion, setPasoRenovacion] = useState<PasoRenovacion>("buscar");
   const [busquedaCuenta, setBusquedaCuenta] = useState("");
@@ -52,8 +46,7 @@ export default function PlanesPage({ isMobileMenuOpen, setIsMobileMenuOpen }: Pl
   const [cuponRenovacion, setCuponRenovacion] = useState<ValidacionCupon["cupon"] | null>(null);
   const [descuentoRenovacion, setDescuentoRenovacion] = useState(0);
 
-  const { totalUsers, onlineServers } = useServerStats(10000);
-  const { config: heroConfig } = useHeroConfig();
+  useServerStats(10000);
 
   useEffect(() => {
     const cargarPlanes = async () => {
@@ -113,6 +106,19 @@ export default function PlanesPage({ isMobileMenuOpen, setIsMobileMenuOpen }: Pl
     () => puedeProcesarRenovacion(pasoRenovacion, cuentaRenovacion, nombreRenovacion, emailRenovacion),
     [pasoRenovacion, cuentaRenovacion, nombreRenovacion, emailRenovacion]
   );
+
+  const planesDestacados = useMemo(() => {
+    if (!planes.length) return [];
+    const durations = Array.from(new Set(planes.map((plan) => plan.dias))).sort((a, b) => a - b);
+    return durations.slice(0, 3)
+      .map((dias) => {
+        const opciones = planes
+          .filter((plan) => plan.dias === dias)
+          .sort((a, b) => a.precio - b.precio);
+        return opciones[0];
+      })
+      .filter(Boolean) as Plan[];
+  }, [planes]);
 
   const resetRenovacion = () => {
     setPasoRenovacion("buscar");
@@ -243,120 +249,258 @@ export default function PlanesPage({ isMobileMenuOpen, setIsMobileMenuOpen }: Pl
     navigate(`/checkout-renovacion?${params.toString()}`);
   };
 
-  const handleSectionNavigate = (id: string) => {
-    setActiveSection(id);
-    const element = document.getElementById(`section-${id}`);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
-  const handleMobileSection = (sectionId: string) => {
-    handleSectionNavigate(sectionId);
-    setIsMobileMenuOpen(false);
-  };
-
   return (
-    <div className="min-h-screen bg-[#181818]">
-      <NavigationSidebar
-        title="Planes VPN"
-        subtitle="Navega las secciones"
-        sections={PLAN_SECTIONS}
-        activeSection={activeSection}
-        onSectionChange={handleSectionNavigate}
-        sectionIdPrefix="section-"
-      />
-
+    <div className="bg-white text-gray-900">
       <DemoModal isOpen={isDemoOpen} onClose={() => setIsDemoOpen(false)} />
 
-      <main className="md:ml-[312px] pt-16 md:pt-0">
-        <HeroSection config={heroConfig} totalUsers={totalUsers} onlineServers={onlineServers} />
+      <main className={`md:pt-0 md:ml-14`}>
+        {/* Promo Banner Header */}
+        <PromoHeader />
 
-        <BenefitsSection />
+        {/* Hero Section */}
+        <HeroSection 
+          config={null} 
+          modoSeleccion={modoSeleccion} 
+          onActivarModoCompra={activarModoCompra} 
+          onActivarModoRenovacion={activarModoRenovacion} 
+        />
 
-        <section className="py-12 border-b border-neutral-800">
-          <div className="max-w-4xl mx-auto px-6 md:px-8">
-            <PromoTimer />
-          </div>
-        </section>
+        {/* Plans Section */}
+        <section className="py-12 sm:py-16 lg:py-20 xl:py-24 bg-white">
+          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
+            <div className="max-w-7xl mx-auto">
+            {modoSeleccion === "compra" && (
+              <div className="space-y-12">
+                <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+                  <div className="space-y-8">
+                    <div className="rounded-lg bg-purple-50 p-6 sm:p-8 lg:p-10 xl:p-12">
+                      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                          <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-600">Paso 1</p>
+                          <h3 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-semibold text-gray-900">Duración del plan</h3>
+                          <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">Define cuántos días necesitas conexión segura.</p>
+                        </div>
+                        <span className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">Puedes ajustarlo cuando quieras</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {diasDisponibles.map((dias) => (
+                          <button
+                            key={dias}
+                            onClick={() => setDiasSeleccionados(dias)}
+                            className={`rounded-lg border-2 px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400 ${
+                              diasSeleccionados === dias
+                                ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                                : "border-gray-300 bg-white text-gray-900 hover:border-gray-400"
+                            }`}
+                          >
+                            {dias} días
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-        <section id="section-selector" className="py-16 border-b border-neutral-800">
-          <div className="max-w-4xl mx-auto px-6 md:px-8">
-            <div className="space-y-10">
-              <ModeSelector
-                mode={modoSeleccion}
-                onSelectCompra={activarModoCompra}
-                onSelectRenovacion={activarModoRenovacion}
+                    <div className="rounded-lg bg-purple-50 p-6 sm:p-8 lg:p-10 xl:p-12">
+                      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                          <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-600">Paso 2</p>
+                          <h3 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-semibold text-gray-900">Dispositivos simultáneos</h3>
+                          <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">Cambia la cantidad cuando quieras añadir más conexiones.</p>
+                        </div>
+                        <span className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">Ideal para compartir</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                        {dispositivosDisponibles.map((dispositivos) => (
+                          <button
+                            key={dispositivos}
+                            onClick={() => setDispositivosSeleccionados(dispositivos)}
+                            className={`rounded-lg border-2 px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400 ${
+                              dispositivosSeleccionados === dispositivos
+                                ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                                : "border-gray-300 bg-white text-gray-900 hover:border-gray-400"
+                            }`}
+                          >
+                            {dispositivos} {dispositivos === 1 ? "dispositivo" : "dispositivos"}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="mt-4 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
+                        ¿Necesitas más conexiones? Podemos armar planes especiales para equipos o revendedores.
+                      </p>
+                    </div>
+                  </div>
+
+                  <aside className="rounded-lg bg-gradient-to-br from-slate-900/90 via-gray-900/90 to-slate-800/90 p-6 sm:p-8 lg:p-10 xl:p-12 text-white md:p-8 md:sticky md:top-24 md:h-fit">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-indigo-300">
+                      <Sparkles className="h-4 w-4" />
+                      <span>Resumen</span>
+                    </div>
+
+                    <div className="mt-6 space-y-2">
+                      <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-semibold">
+                        {planSeleccionado ? `${planSeleccionado.dias} días` : "Elige tu combinación"}
+                      </h3>
+                      <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-300">
+                        {planSeleccionado
+                          ? `Protección para ${planSeleccionado.connection_limit} ${
+                              planSeleccionado.connection_limit === 1 ? "dispositivo" : "dispositivos"
+                            } con velocidad ilimitada.`
+                          : "Primero selecciona duración y dispositivos para ver el detalle completo."}
+                      </p>
+                    </div>
+
+                    {planSeleccionado ? (
+                      <div className="mt-8 space-y-6">
+                        <div className="rounded-lg bg-white/10 p-4 sm:p-6 lg:p-8 xl:p-10 flex flex-wrap items-center justify-between gap-4">
+                          <div>
+                            <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-300">Pago único</p>
+                            <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-none">${planSeleccionado.precio}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs sm:text-sm lg:text-base xl:text-lg uppercase text-gray-400">Equivale a</p>
+                            <p className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold">${precioPorDiaPlan}/día</p>
+                          </div>
+                        </div>
+
+                        <ul className="space-y-3 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-200">
+                          <li className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 lg:h-2.5 lg:w-2.5 xl:h-3 xl:w-3 rounded-full bg-indigo-400" />
+                            Servidores premium en más de 15 países
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 lg:h-2.5 lg:w-2.5 xl:h-3 xl:w-3 rounded-full bg-indigo-400" />
+                            Cambio ilimitado de ubicaciones
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 lg:h-2.5 lg:w-2.5 xl:h-3 xl:w-3 rounded-full bg-indigo-400" />
+                            Soporte humano 24/7 en español
+                          </li>
+                        </ul>
+
+                        <div className="space-y-3">
+                          <button
+                            onClick={() => planSeleccionado && navigate(`/checkout?planId=${planSeleccionado.id}`)}
+                            className="w-full rounded-lg bg-indigo-600 px-6 py-4 text-base sm:text-lg lg:text-xl xl:text-2xl font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
+                          >
+                            Continuar al pago
+                          </button>
+                          <button
+                            onClick={() => setIsDemoOpen(true)}
+                            className="w-full rounded-lg border border-white/20 px-6 py-4 text-base sm:text-lg lg:text-xl xl:text-2xl font-semibold text-white transition hover:border-white/40"
+                          >
+                            Ver demo en vivo
+                          </button>
+                        </div>
+
+                        <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400">Pago seguro con Mercado Pago, tarjetas internacionales o criptomonedas.</p>
+                      </div>
+                    ) : (
+                      <div className="mt-8 rounded-lg border border-dashed border-white/30 p-6 sm:p-8 lg:p-10 xl:p-12 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-300">
+                        Te mostraremos aquí el resumen con precio y beneficios cuando elijas una combinación.
+                      </div>
+                    )}
+                  </aside>
+                </div>
+
+                {planesDestacados.length > 0 && (
+                  <div className="space-y-6">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-600">¿No sabes qué elegir?</p>
+                        <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-semibold text-gray-900">Nuestros más pedidos</h3>
+                      </div>
+                      <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
+                        Estos planes equilibran precio, duración y cantidad de dispositivos. Ideal para comenzar rápido.
+                      </p>
+                    </div>
+
+                    <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-3">
+                      {planesDestacados.map((planDestacado) => {
+                        const precioPorDiaDestacado = calcularPrecioDiario(planDestacado);
+                        return (
+                          <div
+                            key={`${planDestacado.id}-${planDestacado.dias}-${planDestacado.connection_limit}`}
+                            className="flex h-full flex-col rounded-lg bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-6 sm:p-8 lg:p-10 xl:p-12 transition"
+                          >
+                            <div className="mb-4 flex items-center justify-between">
+                              <div className="inline-flex items-center gap-2 text-sm sm:text-base lg:text-lg xl:text-xl font-semibold text-indigo-600">
+                                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 xl:h-7 xl:w-7" />
+                                {planDestacado.dias} días
+                              </div>
+                              <span className="text-[13px] sm:text-sm lg:text-base xl:text-lg text-gray-600">
+                                Hasta {planDestacado.connection_limit} {planDestacado.connection_limit === 1 ? "dispositivo" : "dispositivos"}
+                              </span>
+                            </div>
+                            <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900">${planDestacado.precio}</p>
+                            <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">${precioPorDiaDestacado}/día</p>
+                            <div className="mt-4 flex-1 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700">
+                              {planDestacado.connection_limit > 1
+                                ? "Perfecto para compartir con familia o amigos."
+                                : "Ideal para uso personal y viajes frecuentes."}
+                            </div>
+                            <button
+                              onClick={() => {
+                                setDiasSeleccionados(planDestacado.dias);
+                                setDispositivosSeleccionados(planDestacado.connection_limit || 1);
+                              }}
+                              className="mt-6 rounded-lg border border-indigo-300 px-4 py-3 text-sm sm:text-base lg:text-lg xl:text-xl font-semibold text-indigo-700 transition hover:bg-indigo-100 hover:border-indigo-500"
+                            >
+                              Usar este plan
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {modoSeleccion === "renovacion" && (
+              <RenovacionPanel
+                pasoRenovacion={pasoRenovacion}
+                busqueda={busquedaCuenta}
+                onBusquedaChange={setBusquedaCuenta}
+                onBuscarCuenta={buscarCuentaRenovacion}
+                buscando={buscandoCuenta}
+                error={errorRenovacion}
+                cuenta={cuentaRenovacion}
+                dias={diasRenovacion}
+                onDiasChange={setDiasRenovacion}
+                dispositivosSeleccionados={dispositivosRenovacion}
+                onDispositivosChange={setDispositivosRenovacion}
+                nombre={nombreRenovacion}
+                onNombreChange={setNombreRenovacion}
+                email={emailRenovacion}
+                onEmailChange={setEmailRenovacion}
+                puedeProcesar={puedeProcesar}
+                procesando={procesandoRenovacion}
+                onProcesar={procesarRenovacion}
+                onCancelar={activarModoCompra}
+                onVolverBuscar={volverABuscarCuenta}
+                connectionActual={connectionActual}
+                connectionDestino={connectionDestino}
+                precioBase={precioRenovacionBase}
+                precioTotal={precioRenovacionFinal}
+                precioPorDia={precioRenovacionPorDia}
+                precioPorDiaBase={precioRenovacionPorDiaBase}
+                descuentoAplicado={descuentoRenovacion}
+                cuponActual={cuponRenovacion}
+                onCuponAplicado={handleCuponRenovacionValidado}
+                onCuponRemovido={handleCuponRenovacionRemovido}
+                planId={planRenovacionSeleccionado?.id}
               />
-
-              {modoSeleccion === "compra" && (
-                <PlanSelector
-                  diasDisponibles={diasDisponibles}
-                  dispositivosDisponibles={dispositivosDisponibles}
-                  diasSeleccionados={diasSeleccionados}
-                  dispositivosSeleccionados={dispositivosSeleccionados}
-                  onSelectDias={setDiasSeleccionados}
-                  onSelectDispositivos={setDispositivosSeleccionados}
-                  planSeleccionado={planSeleccionado}
-                  precioPorDia={precioPorDiaPlan}
-                  onOpenDemo={() => setIsDemoOpen(true)}
-                  onComprar={() => {
-                    if (planSeleccionado) {
-                      navigate(`/checkout?planId=${planSeleccionado.id}`);
-                    }
-                  }}
-                />
-              )}
-
-              {modoSeleccion === "renovacion" && (
-                <RenovacionPanel
-                  pasoRenovacion={pasoRenovacion}
-                  busqueda={busquedaCuenta}
-                  onBusquedaChange={setBusquedaCuenta}
-                  onBuscarCuenta={buscarCuentaRenovacion}
-                  buscando={buscandoCuenta}
-                  error={errorRenovacion}
-                  cuenta={cuentaRenovacion}
-                  dias={diasRenovacion}
-                  onDiasChange={setDiasRenovacion}
-                  dispositivosSeleccionados={dispositivosRenovacion}
-                  onDispositivosChange={setDispositivosRenovacion}
-                  nombre={nombreRenovacion}
-                  onNombreChange={setNombreRenovacion}
-                  email={emailRenovacion}
-                  onEmailChange={setEmailRenovacion}
-                  puedeProcesar={puedeProcesar}
-                  procesando={procesandoRenovacion}
-                  onProcesar={procesarRenovacion}
-                  onCancelar={activarModoCompra}
-                  onVolverBuscar={volverABuscarCuenta}
-                  connectionActual={connectionActual}
-                  connectionDestino={connectionDestino}
-                  precioBase={precioRenovacionBase}
-                  precioTotal={precioRenovacionFinal}
-                  precioPorDia={precioRenovacionPorDia}
-                  precioPorDiaBase={precioRenovacionPorDiaBase}
-                  descuentoAplicado={descuentoRenovacion}
-                  cuponActual={cuponRenovacion}
-                  onCuponAplicado={handleCuponRenovacionValidado}
-                  onCuponRemovido={handleCuponRenovacionRemovido}
-                  planId={planRenovacionSeleccionado?.id}
-                />
-              )}
-            </div>
+            )}
           </div>
+        </div>
         </section>
 
-        <SupportSection />
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
+          <div className="max-w-7xl mx-auto">
+            <BenefitsSection />
+            <SupportSection />
+          </div>
+        </div>
       </main>
-
-      <MobileMenu
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-        sections={PLAN_SECTIONS}
-        activeSection={activeSection}
-        onSelectSection={handleMobileSection}
-      />
     </div>
   );
 }

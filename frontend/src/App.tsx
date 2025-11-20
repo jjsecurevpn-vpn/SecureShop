@@ -1,89 +1,77 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
-import PlanesPage from "./pages/PlanesPage.tsx";
-import RevendedoresPage from "./pages/RevendedoresPage.tsx";
-import AboutPage from "./pages/AboutPage";
+import PlanesPage from "./pages/PlanesPage/index";
+import RevendedoresPage from "./pages/RevendedoresPage";
+import ServersPage from "./pages/ServersPage/index";
+import AboutPage from "./pages/AboutPage/index";
 import SuccessPage from "./pages/SuccessPage";
+import ErrorPage from "./pages/ErrorPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutRevendedorPage from "./pages/CheckoutRevendedorPage";
 import CheckoutRenovacionPage from "./pages/CheckoutRenovacionPage";
 import Header from "./components/Header";
-import MobilePageHeader from "./components/MobilePageHeader";
+import Sidebar from "./components/Sidebar";
 import ScrollToTop from "./components/ScrollToTop";
-import { useState } from "react";
-import AdminToolsPage from "./pages/AdminToolsPage";
+import Footer from "./components/Footer";
+import PageLoading from "./components/PageLoading";
+import { useState, useEffect } from "react";
+import { LoadingProvider, useLoading } from "./contexts/LoadingContext";
+import AdminToolsPage from "./pages/AdminToolsPage/index";
 import DonacionesPage from "./pages/DonacionesPage";
 import DonationSuccessPage from "./pages/DonationSuccessPage";
-import SponsorsPage from "./pages/SponsorsPage";
+import SponsorsPage from "./pages/SponsorsPage/index";
 
-const App = () => {
+const TRANSITION_DURATION = 600;
+
+const AppContent = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const [displayLocation, setDisplayLocation] = useState(location);
+  const { isLoading, setIsLoading } = useLoading();
 
-  const getPageTitle = (pathname: string): string => {
-    switch (pathname) {
-      case "/":
-        return "JJSecure VPN";
-      case "/planes":
-        return "Planes VPN";
-      case "/revendedores":
-        return "Revendedores";
-      case "/sobre-nosotros":
-        return "Sobre Nosotros";
-      case "/checkout":
-        return "Compra VPN";
-      case "/checkout-renovacion":
-        return "Renovación";
-      case "/checkout-revendedor":
-        return "Compra Revendedor";
-      case "/success":
-        return "¡Éxito!";
-      case "/donaciones":
-        return "Donaciones";
-      case "/donaciones/success":
-        return "Gracias";
-      case "/sponsors":
-        return "Sponsors";
-      case "/terminos":
-        return "Términos";
-      case "/privacidad":
-        return "Privacidad";
-      case "/155908348":
-        return "Panel interno";
-      default:
-        return "JJSecure VPN";
+  // Cerrar sidebar al cambiar de ruta
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (location.pathname === displayLocation.pathname) {
+      return;
     }
-  };
 
-  const showMobileHeader = !["/checkout", "/checkout-revendedor", "/checkout-renovacion", "/success", "/donaciones/success"].includes(
-    location.pathname
-  );
+    setIsLoading(true);
+
+    const timeout = setTimeout(() => {
+      setDisplayLocation(location);
+      setIsLoading(false);
+    }, TRANSITION_DURATION);
+
+    return () => clearTimeout(timeout);
+  }, [location, displayLocation, setIsLoading]);
 
   return (
-    <div className="flex flex-col h-screen bg-neutral-900">
+    <div className="flex flex-col min-h-screen bg-neutral-900">
       <ScrollToTop />
-      <Header />
-      {showMobileHeader && (
-        <div className="md:hidden sticky top-0 z-20">
-          <MobilePageHeader
-            title={getPageTitle(location.pathname)}
-            onMenuClick={() => setIsMobileMenuOpen(true)}
-          />
-        </div>
-      )}
-      <div className="flex-1 overflow-y-auto">
-        <main>
-          <Routes>
-          <Route path="/" element={<HomePage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
+      <Header sidebarOpen={sidebarOpen} onSidebarToggle={setSidebarOpen} />
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="flex-1 overflow-y-auto relative">
+        {isLoading && <PageLoading />}
+        {!isLoading && (
+          <main>
+            <Routes location={displayLocation}>
+          <Route path="/" element={<HomePage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/checkout-renovacion" element={<CheckoutRenovacionPage />} />
           <Route path="/checkout-revendedor" element={<CheckoutRevendedorPage />} />
           <Route path="/planes" element={<PlanesPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/revendedores" element={<RevendedoresPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
+          <Route path="/servidores" element={<ServersPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/sobre-nosotros" element={<AboutPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/success" element={<SuccessPage />} />
+          <Route path="/error" element={<ErrorPage />} />
           <Route path="/donaciones" element={<DonacionesPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/donaciones/success" element={<DonationSuccessPage />} />
           <Route path="/sponsors" element={<SponsorsPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
@@ -91,9 +79,19 @@ const App = () => {
           <Route path="/privacidad" element={<PrivacyPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/155908348" element={<AdminToolsPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
         </Routes>
-        </main>
+          </main>
+        )}
       </div>
+      {!isLoading && !location.pathname.startsWith("/checkout") && location.pathname !== "/155908348" && location.pathname !== "/success" && location.pathname !== "/donaciones/success" && <Footer />}
     </div>
+  );
+};
+
+const App = () => {
+  return (
+    <LoadingProvider>
+      <AppContent />
+    </LoadingProvider>
   );
 };
 

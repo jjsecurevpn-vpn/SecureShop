@@ -4,6 +4,7 @@ import {
   ChevronRight,
   Loader2,
   Search,
+  Sparkles,
 } from "lucide-react";
 import {
   DIAS_RENOVACION,
@@ -67,14 +68,12 @@ export function RenovacionPanel({
   puedeProcesar,
   procesando,
   onProcesar,
-  onCancelar,
   onVolverBuscar,
   connectionActual,
   connectionDestino,
   precioBase,
   precioTotal,
   precioPorDia,
-  precioPorDiaBase,
   descuentoAplicado,
   cuponActual,
   onCuponAplicado,
@@ -91,347 +90,297 @@ export function RenovacionPanel({
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-neutral-50">Renovar plan</h2>
-          <p className="text-sm text-neutral-400 mt-2">
-            {pasoRenovacion === "buscar"
-              ? "Busca tu cuenta existente para renovar"
-              : "Personaliza tu renovación antes de confirmar"}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {pasoRenovacion === "configurar" && (
-            <button
-              onClick={onVolverBuscar}
-              className="px-4 py-2 text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
-            >
-              Buscar otra
-            </button>
-          )}
-          <button
-            onClick={onCancelar}
-            className="px-4 py-2 text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
-          >
-            Cerrar
-          </button>
-        </div>
-      </div>
-
-      {/* Progress Steps */}
-      <div className="flex items-center gap-4">
-        {[
-          { num: 1, label: "Buscar", paso: "buscar" as const },
-          { num: 2, label: "Configurar", paso: "configurar" as const },
-        ].map((step, idx) => (
-          <div key={step.paso} className="flex items-center gap-4">
-            <div
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
-                pasoRenovacion === step.paso || (pasoRenovacion === "configurar" && idx === 0)
-                  ? "bg-violet-600 text-white"
-                  : "bg-neutral-800 text-neutral-500"
-              }`}
-            >
-              {step.num}
-            </div>
-            <span
-              className={`text-sm font-medium ${
-                pasoRenovacion === step.paso
-                  ? "text-neutral-50"
-                  : "text-neutral-500"
-              }`}
-            >
-              {step.label}
-            </span>
-            {idx === 0 && (
-              <div className="w-8 h-px bg-neutral-800 ml-2" />
-            )}
-          </div>
-        ))}
-      </div>
-
       {/* Error State */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-red-200">{error}</p>
+        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-5 sm:p-6 lg:p-8 xl:p-10 flex items-start gap-3">
+          <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-red-400 flex-shrink-0 mt-0.5" />
+          <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-red-200">{error}</p>
         </div>
       )}
 
       {/* Step 1: Search */}
       {pasoRenovacion === "buscar" && (
-        <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-8 space-y-5">
+        <div className="space-y-6">
           <div>
-            <label className="block text-sm font-semibold text-neutral-50 mb-3">
-              Email o usuario registrado
-            </label>
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-              <input
-                type="text"
-                value={busqueda}
-                onChange={(event) => onBusquedaChange(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    handleBuscar();
-                  }
-                }}
-                placeholder="ejemplo@email.com o usuario"
-                className="w-full pl-11 pr-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-50 placeholder-neutral-500 focus:outline-none focus:border-violet-500 transition-colors"
-                disabled={buscando}
-              />
+            <div className="mb-6">
+              <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-500">Paso 1</p>
+              <h3 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-semibold text-gray-900">Busca tu cuenta</h3>
+              <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600 mt-2">Ingresa tu nombre de usuario para continuar</p>
+            </div>
+
+            <div className="rounded-3xl border border-gray-200 bg-white/80 p-5 sm:p-6 lg:p-8 xl:p-10 shadow-sm shadow-gray-100 md:p-8">
+              <label className="block text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900 mb-4">
+                Usuario registrado
+              </label>
+              <div className="relative mb-6">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-gray-400" />
+                <input
+                  type="text"
+                  value={busqueda}
+                  onChange={(event) => onBusquedaChange(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      handleBuscar();
+                    }
+                  }}
+                  placeholder="tu_usuario"
+                  className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-4 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                  disabled={buscando}
+                />
+              </div>
+
+              <button
+                onClick={handleBuscar}
+                disabled={buscando || !busqueda.trim()}
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 text-sm sm:text-base lg:text-lg xl:text-xl font-semibold transition-colors disabled:bg-gray-300 disabled:text-gray-500"
+              >
+                {buscando ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Buscando...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4" />
+                    Buscar cuenta
+                  </>
+                )}
+              </button>
             </div>
           </div>
-
-          <button
-            onClick={handleBuscar}
-            disabled={buscando || !busqueda.trim()}
-            className="w-full py-2.5 bg-violet-600 hover:bg-violet-700 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            {buscando ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Buscando...
-              </>
-            ) : (
-              <>
-                <Search className="w-4 h-4" />
-                Buscar cuenta
-              </>
-            )}
-          </button>
         </div>
       )}
 
       {/* Step 2: Configuration */}
       {pasoRenovacion === "configurar" && cuenta && (
-        <div className="space-y-6">
-          {/* Account Info */}
-          <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
-              <div className="space-y-1 text-sm">
-                <p className="font-semibold text-neutral-50">Cuenta encontrada</p>
-                <p className="text-neutral-400">
-                  {cuenta.tipo === "cliente" ? "VPN" : "Revendedor"} • {cuenta.datos.servex_username}
-                </p>
-                {cuenta.datos.plan_nombre && (
-                  <p className="text-neutral-500 text-xs">
-                    Plan actual: <span className="text-neutral-400">{cuenta.datos.plan_nombre}</span>
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Configuration Content */}
-          <div className="space-y-6">
-            {/* Duration */}
-            <div>
-              <label className="block text-sm font-semibold text-neutral-50 mb-4">
-                Días a agregar
-              </label>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                {DIAS_RENOVACION.map((opcionDias) => (
-                  <button
-                    key={opcionDias}
-                    onClick={() => onDiasChange(opcionDias)}
-                    className={`py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      dias === opcionDias
-                        ? "bg-violet-600 text-white"
-                        : "bg-neutral-800/50 border border-neutral-700 text-neutral-400 hover:bg-neutral-800"
-                    }`}
-                  >
-                    {opcionDias}d
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Devices - Only for clients */}
-            {cuenta.tipo === "cliente" && (
-              <div>
-                <label className="block text-sm font-semibold text-neutral-50 mb-4">
-                  Dispositivos simultáneos
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {DISPOSITIVOS_RENOVACION.map((dispositivos) => {
-                    const esActual = dispositivos === connectionActual;
-                    const esSeleccionado = dispositivosSeleccionados === dispositivos;
-                    return (
-                      <button
-                        key={dispositivos}
-                        onClick={() => onDispositivosChange(dispositivos)}
-                        className={`relative p-3 rounded-lg border transition-all ${
-                          esSeleccionado
-                            ? "border-violet-500 bg-violet-500/10"
-                            : esActual
-                            ? "border-violet-500/30 bg-violet-500/5"
-                            : "border-neutral-700 bg-neutral-800/50 hover:bg-neutral-800"
-                        }`}
-                      >
-                        {esActual && !esSeleccionado && (
-                          <span className="absolute -top-2 -right-2 bg-neutral-700 text-neutral-200 text-[10px] px-2 py-0.5 rounded-full">
-                            Actual
-                          </span>
-                        )}
-                        {esSeleccionado && (
-                          <span className="absolute -top-2 -right-2 bg-violet-600 text-white text-[10px] px-2 py-0.5 rounded-full">
-                            Nuevo
-                          </span>
-                        )}
-                        <p className="text-lg font-bold text-neutral-50">{dispositivos}</p>
-                        <p className="text-xs text-neutral-500 mt-1">
-                          ${PRECIOS_POR_DIA[dispositivos] ?? PRECIOS_POR_DIA[1]}/día
-                        </p>
-                      </button>
-                    );
-                  })}
+        <div className="space-y-12">
+          <div className="grid gap-8 sm:gap-10 lg:gap-12 xl:gap-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+            <div className="space-y-8">
+              {/* Account Info Card */}
+              <div className="rounded-3xl border-2 border-emerald-200 bg-emerald-50 p-5 sm:p-6 lg:p-8 xl:p-10">
+                <div className="flex items-start gap-4">
+                  <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 xl:h-8 xl:w-8 text-emerald-600 flex-shrink-0 mt-1" />
+                  <div className="space-y-1">
+                    <p className="font-semibold text-emerald-900">Cuenta encontrada</p>
+                    <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-700">
+                      {cuenta.tipo === "cliente" ? "Cliente VPN" : "Revendedor"} • <span className="font-medium">{cuenta.datos.servex_username}</span>
+                    </p>
+                    {cuenta.datos.plan_nombre && (
+                      <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-emerald-600 mt-2">
+                        Plan actual: <span className="font-medium">{cuenta.datos.plan_nombre}</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            )}
 
-            {/* Contact Info */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-neutral-50 mb-2">
-                  Nombre completo
-                </label>
-                <input
-                  type="text"
-                  value={nombre}
-                  onChange={(event) => onNombreChange(event.target.value)}
-                  placeholder="Tu nombre"
-                  className="w-full px-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-50 placeholder-neutral-500 focus:outline-none focus:border-violet-500 transition-colors"
-                />
+              {/* Duration Selection */}
+              <div className="rounded-3xl border border-gray-200 bg-white/80 p-5 sm:p-6 lg:p-8 xl:p-10 shadow-sm shadow-gray-100 md:p-8">
+                <div className="mb-6">
+                  <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-500">Paso 2</p>
+                  <h3 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-900">Duración a agregar</h3>
+                  <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-500 mt-1">Elige cuántos días deseas renovar tu suscripción</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {DIAS_RENOVACION.map((opcionDias) => (
+                    <button
+                      key={opcionDias}
+                      onClick={() => onDiasChange(opcionDias)}
+                      className={`rounded-2xl border-2 px-4 py-3 text-xs sm:text-sm lg:text-base xl:text-lg font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${
+                        dias === opcionDias
+                          ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm"
+                          : "border-gray-200 bg-white text-gray-900 hover:border-gray-300"
+                      }`}
+                    >
+                      {opcionDias} días
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-neutral-50 mb-2">
-                  Email de contacto
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(event) => onEmailChange(event.target.value)}
-                  placeholder="tu@email.com"
-                  className="w-full px-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-50 placeholder-neutral-500 focus:outline-none focus:border-violet-500 transition-colors"
-                />
-              </div>
-            </div>
-          </div>
 
-          {cuenta.tipo === "cliente" && (
-            <CuponInput
-              planId={planId}
-              precioPlan={precioBase}
-              onCuponValidado={onCuponAplicado}
-              onCuponRemovido={onCuponRemovido}
-              cuponActual={cuponActual}
-              descuentoActual={descuentoAplicado}
-              clienteEmail={email}
-            />
-          )}
+              {/* Devices Selection - Only for clients */}
+              {cuenta.tipo === "cliente" && (
+                <div className="rounded-3xl border border-gray-200 bg-white/80 p-5 sm:p-6 lg:p-8 xl:p-10 shadow-sm shadow-gray-100 md:p-8">
+                  <div className="mb-6">
+                    <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-500">Paso 3</p>
+                    <h3 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-900">Dispositivos simultáneos</h3>
+                    <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-500 mt-1">Cambia la cantidad si necesitas más protección</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {DISPOSITIVOS_RENOVACION.map((dispositivos) => {
+                      const esActual = dispositivos === connectionActual;
+                      const esSeleccionado = dispositivosSeleccionados === dispositivos;
+                      return (
+                        <button
+                          key={dispositivos}
+                          onClick={() => onDispositivosChange(dispositivos)}
+                          className={`relative rounded-2xl border-2 p-4 text-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${
+                            esSeleccionado
+                              ? "border-emerald-500 bg-emerald-50 shadow-sm"
+                              : esActual
+                              ? "border-gray-300 bg-gray-50"
+                              : "border-gray-200 bg-white hover:border-gray-300"
+                          }`}
+                        >
+                          <p className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-gray-900">{dispositivos}</p>
+                          <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-500 mt-1">
+                            ${PRECIOS_POR_DIA[dispositivos] ?? PRECIOS_POR_DIA[1]}/día
+                          </p>
+                          {esActual && !esSeleccionado && (
+                            <span className="absolute -top-2 -right-2 bg-gray-400 text-white text-[8px] sm:text-[10px] lg:text-xs xl:text-sm px-2 py-1 rounded-full font-medium">
+                              Actual
+                            </span>
+                          )}
+                          {esSeleccionado && (
+                            <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[8px] sm:text-[10px] lg:text-xs xl:text-sm px-2 py-1 rounded-full font-medium">
+                              Nuevo
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
-          {/* Summary Card - Bottom */}
-          <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-6 space-y-4">
-            <h3 className="text-sm font-semibold text-neutral-50 uppercase tracking-wide">
-              Resumen de tu renovación
-            </h3>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-              <div>
-                <p className="text-xs text-neutral-500 mb-1">Duración</p>
-                <p className="text-lg font-semibold text-neutral-50">{dias} días</p>
+              {/* Contact Info */}
+              <div className="rounded-3xl border border-gray-200 bg-white/80 p-5 sm:p-6 lg:p-8 xl:p-10 shadow-sm shadow-gray-100 md:p-8">
+                <div className="mb-6">
+                  <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-500">Paso 4</p>
+                  <h3 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-900">Información de contacto</h3>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900 mb-2">
+                      Nombre completo
+                    </label>
+                    <input
+                      type="text"
+                      value={nombre}
+                      onChange={(event) => onNombreChange(event.target.value)}
+                      placeholder="Tu nombre"
+                      className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900 mb-2">
+                      Email de contacto
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(event) => onEmailChange(event.target.value)}
+                      placeholder="tu@email.com"
+                      className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                    />
+                  </div>
+                </div>
               </div>
 
               {cuenta.tipo === "cliente" && (
-                <div>
-                  <p className="text-xs text-neutral-500 mb-1">Dispositivos</p>
-                  <div className="flex items-baseline gap-2">
-                    {connectionDestino !== connectionActual && (
-                      <span className="text-xs text-neutral-400 line-through">{connectionActual}</span>
-                    )}
-                    <p className="text-lg font-semibold text-neutral-50">{connectionDestino}</p>
-                  </div>
-                </div>
+                <CuponInput
+                  planId={planId}
+                  precioPlan={precioBase}
+                  onCuponValidado={onCuponAplicado}
+                  onCuponRemovido={onCuponRemovido}
+                  cuponActual={cuponActual}
+                  descuentoActual={descuentoAplicado}
+                  clienteEmail={email}
+                />
               )}
-
-              <div>
-                <p className="text-xs text-neutral-500 mb-1">Por día</p>
-                {hayDescuento ? (
-                  <div className="flex flex-col items-start">
-                    <span className="text-lg font-semibold text-neutral-50">
-                      ${precioPorDia.toLocaleString("es-AR")}
-                    </span>
-                    <span className="text-xs text-neutral-500 line-through">
-                      ${precioPorDiaBase.toLocaleString("es-AR")}
-                    </span>
-                  </div>
-                ) : (
-                  <p className="text-lg font-semibold text-neutral-50">
-                    ${precioPorDia.toLocaleString("es-AR")}
-                  </p>
-                )}
-              </div>
-
-              <div className="sm:col-span-3 h-px bg-neutral-800" />
-
-              <div className="sm:col-span-3 space-y-2">
-                {hayDescuento && (
-                  <div className="flex justify-between text-xs text-neutral-400">
-                    <span>Precio original</span>
-                    <span className="line-through">
-                      ${precioBase.toLocaleString("es-AR")}
-                    </span>
-                  </div>
-                )}
-
-                {hayDescuento && (
-                  <div className="flex justify-between text-sm text-emerald-400">
-                    <span>
-                      Descuento
-                      {cuponActual?.codigo ? ` (${cuponActual.codigo})` : ""}
-                    </span>
-                    <span>- ${descuentoAplicado.toLocaleString("es-AR")}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between items-end">
-                  <span className="text-neutral-400 font-medium">Monto total a pagar</span>
-                  <span className="text-3xl font-bold text-neutral-50">
-                    ${precioTotal.toLocaleString("es-AR")}
-                  </span>
-                </div>
-              </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={onVolverBuscar}
-              className="flex-1 py-2.5 bg-neutral-800/50 border border-neutral-700 hover:bg-neutral-800 text-neutral-300 font-medium rounded-lg transition-colors"
-            >
-              Buscar otra cuenta
-            </button>
-            <button
-              onClick={onProcesar}
-              disabled={procesando || !puedeProcesar}
-              className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              {procesando ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Procesando...
-                </>
-              ) : (
-                <>
-                  Continuar al pago
-                  <ChevronRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
+            {/* Summary Card - Sticky Sidebar */}
+            <aside className="rounded-3xl bg-gray-900 p-5 sm:p-6 lg:p-8 xl:p-10 text-white shadow-xl md:p-8 md:sticky md:top-24 md:h-fit">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-200 mb-6">
+                <Sparkles className="h-4 w-4" />
+                <span>Resumen de renovación</span>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400 mb-2">Tu renovación</p>
+                  <p className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-semibold text-white">
+                    {dias} días {cuenta.tipo === "cliente" ? `• ${connectionDestino} dispositivos` : ""}
+                  </p>
+                  <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400 mt-2">
+                    {cuenta.tipo === "cliente"
+                      ? connectionDestino !== connectionActual
+                        ? `Cambio de ${connectionActual} a ${connectionDestino} dispositivos`
+                        : "Sin cambios en dispositivos"
+                      : "Renovación de revendedor"}
+                  </p>
+                </div>
+
+                <div className="h-px bg-white/10" />
+
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <p className="text-gray-300">Precio base</p>
+                    <p className="text-base sm:text-lg lg:text-xl xl:text-2xl font-semibold">
+                      ${precioBase.toLocaleString("es-AR")}
+                    </p>
+                  </div>
+
+                  {hayDescuento && (
+                    <div className="flex justify-between items-center text-emerald-400">
+                      <p>
+                        Descuento
+                        {cuponActual?.codigo ? ` (${cuponActual.codigo})` : ""}
+                      </p>
+                      <p className="font-semibold">
+                        - ${descuentoAplicado.toLocaleString("es-AR")}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="h-px bg-white/10" />
+
+                  <div className="flex justify-between items-center pt-2">
+                    <p className="text-gray-300">Total a pagar</p>
+                    <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white">
+                      ${precioTotal.toLocaleString("es-AR")}
+                    </p>
+                  </div>
+
+                  <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-500">
+                    ${precioPorDia.toLocaleString("es-AR")}/día
+                  </p>
+                </div>
+
+                <div className="h-px bg-white/10" />
+
+                <div className="space-y-3">
+                  <button
+                    onClick={onVolverBuscar}
+                    className="w-full rounded-2xl border border-white/20 px-6 py-4 text-sm sm:text-base lg:text-lg xl:text-xl font-semibold text-white transition hover:border-white/40 hover:bg-white/5"
+                  >
+                    Buscar otra cuenta
+                  </button>
+                  <button
+                    onClick={onProcesar}
+                    disabled={procesando || !puedeProcesar}
+                    className="w-full rounded-2xl bg-emerald-500 px-6 py-4 text-sm sm:text-base lg:text-lg xl:text-xl font-semibold text-white transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300 disabled:bg-gray-700 disabled:text-gray-500 flex items-center justify-center gap-2"
+                  >
+                    {procesando ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      <>
+                        Continuar al pago
+                        <ChevronRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-500 text-center">
+                  Pago seguro con Mercado Pago, tarjetas internacionales o criptomonedas.
+                </p>
+              </div>
+            </aside>
           </div>
         </div>
       )}

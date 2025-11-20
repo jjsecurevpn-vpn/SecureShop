@@ -101,52 +101,52 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
       <form className="space-y-3">
         {/* Nombre - NO CONTROLADO */}
         <div>
-          <label className="block text-sm font-medium text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-gray-900 mb-2">
             Nombre completo
           </label>
           <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               ref={nombreInputRef}
               type="text"
               disabled={loading}
-              className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
               placeholder="Juan Pérez"
             />
           </div>
           <p
             ref={errorNombreRef}
-            className="text-red-400 text-xs mt-1.5 gap-1"
+            className="text-rose-700 text-xs mt-1.5 gap-1"
             style={{ display: "none" }}
           >
-            <span className="w-1 h-1 rounded-full bg-red-400 inline-block" />
+            <span className="w-1 h-1 rounded-full bg-rose-700 inline-block" />
           </p>
         </div>
 
         {/* Email - NO CONTROLADO */}
         <div>
-          <label className="block text-sm font-medium text-neutral-300 mb-2">
+          <label className="block text-sm font-medium text-gray-900 mb-2">
             Email
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               ref={emailInputRef}
               type="email"
               disabled={loading}
-              className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
               placeholder="tu@email.com"
             />
           </div>
           <p
             ref={errorEmailRef}
-            className="text-red-400 text-xs mt-1.5 gap-1"
+            className="text-rose-700 text-xs mt-1.5 gap-1"
             style={{ display: "none" }}
           >
-            <span className="w-1 h-1 rounded-full bg-red-400 inline-block" />
+            <span className="w-1 h-1 rounded-full bg-rose-700 inline-block" />
           </p>
-          <p className="text-neutral-500 text-xs mt-2 flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5 text-violet-400" />
+          <p className="text-gray-600 text-xs mt-2 flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-indigo-600" />
             Recibirás tus credenciales VPN en este email
           </p>
         </div>

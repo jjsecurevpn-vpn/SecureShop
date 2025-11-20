@@ -466,6 +466,120 @@ router.get("/hero-revendedores", (_req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/config/hero
+ * Guarda la configuración del hero para la página principal
+ */
+router.post("/hero", (req: Request, res: Response) => {
+  try {
+    const heroConfig = req.body;
+
+    if (!heroConfig || typeof heroConfig !== "object") {
+      return res.status(400).json({
+        success: false,
+        error: "Configuración del hero inválida",
+      });
+    }
+
+    const config = configService.leerConfigPlanes();
+    
+    // Si la configuración tiene propiedades de promoción directas, colocarlas en hero.promocion
+    if (heroConfig.habilitada !== undefined || heroConfig.texto !== undefined) {
+      config.hero = {
+        ...config.hero,
+        promocion: {
+          ...config.hero?.promocion,
+          ...heroConfig,
+        },
+      };
+    } else {
+      // Si viene como objeto hero completo
+      config.hero = {
+        ...config.hero,
+        ...heroConfig,
+      };
+    }
+    
+    config.ultima_actualizacion = new Date().toISOString();
+
+    configService.guardarConfigPlanes(config);
+    configService.limpiarCache();
+
+    console.log("[CONFIG-ROUTE] ✅ Configuración del hero guardada");
+    console.log("[CONFIG-ROUTE] Contenido guardado:", JSON.stringify(config.hero, null, 2));
+
+    return res.status(200).json({
+      success: true,
+      mensaje: "Configuración del hero guardada exitosamente",
+      timestamp: config.ultima_actualizacion,
+    });
+  } catch (error) {
+    console.error("Error guardando config hero:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Error al guardar configuración del hero",
+      detalles: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+/**
+ * POST /api/config/hero-revendedores
+ * Guarda la configuración del hero para revendedores
+ */
+router.post("/hero-revendedores", (req: Request, res: Response) => {
+  try {
+    const heroConfig = req.body;
+
+    if (!heroConfig || typeof heroConfig !== "object") {
+      return res.status(400).json({
+        success: false,
+        error: "Configuración del hero inválida",
+      });
+    }
+
+    const config = configService.leerConfigRevendedores();
+    
+    // Si la configuración tiene propiedades de promoción directas, colocarlas en hero.promocion
+    if (heroConfig.habilitada !== undefined || heroConfig.texto !== undefined) {
+      config.hero = {
+        ...config.hero,
+        promocion: {
+          ...config.hero?.promocion,
+          ...heroConfig,
+        },
+      };
+    } else {
+      // Si viene como objeto hero completo
+      config.hero = {
+        ...config.hero,
+        ...heroConfig,
+      };
+    }
+    
+    config.ultima_actualizacion = new Date().toISOString();
+
+    configService.guardarConfigRevendedores(config);
+    configService.limpiarCache();
+
+    console.log("[CONFIG-ROUTE] ✅ Configuración del hero de revendedores guardada");
+    console.log("[CONFIG-ROUTE] Contenido guardado:", JSON.stringify(config.hero, null, 2));
+
+    return res.status(200).json({
+      success: true,
+      mensaje: "Configuración del hero de revendedores guardada exitosamente",
+      timestamp: config.ultima_actualizacion,
+    });
+  } catch (error) {
+    console.error("Error guardando config hero revendedores:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Error al guardar configuración del hero para revendedores",
+      detalles: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+/**
  * GET /api/config/noticias
  * Obtiene la configuración de noticias
  */

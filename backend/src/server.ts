@@ -22,11 +22,12 @@ import cuponesRoutes from "./routes/cupones.routes";
 import { cuponesService } from "./services/cupones.service";
 import { ServexPollingService } from "./services/servex-polling.service";
 import { RealtimeService } from "./services/realtime.service";
-import { crearRutasRealtime } from "./routes/realtime.routes.js";
+import { crearRutasRealtime } from "./routes/realtime.routes";
 import { crearRutasSponsors } from "./routes/sponsors.routes";
-import { crearRutasVisitantes } from "./routes/visitors.routes";
 import { DonacionesService } from "./services/donaciones.service";
 import { SponsorsService } from "./services/sponsors.service";
+import { PlanesService } from "./services/planes.service";
+import { crearRutasPlanes, crearRutasPlanesRevendedores } from "./routes/planes.routes";
 import {
   corsMiddleware,
   loggerMiddleware,
@@ -42,6 +43,7 @@ class Server {
   private renovacionService!: RenovacionService;
   private donacionesService!: DonacionesService;
   private sponsorsService!: SponsorsService;
+  private planesService!: PlanesService;
   private wsService!: WebSocketService;
   private servexService!: ServexService;
   private servexPollingService!: ServexPollingService;
@@ -65,6 +67,9 @@ class Server {
 
   this.sponsorsService = new SponsorsService(this.db);
   console.log("[Server] ✅ Servicio de sponsors inicializado");
+
+  this.planesService = new PlanesService(this.db);
+  console.log("[Server] ✅ Servicio de planes inicializado");
 
     // Inicializar cupones desde configuración
     cuponesService.cargarCuponesDesdeConfig().then((resultado) => {
@@ -183,15 +188,14 @@ class Server {
           return true;
         }
 
-        // Endpoints de lectura que se consultan con alta frecuencia desde el frontend
-        const readHeavyPrefixes = [
-          "/api/realtime",
-          "/api/visitors",
-          "/api/config",
-          "/api/cupones",
-          "/api/clients",
-          "/api/stats",
-        ];
+          // Endpoints de lectura que se consultan con alta frecuencia desde el frontend
+          const readHeavyPrefixes = [
+            "/api/realtime",
+            "/api/config",
+            "/api/cupones",
+            "/api/clients",
+            "/api/stats",
+          ];
 
         if (req.method === "GET" && readHeavyPrefixes.some((prefix) => req.path.startsWith(prefix))) {
           return true;
@@ -306,8 +310,18 @@ class Server {
       crearRutasSponsors(this.sponsorsService),
     );
 
-    // Rutas de la API - Visitantes (con BD real)
-    this.app.use("/api/visitors", crearRutasVisitantes(this.db.getDatabase()));
+    // Rutas de la API - Planes
+    this.app.use(
+      "/api/planes",
+      crearRutasPlanes(this.planesService),
+    );
+
+    this.app.use(
+      "/api/planes-revendedores",
+      crearRutasPlanesRevendedores(this.planesService),
+    );
+
+    // Rutas de la API - Visitantes - removidas (funcionalidad de conteo eliminada)
 
     // Rutas de la API - Promo (para revendedores) - DESACTIVADO por conflicto
     // this.app.use("/api/config", promoRoutes);

@@ -25,6 +25,7 @@ export function useHeroConfigRevendedores(): UseHeroConfigReturn {
   const [config, setConfig] = useState<HeroConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchConfig = async () => {
     try {
@@ -45,6 +46,24 @@ export function useHeroConfigRevendedores(): UseHeroConfigReturn {
 
   useEffect(() => {
     fetchConfig();
+  }, [refreshTrigger]);
+
+  useEffect(() => {
+    const handleInvalidate = () => {
+      setRefreshTrigger(prev => prev + 1);
+    };
+
+    const handleConfigSaved = () => {
+      // Recargar cuando se guarde desde AdminTools
+      setRefreshTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener("hero-config-invalidate", handleInvalidate);
+    window.addEventListener("hero-config-saved", handleConfigSaved);
+    return () => {
+      window.removeEventListener("hero-config-invalidate", handleInvalidate);
+      window.removeEventListener("hero-config-saved", handleConfigSaved);
+    };
   }, []);
 
   return {

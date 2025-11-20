@@ -11,6 +11,22 @@ export function crearRutasRevendedores(
     "[crearRutasRevendedores] 🎯 Registrando rutas de revendedores..."
   );
 
+  const sanitizeReference = (value: unknown): string | null => {
+    if (!value) return null;
+    if (Array.isArray(value)) {
+      return sanitizeReference(value[0]);
+    }
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (!trimmed) return null;
+      const firstSegment = trimmed.includes(",")
+        ? trimmed.split(",")[0]?.trim()
+        : trimmed;
+      return firstSegment || null;
+    }
+    return null;
+  };
+
   /**
    * GET /api/planes-revendedores
    * Obtiene todos los planes de revendedores activos con descuentos del 15% aplicados
@@ -117,6 +133,115 @@ export function crearRutasRevendedores(
   });
 
   /**
+   * GET /api/pago-revendedor/success
+   * Página de éxito para compra de revendedor
+   */
+  router.get("/pago-revendedor/success", async (req: Request, res: Response) => {
+    const paymentId = sanitizeReference(req.query.payment_id);
+    const externalReference = sanitizeReference(req.query.external_reference);
+
+    if (!externalReference) {
+      console.error(
+        "[Success Revendedor] ❌ external_reference ausente o inválido",
+        req.query.external_reference
+      );
+      res.redirect(
+        `${
+          process.env.CORS_ORIGIN || "http://localhost:3000"
+        }/error?code=INVALID_REFERENCE&tipo=revendedor&operacion=compra`
+      );
+      return;
+    }
+
+    // 🔍 VERIFICACIÓN SINCRÓNICA: No confiar solo en webhooks
+    try {
+      console.log(
+        `[Success Revendedor] 🔍 Verificando pago ${externalReference} contra MercadoPago...`
+      );
+      const timestamp = new Date().toISOString();
+
+      const pagoMP = await tiendaRevendedores
+        .getMercadoPagoService()
+        .verificarPagoPorReferencia(externalReference);
+
+      if (pagoMP && pagoMP.status === "approved") {
+        console.log(
+          `[${timestamp}] ✅ Pago de revendedor aprobado en MercadoPago, procesando...`
+        );
+
+        try {
+          await tiendaRevendedores.verificarYProcesarPago(externalReference);
+          console.log(
+            `[${timestamp}] ✅ Pago de revendedor procesado exitosamente ANTES de redirigir`
+          );
+        } catch (procError: any) {
+          console.error(
+            `[${timestamp}] ⚠️ Error procesando pago de revendedor:`,
+            procError.message
+          );
+          // Continuar de todos modos, el webhook puede reintentarlo
+        }
+      }
+    } catch (error: any) {
+      console.error(
+        `[Success Revendedor] ❌ Error verificando en MercadoPago:`,
+        error.message
+      );
+    }
+
+    res.redirect(
+      `${
+        process.env.CORS_ORIGIN || "http://localhost:3000"
+      }/success?status=approved&payment_id=${paymentId ?? ""}&pago_id=${externalReference}&tipo=revendedor&operacion=compra`
+    );
+  });
+
+  /**
+   * GET /api/pago-revendedor/failure
+   * Página de fallo para compra de revendedor
+   */
+  router.get("/pago-revendedor/failure", (req: Request, res: Response) => {
+    const externalReference = sanitizeReference(req.query.external_reference);
+    const reason = typeof req.query.reason === "string" ? req.query.reason : undefined;
+    const reasonParam = reason ? `&message=${encodeURIComponent(reason)}` : "";
+
+    res.redirect(
+      `${
+        process.env.CORS_ORIGIN || "http://localhost:3000"
+      }/error?code=PAYMENT_REJECTED&pago_id=${externalReference ?? ""}&tipo=revendedor&operacion=compra${reasonParam}`
+    );
+  });
+
+  /**
+   * GET /api/pago-revendedor/pending
+   * Página de pago pendiente para revendedor
+   */
+  router.get("/pago-revendedor/pending", (req: Request, res: Response) => {
+    const externalReference = sanitizeReference(req.query.external_reference);
+    res.redirect(
+      `${
+        process.env.CORS_ORIGIN || "http://localhost:3000"
+      }/error?code=PAYMENT_PENDING&pago_id=${externalReference ?? ""}&tipo=revendedor&operacion=compra`
+    );
+  });
+
+  /**
+   * GET /api/pago-revendedor/error
+   * Ruta genérica para errores de pago de revendedor
+   */
+  router.get("/pago-revendedor/error", (req: Request, res: Response) => {
+    const externalReference = sanitizeReference(req.query.external_reference);
+    const message = typeof req.query.message === "string" ? req.query.message : undefined;
+    const messageParam = message ? `&message=${encodeURIComponent(message)}` : "";
+
+    res.redirect(
+      `${
+        process.env.CORS_ORIGIN || "http://localhost:3000"
+      }/error?code=PAYMENT_ERROR&pago_id=${externalReference ?? ""}&tipo=revendedor&operacion=compra${messageParam}`
+    );
+  });
+
+  /**
    * GET /api/pago-revendedor/:id
    * Obtiene información de un pago de revendedor y verifica su estado
    */
@@ -124,7 +249,19 @@ export function crearRutasRevendedores(
     "/pago-revendedor/:id",
     async (req: Request, res: Response): Promise<void> => {
       try {
-        const pagoId = req.params.id;
+        const pagoId = sanitizeReference(req.params.id);
+        if (!pagoId) {
+          console.error(
+            "[API] Pago ID inválido en /pago-revendedor/:id:",
+            req.params.id
+          );
+          res.status(400).json({
+            success: false,
+            error: "Identificador de pago inválido",
+          });
+          return;
+        }
+
         console.log(`[API] GET /pago-revendedor/${pagoId} - Iniciando...`);
 
         const pago = await tiendaRevendedores.verificarYProcesarPago(pagoId);
@@ -139,8 +276,7 @@ export function crearRutasRevendedores(
           return;
         }
 
-        // Mapear PagoRevendedor a formato compatible con Pago para el frontend
-        const pagoCompatible = {
+        const pagoCompatible: any = {
           id: pago.id,
           plan_id: pago.plan_revendedor_id,
           monto: pago.monto,
@@ -153,15 +289,18 @@ export function crearRutasRevendedores(
           servex_cuenta_id: pago.servex_revendedor_id,
           servex_username: pago.servex_username,
           servex_password: pago.servex_password,
-          servex_categoria:
-            pago.servex_account_type === "credit"
-              ? "Créditos"
-              : "Usuarios Simultáneos",
           servex_expiracion: pago.servex_expiracion,
-          servex_connection_limit: pago.servex_max_users,
           fecha_creacion: pago.fecha_creacion,
           fecha_actualizacion: pago.fecha_actualizacion,
         };
+
+        if (pago.servex_account_type === "credit") {
+          pagoCompatible.servex_creditos = pago.servex_max_users;
+          pagoCompatible.servex_categoria = "Créditos";
+        } else {
+          pagoCompatible.servex_connection_limit = pago.servex_max_users;
+          pagoCompatible.servex_categoria = "Usuarios simultáneos";
+        }
 
         res.json({
           success: true,

@@ -1,4 +1,4 @@
-import { RefreshCw, Zap } from "lucide-react";
+import { RefreshCw, ShoppingCart } from "lucide-react";
 import { ModoSeleccion } from "../types";
 
 type ModeSelectorProps = {
@@ -9,48 +9,73 @@ type ModeSelectorProps = {
 
 export function ModeSelector({ mode, onSelectCompra, onSelectRenovacion }: ModeSelectorProps) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 max-w-2xl">
-      <button
-        onClick={onSelectCompra}
-        className={`p-4 rounded-2xl border transition-all text-left ${
-          mode === "compra"
-            ? "border-violet-500 bg-violet-500/10 text-neutral-100 shadow-[0_0_0_1px_rgba(168,85,247,0.15)]"
-            : "border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
-        }`}
-      >
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-            <Zap className="w-5 h-5 text-violet-400" />
-          </div>
-          <div>
-            <p className="font-semibold text-sm">Comprar nuevo plan</p>
-            <p className="text-xs text-neutral-500 mt-1">
-              Elige entre sistemas de créditos o validez según tu estrategia.
-            </p>
-          </div>
-        </div>
-      </button>
+    <div className="space-y-5 sm:space-y-6 lg:space-y-7 xl:space-y-8">
+      {/* Tab Container */}
+      <div className="bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 rounded-2xl p-2 sm:p-3 lg:p-4 xl:p-5">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 xl:gap-5">
+          <button
+            onClick={onSelectCompra}
+            className={`group flex flex-col items-center gap-2 sm:gap-3 lg:gap-4 xl:gap-5 px-3 sm:px-4 lg:px-5 xl:px-6 py-3 sm:py-4 lg:py-5 xl:py-6 rounded-xl transition-all ${
+              mode === "compra"
+                ? "bg-white text-gray-900 shadow-lg"
+                : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+            }`}
+          >
+            <div
+              className={`flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14 items-center justify-center rounded-xl transition-all ${
+                mode === "compra"
+                  ? "bg-emerald-100 text-emerald-600"
+                  : "bg-indigo-50/80 text-gray-600 group-hover:text-gray-900"
+              }`}
+            >
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 xl:h-7 xl:w-7" />
+            </div>
+            <div className="text-center">
+              <p className={`text-sm font-semibold sm:text-base lg:text-lg xl:text-xl ${mode === "compra" ? "text-gray-900" : "text-gray-700"}`}>
+                Comprar Plan
+              </p>
+              <p className="text-[10px] text-gray-600 sm:text-xs lg:text-sm xl:text-base mt-1">Adquiere nuevos planes</p>
+            </div>
+          </button>
 
-      <button
-        onClick={onSelectRenovacion}
-        className={`p-4 rounded-2xl border transition-all text-left ${
-          mode === "renovacion"
-            ? "border-violet-500 bg-violet-500/10 text-neutral-100 shadow-[0_0_0_1px_rgba(168,85,247,0.15)]"
-            : "border-neutral-800 bg-neutral-900/60 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
-        }`}
-      >
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-            <RefreshCw className="w-5 h-5 text-blue-400" />
-          </div>
-          <div>
-            <p className="font-semibold text-sm">Renovación de revendedor</p>
-            <p className="text-xs text-neutral-500 mt-1">
-              Busca tu cuenta y renueva con checkout automático de Mercado Pago.
-            </p>
-          </div>
+          <button
+            onClick={onSelectRenovacion}
+            className={`group flex flex-col items-center gap-2 sm:gap-3 lg:gap-4 xl:gap-5 px-3 sm:px-4 lg:px-5 xl:px-6 py-3 sm:py-4 lg:py-5 xl:py-6 rounded-xl transition-all ${
+              mode === "renovacion"
+                ? "bg-white text-gray-900 shadow-lg"
+                : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
+            }`}
+          >
+            <div
+              className={`flex h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14 items-center justify-center rounded-xl transition-all ${
+                mode === "renovacion"
+                  ? "bg-indigo-100 text-indigo-600"
+                  : "bg-indigo-50/80 text-gray-600 group-hover:text-gray-900"
+              }`}
+            >
+              <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 xl:h-7 xl:w-7" />
+            </div>
+            <div className="text-center">
+              <p className={`text-sm font-semibold sm:text-base lg:text-lg xl:text-xl ${mode === "renovacion" ? "text-gray-900" : "text-gray-700"}`}>
+                Renovar Plan
+              </p>
+              <p className="text-[10px] text-gray-600 sm:text-xs lg:text-sm xl:text-base mt-1">Renueva tu plan existente</p>
+            </div>
+          </button>
         </div>
-      </button>
+      </div>
+
+      <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 px-5 sm:px-6 lg:px-7 xl:px-8 py-4 sm:py-5 lg:py-6 xl:py-7 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-700">
+        {mode === "compra" ? (
+          <span>
+            <span className="font-semibold text-emerald-600">Modo compra:</span> Combina Créditos y Validez para armar planes flexibles según tu estrategia.
+          </span>
+        ) : (
+          <span>
+            <span className="font-semibold text-indigo-600">Modo renovación:</span> Busca tu cuenta, confirma datos y procesa el pago con un par de clics.
+          </span>
+        )}
+      </div>
     </div>
   );
 }

@@ -9,9 +9,13 @@ import {
   User,
   ChevronRight,
 } from "lucide-react";
+import CuponInput from "../../../components/CuponInput";
+import { ValidacionCupon } from "../../../services/api.service";
 import { PlanRevendedor } from "../../../types";
 import { DIAS_POR_CREDITOS } from "../constants";
 import { PasoRenovacion, RevendedorEncontrado } from "../types";
+
+type CuponAplicado = NonNullable<ValidacionCupon["cupon"]>;
 
 type RenovacionPanelProps = {
   pasoRenovacion: PasoRenovacion;
@@ -33,11 +37,17 @@ type RenovacionPanelProps = {
   puedeProcesar: boolean;
   diasRenovacion: number;
   precioRenovacion: number;
+  precioFinal: number;
   planesCredit: PlanRevendedor[];
   planesValidity: PlanRevendedor[];
   onVerPlanes: () => void;
   onVolverBuscar: () => void;
   onProcesar: () => void;
+  planSeleccionado: PlanRevendedor | null;
+  cuponActual: CuponAplicado | null;
+  descuentoAplicado: number;
+  onCuponValidado: (descuento: number, cupon: CuponAplicado) => void;
+  onCuponRemovido: () => void;
 };
 
 export function RenovacionPanel({
@@ -60,344 +70,393 @@ export function RenovacionPanel({
   puedeProcesar,
   diasRenovacion,
   precioRenovacion,
+  precioFinal,
   planesCredit,
   planesValidity,
-  onVerPlanes,
   onVolverBuscar,
   onProcesar,
+  planSeleccionado,
+  cuponActual,
+  descuentoAplicado,
+  onCuponValidado,
+  onCuponRemovido,
 }: RenovacionPanelProps) {
   const tipoActual = revendedor?.datos.servex_account_type;
   const planesDisponibles = tipoSeleccionado === "credit" ? planesCredit : planesValidity;
   const fechaExpiracion = revendedor?.datos.expiration_date
     ? new Date(revendedor.datos.expiration_date)
     : null;
+  const hayDescuento = Boolean(descuentoAplicado && descuentoAplicado > 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-7 lg:space-y-8 xl:space-y-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-neutral-50">Renovar revendedor</h2>
-          <p className="text-sm text-neutral-400 mt-2">
-            {pasoRenovacion === "buscar"
-              ? "Busca tu cuenta existente para renovar"
-              : "Selecciona el plan y completa la información"}
-          </p>
-        </div>
-        <button
-          onClick={onVerPlanes}
-          className="px-4 py-2 text-sm text-neutral-400 hover:text-neutral-200 transition-colors"
-        >
-          Ver todos los planes
-        </button>
+      <div>
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-5 xl:mb-6">Renovar revendedor</h2>
+        <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
+          {pasoRenovacion === "buscar"
+            ? "Busca tu cuenta existente para renovarla"
+            : "Completa la información y elige tu plan"}
+        </p>
       </div>
 
-      {/* Progress Steps */}
-      <div className="flex items-center gap-4">
-        {[
-          { num: 1, label: "Buscar", paso: "buscar" as const },
-          { num: 2, label: "Configurar", paso: "configurar" as const },
-        ].map((step, idx) => (
-          <div key={step.paso} className="flex items-center gap-4">
-            <div
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold transition-colors ${
-                pasoRenovacion === step.paso || (pasoRenovacion === "configurar" && idx === 0)
-                  ? "bg-violet-600 text-white"
-                  : "bg-neutral-800 text-neutral-500"
-              }`}
-            >
-              {step.num}
+      {/* Main Grid - Two Columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-7 lg:gap-8 xl:gap-10">
+        {/* Left Column: Form */}
+        <div className="lg:col-span-2 space-y-5 sm:space-y-6 lg:space-y-7 xl:space-y-8">
+          {/* Error State */}
+          {error && (
+            <div className="bg-rose-50 border border-rose-300 rounded-2xl p-3 sm:p-4 lg:p-5 xl:p-6 flex items-start gap-3">
+              <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-rose-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-rose-700">{error}</p>
             </div>
-            <span
-              className={`text-sm font-medium ${
-                pasoRenovacion === step.paso
-                  ? "text-neutral-50"
-                  : "text-neutral-500"
-              }`}
-            >
-              {step.label}
-            </span>
-            {idx === 0 && (
-              <div className="w-8 h-px bg-neutral-800 ml-2" />
-            )}
-          </div>
-        ))}
-      </div>
+          )}
 
-      {/* Error State */}
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-red-200">{error}</p>
-        </div>
-      )}
+          {/* Step 1: Search */}
+          {pasoRenovacion === "buscar" && (
+            <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
+              <h3 className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-700 uppercase tracking-wider mb-5 sm:mb-6 lg:mb-7 xl:mb-8">
+                Buscar tu cuenta
+              </h3>
 
-      {/* Step 1: Search */}
-      {pasoRenovacion === "buscar" && (
-        <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-8 space-y-5">
-          <div>
-            <label className="block text-sm font-semibold text-neutral-50 mb-3">
-              Email o usuario registrado
-            </label>
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-              <input
-                type="text"
-                value={busqueda}
-                onChange={(event) => onBusquedaChange(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    onBuscar();
-                  }
-                }}
-                placeholder="ejemplo@email.com o usuario"
-                className="w-full pl-11 pr-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-50 placeholder-neutral-500 focus:outline-none focus:border-violet-500 transition-colors"
-                disabled={buscando}
-              />
-            </div>
-            <p className="text-xs text-neutral-500 mt-2">
-              Usa el mismo correo o usuario que registraste al comprar.
-            </p>
-          </div>
+              <div className="space-y-4 sm:space-y-5 lg:space-y-6 xl:space-y-7">
+                <div>
+                  <label className="block text-xs sm:text-sm lg:text-base xl:text-lg font-medium text-gray-900 mb-2 sm:mb-3 lg:mb-4 xl:mb-5">
+                    Nombre de usuario
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-gray-400" />
+                    <input
+                      type="text"
+                      value={busqueda}
+                      onChange={(event) => onBusquedaChange(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          onBuscar();
+                        }
+                      }}
+                      placeholder="Tu nombre de usuario"
+                      className="w-full pl-11 pr-4 py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-white border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-lg text-gray-900 placeholder-gray-400 transition-colors outline-none"
+                      disabled={buscando}
+                    />
+                  </div>
+                  <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 mt-1 sm:mt-2 lg:mt-3 xl:mt-4">
+                    Ingresa el nombre de usuario de tu cuenta de revendedor.
+                  </p>
+                </div>
 
-          <button
-            onClick={onBuscar}
-            disabled={buscando || !busqueda.trim()}
-            className="w-full py-2.5 bg-violet-600 hover:bg-violet-700 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            {buscando ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Buscando...
-              </>
-            ) : (
-              <>
-                <Search className="w-4 h-4" />
-                Buscar revendedor
-              </>
-            )}
-          </button>
-        </div>
-      )}
-
-      {/* Step 2: Configuration */}
-      {pasoRenovacion === "configurar" && revendedor && (
-        <div className="space-y-6">
-          {/* Account Info */}
-          <div className="bg-violet-500/10 border border-violet-500/20 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
-              <div className="space-y-1 text-sm">
-                <p className="font-semibold text-neutral-50">Cuenta encontrada</p>
-                <p className="text-neutral-400">
-                  {revendedor.datos.servex_username} • {tipoActual === "credit" ? "Créditos" : "Validez"}
-                </p>
-                <div className="text-xs text-neutral-500 space-y-0.5 mt-2">
-                  <p>Capacidad: {revendedor.datos.max_users} {tipoActual === "credit" ? "créditos" : "usuarios"}</p>
-                  {fechaExpiracion && (
-                    <p>Vence: {fechaExpiracion.toLocaleDateString("es-AR")}</p>
+                <button
+                  onClick={onBuscar}
+                  disabled={buscando || !busqueda.trim()}
+                  className="w-full py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 text-xs sm:text-sm lg:text-base xl:text-lg text-white font-semibold rounded-full transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                >
+                  {buscando ? (
+                    <>
+                      <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 animate-spin" />
+                      Buscando...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-3 h-3 sm:w-4 sm:h-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
+                      Buscar cuenta
+                    </>
                   )}
+                </button>
+              </div>
+            </div>
+          )}          {/* Step 2: Configuration */}
+          {pasoRenovacion === "configurar" && revendedor && (
+            <>
+              {/* Account Info Card */}
+              <div className="bg-indigo-50 border-2 border-indigo-300 rounded-2xl p-4 sm:p-5 lg:p-6 xl:p-7">
+                <div className="flex items-start gap-3">
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-600 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-1 text-xs sm:text-sm lg:text-base xl:text-lg">
+                    <p className="font-semibold text-gray-900">✓ Cuenta encontrada</p>
+                    <p className="text-gray-600">
+                      {revendedor.datos.servex_username} • {tipoActual === "credit" ? "Créditos" : "Validez"}
+                    </p>
+                    {fechaExpiracion && (
+                      <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 mt-2">
+                        Vence el {fechaExpiracion.toLocaleDateString("es-AR")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Renewal Type Selection */}
+              <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
+                <h3 className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
+                  Sistema de renovación
+                </h3>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 xl:gap-5">
+                  <button
+                    onClick={() => tipoActual === "validity" && onTipoChange("validity")}
+                    disabled={tipoActual !== "validity"}
+                    className={`group p-3 sm:p-4 lg:p-5 xl:p-6 rounded-lg border-2 transition-all ${
+                      tipoActual !== "validity"
+                        ? "border-gray-200/40 bg-gray-50/40 cursor-not-allowed opacity-50"
+                        : tipoSeleccionado === "validity"
+                        ? "border-indigo-500 bg-indigo-50"
+                        : "border-gray-200 bg-white hover:bg-gray-50"
+                    }`}
+                  >
+                    <Calendar
+                      className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 mb-2 ${
+                        tipoSeleccionado === "validity" ? "text-indigo-600" : "text-gray-500 group-hover:text-indigo-600"
+                      }`}
+                    />
+                    <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900">Validez</p>
+                    <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 mt-0.5 sm:mt-1 lg:mt-1.5 xl:mt-2">Días de acceso</p>
+                  </button>
+                  <button
+                    onClick={() => tipoActual === "credit" && onTipoChange("credit")}
+                    disabled={tipoActual !== "credit"}
+                    className={`group p-3 sm:p-4 lg:p-5 xl:p-6 rounded-lg border-2 transition-all ${
+                      tipoActual !== "credit"
+                        ? "border-gray-200/40 bg-gray-50/40 cursor-not-allowed opacity-50"
+                        : tipoSeleccionado === "credit"
+                        ? "border-indigo-500 bg-indigo-50"
+                        : "border-gray-200 bg-white hover:bg-gray-50"
+                    }`}
+                  >
+                    <CreditCard
+                      className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 mb-2 ${
+                        tipoSeleccionado === "credit" ? "text-indigo-600" : "text-gray-500 group-hover:text-indigo-600"
+                      }`}
+                    />
+                    <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900">Créditos</p>
+                    <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 mt-0.5 sm:mt-1 lg:mt-1.5 xl:mt-2">Más créditos</p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Plans Selection */}
+              <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
+                <h3 className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
+                  {tipoSeleccionado === "credit"
+                    ? "Selecciona cantidad de créditos"
+                    : "Selecciona cantidad de usuarios"}
+                </h3>
+                {planesDisponibles.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 xl:gap-5">
+                    {planesDisponibles.map((plan) => {
+                      const diasPlan =
+                        tipoSeleccionado === "credit" ? DIAS_POR_CREDITOS[plan.max_users] ?? 30 : 30;
+                      const esSeleccionado = cantidadSeleccionada === plan.max_users;
+
+                      return (
+                        <button
+                          key={plan.id}
+                          onClick={() => onCantidadChange(plan.max_users)}
+                          className={`p-3 sm:p-4 lg:p-5 xl:p-6 rounded-lg border-2 transition-all text-left ${
+                            esSeleccionado
+                              ? "border-indigo-500 bg-indigo-50"
+                              : "border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300"
+                          }`}
+                        >
+                          <p className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-gray-900">{plan.max_users}</p>
+                          <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 mt-0.5 sm:mt-1 lg:mt-1.5 xl:mt-2">
+                            {tipoSeleccionado === "credit" ? "créditos" : "usuarios"}
+                          </p>
+                          {tipoSeleccionado === "credit" && (
+                            <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 mt-0.5 sm:mt-1 lg:mt-1.5 xl:mt-2">
+                              ≈ {diasPlan} días
+                            </p>
+                          )}
+                          <div className="mt-2 sm:mt-3 lg:mt-4 xl:mt-5 pt-2 sm:pt-3 lg:pt-4 xl:pt-5 border-t border-gray-200/50">
+                            <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900">
+                              ${plan.precio.toLocaleString("es-AR")}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50/50 border border-gray-200 rounded-lg p-3 sm:p-4 lg:p-5 xl:p-6 text-center text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">
+                    No hay planes disponibles
+                  </div>
+                )}
+              </div>
+
+              {/* Contact Information */}
+              <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
+                <h3 className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
+                  Información de contacto
+                </h3>
+                <div className="grid sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-5 xl:gap-6">
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-gray-400" />
+                    <input
+                      type="text"
+                      value={nombre}
+                      onChange={(event) => onNombreChange(event.target.value)}
+                      placeholder="Nombre del responsable"
+                      className="w-full pl-11 pr-4 py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-white border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-lg text-gray-900 placeholder-gray-400 transition-colors outline-none"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-gray-400" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(event) => onEmailChange(event.target.value)}
+                      placeholder="tu@email.com"
+                      className="w-full pl-11 pr-4 py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-white border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-lg text-gray-900 placeholder-gray-400 transition-colors outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Coupon Code */}
+              <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
+                <h3 className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
+                  Código de descuento
+                </h3>
+                <CuponInput
+                  planId={planSeleccionado?.id}
+                  precioPlan={precioRenovacion}
+                  clienteEmail={email.trim()}
+                  cuponActual={cuponActual || undefined}
+                  descuentoActual={descuentoAplicado}
+                  onCuponValidado={onCuponValidado}
+                  onCuponRemovido={onCuponRemovido}
+                />
+              </div>
+
+              {/* Action Buttons - Mobile */}
+              <div className="lg:hidden flex flex-col gap-2 sm:gap-3 lg:gap-4 xl:gap-5">
+                <button
+                  onClick={onVolverBuscar}
+                  className="py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-gray-100 border border-gray-300 hover:bg-gray-200 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-900 font-medium rounded-full transition-colors"
+                >
+                  Buscar otro
+                </button>
+                <button
+                  onClick={onProcesar}
+                  disabled={!puedeProcesar || procesando || precioFinal <= 0}
+                  className="py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 text-xs sm:text-sm lg:text-base xl:text-lg text-white font-semibold rounded-full transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                >
+                  {procesando ? (
+                    <>
+                      <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 animate-spin" />
+                      Procesando...
+                    </>
+                  ) : (
+                    <>
+                      Continuar al pago
+                      <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Right Column: Sticky Summary */}
+        {pasoRenovacion === "configurar" && revendedor && (
+          <div className="lg:col-span-1">
+            <div className="sticky top-24 space-y-5 sm:space-y-6 lg:space-y-7 xl:space-y-8">
+              {/* Renewal Summary */}
+              <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
+                <h3 className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900 uppercase tracking-wider mb-5 sm:mb-6 lg:mb-7 xl:mb-8">
+                  Resumen de renovación
+                </h3>
+
+                <div className="space-y-5 sm:space-y-6 lg:space-y-7 xl:space-y-8">
+                  {/* Plan Details */}
+                  <div className="space-y-2 sm:space-y-3 lg:space-y-4 xl:space-y-5">
+                    <div className="flex justify-between">
+                      <span className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">
+                        {tipoSeleccionado === "credit" ? "Créditos" : "Usuarios"}
+                      </span>
+                      <span className="font-semibold text-gray-900">{cantidadSeleccionada}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">Duración</span>
+                      <span className="font-semibold text-gray-900">{diasRenovacion} días</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">Precio por unidad</span>
+                      <span className="font-semibold text-gray-900">
+                        ${Math.round(precioRenovacion / Math.max(cantidadSeleccionada || 1, 1))}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-gray-200" />
+
+                  {/* Pricing */}
+                  <div className="space-y-2 sm:space-y-3 lg:space-y-4 xl:space-y-5">
+                    <div className="flex justify-between">
+                      <span className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">Subtotal</span>
+                      <span className="text-gray-900">${precioRenovacion.toLocaleString("es-AR")}</span>
+                    </div>
+
+                    {hayDescuento && (
+                      <div className="flex justify-between">
+                        <span className="text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-600">
+                          Descuento {cuponActual?.codigo ? `(${cuponActual.codigo})` : ""}
+                        </span>
+                        <span className="text-emerald-600 font-medium">
+                          -${descuentoAplicado.toLocaleString("es-AR")}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="h-px bg-gray-200" />
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700 font-medium">Monto final</span>
+                      <span className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-indigo-600">
+                        ${precioFinal.toLocaleString("es-AR")}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 sm:pt-4 lg:pt-5 xl:pt-6 flex flex-col gap-1 sm:gap-2 lg:gap-3 xl:gap-4">
+                    <button
+                      onClick={onVolverBuscar}
+                      className="w-full py-2 sm:py-2.5 lg:py-3 xl:py-4 bg-gray-100 border border-gray-300 hover:bg-gray-200 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-900 font-medium rounded-full transition-colors"
+                    >
+                      Buscar otro
+                    </button>
+                    <button
+                      onClick={onProcesar}
+                      disabled={!puedeProcesar || procesando || precioFinal <= 0}
+                      className="w-full py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 text-xs sm:text-sm lg:text-base xl:text-lg text-white font-semibold rounded-full transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                    >
+                      {procesando ? (
+                        <>
+                          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 animate-spin" />
+                          Procesando...
+                        </>
+                      ) : (
+                        <>
+                          Ir al pago
+                          <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Security Info */}
+                <div className="mt-5 sm:mt-6 lg:mt-7 xl:mt-8 pt-5 sm:pt-6 lg:pt-7 xl:pt-8 border-t border-gray-200">
+                  <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 leading-relaxed">
+                    🔒 <span className="text-gray-700 font-medium">Seguro y privado.</span> Procesado con MercadoPago encriptado.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Renewal Type Selection */}
-          <div>
-            <label className="block text-sm font-semibold text-neutral-50 mb-4">
-              Tipo de renovación
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => tipoActual === "validity" && onTipoChange("validity")}
-                disabled={tipoActual !== "validity"}
-                className={`p-4 rounded-lg border transition-all ${
-                  tipoActual !== "validity"
-                    ? "border-neutral-800/40 bg-neutral-900/40 cursor-not-allowed opacity-50"
-                    : tipoSeleccionado === "validity"
-                    ? "border-violet-500 bg-violet-500/10"
-                    : "border-neutral-700 bg-neutral-800/50 hover:bg-neutral-800"
-                }`}
-              >
-                <Calendar
-                  className={`w-5 h-5 mb-2 ${
-                    tipoSeleccionado === "validity" ? "text-violet-400" : "text-neutral-500"
-                  }`}
-                />
-                <p className="text-sm font-semibold text-neutral-50">Validez</p>
-                <p className="text-xs text-neutral-500 mt-1">Más días de acceso</p>
-              </button>
-              <button
-                onClick={() => tipoActual === "credit" && onTipoChange("credit")}
-                disabled={tipoActual !== "credit"}
-                className={`p-4 rounded-lg border transition-all ${
-                  tipoActual !== "credit"
-                    ? "border-neutral-800/40 bg-neutral-900/40 cursor-not-allowed opacity-50"
-                    : tipoSeleccionado === "credit"
-                    ? "border-violet-500 bg-violet-500/10"
-                    : "border-neutral-700 bg-neutral-800/50 hover:bg-neutral-800"
-                }`}
-              >
-                <CreditCard
-                  className={`w-5 h-5 mb-2 ${
-                    tipoSeleccionado === "credit" ? "text-violet-400" : "text-neutral-500"
-                  }`}
-                />
-                <p className="text-sm font-semibold text-neutral-50">Créditos</p>
-                <p className="text-xs text-neutral-500 mt-1">Más créditos</p>
-              </button>
-            </div>
-          </div>
-
-          {/* Plans Selection */}
-          <div>
-            <label className="block text-sm font-semibold text-neutral-50 mb-4">
-              {tipoSeleccionado === "credit"
-                ? "Selecciona cantidad de créditos"
-                : "Selecciona paquete de usuarios"}
-            </label>
-            {planesDisponibles.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {planesDisponibles.map((plan) => {
-                  const diasPlan =
-                    tipoSeleccionado === "credit" ? DIAS_POR_CREDITOS[plan.max_users] ?? 30 : 30;
-                  const precioUnitario = Math.round(plan.precio / Math.max(plan.max_users, 1));
-                  const esSeleccionado = cantidadSeleccionada === plan.max_users;
-
-                  return (
-                    <button
-                      key={plan.id}
-                      onClick={() => onCantidadChange(plan.max_users)}
-                      className={`p-3 rounded-lg border transition-all text-left ${
-                        esSeleccionado
-                          ? "border-violet-500 bg-violet-500/10"
-                          : "border-neutral-700 bg-neutral-800/50 hover:bg-neutral-800"
-                      }`}
-                    >
-                      <p className="text-lg font-bold text-neutral-50">
-                        {plan.max_users}
-                      </p>
-                      <p className="text-xs text-neutral-500 mt-0.5">
-                        {tipoSeleccionado === "credit" ? "créditos" : "usuarios"}
-                      </p>
-                      {tipoSeleccionado === "credit" && (
-                        <p className="text-[11px] text-neutral-500 mt-1">
-                          Aproximadamente {diasPlan} días
-                        </p>
-                      )}
-                      <div className="mt-2 pt-2 border-t border-neutral-700/50">
-                        <p className="text-sm font-semibold text-neutral-50">
-                          ${plan.precio.toLocaleString("es-AR")}
-                        </p>
-                        <p className="text-xs text-neutral-500 mt-1">
-                          ${precioUnitario}/u
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-4 text-center text-sm text-neutral-500">
-                No hay planes disponibles
-              </div>
-            )}
-          </div>
-
-          {/* Contact Information */}
-          <div className="space-y-4">
-            <label className="block text-sm font-semibold text-neutral-50">
-              Información de contacto
-            </label>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-                <input
-                  type="text"
-                  value={nombre}
-                  onChange={(event) => onNombreChange(event.target.value)}
-                  placeholder="Nombre del responsable"
-                  className="w-full pl-11 pr-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-50 placeholder-neutral-500 focus:outline-none focus:border-violet-500 transition-colors"
-                />
-              </div>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(event) => onEmailChange(event.target.value)}
-                  placeholder="email@empresa.com"
-                  className="w-full pl-11 pr-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-50 placeholder-neutral-500 focus:outline-none focus:border-violet-500 transition-colors"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Summary */}
-          <div className="bg-neutral-900/70 border border-neutral-800 rounded-lg p-6 space-y-4">
-            <h3 className="text-sm font-semibold text-neutral-50 uppercase tracking-wide">
-              Resumen de renovación
-            </h3>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-              <div>
-                <p className="text-xs text-neutral-500 mb-1">
-                  {tipoSeleccionado === "credit" ? "Créditos" : "Usuarios"}
-                </p>
-                <p className="text-lg font-semibold text-neutral-50">{cantidadSeleccionada}</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-neutral-500 mb-1">Duración estimada</p>
-                <p className="text-lg font-semibold text-neutral-50">{diasRenovacion} días</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-neutral-500 mb-1">Por unidad</p>
-                <p className="text-lg font-semibold text-neutral-50">
-                  ${Math.round(precioRenovacion / Math.max(cantidadSeleccionada || 1, 1))}
-                </p>
-              </div>
-
-              <div className="sm:col-span-3 h-px bg-neutral-800" />
-
-              <div className="sm:col-span-3 flex justify-between items-end">
-                <span className="text-neutral-400 font-medium">Monto total</span>
-                <span className="text-3xl font-bold text-neutral-50">
-                  ${precioRenovacion.toLocaleString("es-AR")}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={onVolverBuscar}
-              className="flex-1 py-2.5 bg-neutral-800/50 border border-neutral-700 hover:bg-neutral-800 text-neutral-300 font-medium rounded-lg transition-colors"
-            >
-              Buscar otro revendedor
-            </button>
-            <button
-              onClick={onProcesar}
-              disabled={!puedeProcesar || procesando}
-              className="flex-1 py-2.5 bg-violet-600 hover:bg-violet-700 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              {procesando ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Procesando...
-                </>
-              ) : (
-                <>
-                  Continuar al pago
-                  <ChevronRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

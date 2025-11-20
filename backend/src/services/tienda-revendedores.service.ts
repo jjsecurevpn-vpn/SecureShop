@@ -20,6 +20,53 @@ export class TiendaRevendedoresService {
   ) {}
 
   /**
+   * Infers the duration in days for a reseller plan when the database does not provide it.
+   * Falls back to parsing the plan's name/description so credit plans also get an expiration.
+   */
+  private inferirDuracionPlan(plan: PlanRevendedor): number | undefined {
+    if (plan.dias && plan.dias > 0) {
+      return plan.dias;
+    }
+
+    const texto = `${plan.nombre || ""} ${plan.descripcion || ""}`.toLowerCase();
+
+    // Prefer explicit day counts if present (e.g. "30 días")
+    const matchDias = texto.match(/(\d+)\s*d[ií]a?s?/);
+    if (matchDias) {
+      const dias = parseInt(matchDias[1], 10);
+      if (Number.isFinite(dias) && dias > 0) {
+        return dias;
+      }
+    }
+
+    // Fall back to months hints (e.g. "1 mes", "5 meses")
+    const matchMeses = texto.match(/(\d+)\s*mes(?:es)?/);
+    if (matchMeses) {
+      const meses = parseInt(matchMeses[1], 10);
+      if (Number.isFinite(meses) && meses > 0) {
+        return meses * 30;
+      }
+    }
+
+    if (plan.account_type === "validity") {
+      return 30;
+    }
+
+    if (plan.account_type === "credit") {
+      return 30;
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Obtiene el servicio de MercadoPago (para acceso desde rutas)
+   */
+  getMercadoPagoService(): MercadoPagoService {
+    return this.mercadopago;
+  }
+
+  /**
    * Obtiene todos los planes de revendedores activos con overrides aplicados
    */
   obtenerPlanesRevendedores(): PlanRevendedor[] {
@@ -37,8 +84,18 @@ export class TiendaRevendedoresService {
     }
     
     // Aplicar overrides de configuración si existen
-    const planesConOverrides =
-      configService.aceptarOverridesAListaPlanesRevendedor(planesBase);
+    const planesConOverrides = (
+      configService.aceptarOverridesAListaPlanesRevendedor(planesBase) as PlanRevendedor[]
+    ).map((plan) => {
+          const duracionInferida = this.inferirDuracionPlan(plan);
+          if (!plan.dias && duracionInferida) {
+            console.log(
+              `[TiendaRevendedores] ℹ️ Duración inferida para plan ${plan.id}: ${duracionInferida} días`
+            );
+            return { ...plan, dias: duracionInferida } as PlanRevendedor;
+          }
+          return plan;
+        });
     
     // Debug: ver plan 1 después de overrides
     const plan1Overrides = planesConOverrides.find((p: any) => p.id === 1);
@@ -67,7 +124,15 @@ export class TiendaRevendedoresService {
     }
 
     // 2. Aplicar overrides de configuración
-    plan = configService.aceptarOverridesAlPlanRevendedor(plan);
+    plan = configService.aceptarOverridesAlPlanRevendedor(plan) as PlanRevendedor;
+
+    const duracionInferida = this.inferirDuracionPlan(plan);
+    if (!plan.dias && duracionInferida) {
+      plan = { ...plan, dias: duracionInferida } as PlanRevendedor;
+      console.log(
+        `[TiendaRevendedores] ℹ️ Duración ajustada para plan ${plan.id}: ${duracionInferida} días`
+      );
+    }
     console.log(
       `[TiendaRevendedores] Plan ${plan!.id} - Precio final: $${plan!.precio}`
     );
@@ -284,9 +349,11 @@ export class TiendaRevendedoresService {
 
       // Agregar fecha de expiración para ambos tipos de cuenta (validity y credit)
       // Servex requiere expiration_date para que las cuentas expiren correctamente
-      if (plan.dias) {
+      const duracionDias = this.inferirDuracionPlan(plan);
+
+      if (duracionDias) {
         const fechaExpiracion = new Date();
-        fechaExpiracion.setDate(fechaExpiracion.getDate() + plan.dias);
+        fechaExpiracion.setDate(fechaExpiracion.getDate() + duracionDias);
         revendedorData.expiration_date = fechaExpiracion
           .toISOString()
           .split("T")[0]; // YYYY-MM-DD
@@ -294,11 +361,27 @@ export class TiendaRevendedoresService {
           `[TiendaRevendedores] 📅 Fecha de expiración calculada para ${plan.account_type}:`,
           revendedorData.expiration_date
         );
+      } else {
+        console.warn(
+          `[TiendaRevendedores] ⚠️ No se pudo inferir duración para el plan ${plan.id}, la cuenta no tendrá fecha de expiración inicial`
+        );
       }
 
       // 5. Crear revendedor en Servex
       const revendedorCreado = await this.servex.crearRevendedor(
         revendedorData
+      );
+
+      // ✅ VALIDACIÓN CRÍTICA: Asegurar que tenemos un ID válido
+      if (!revendedorCreado || !revendedorCreado.id || revendedorCreado.id === 0) {
+        throw new Error(
+          `Revendedor creado en Servex pero sin ID válido. Username: ${username}. ` +
+          `Respuesta de Servex: ${JSON.stringify(revendedorCreado)}`
+        );
+      }
+
+      console.log(
+        `[TiendaRevendedores] ✅ ID del revendedor validado: ${revendedorCreado.id}`
       );
 
       // 6. Calcular y guardar información del revendedor en la base de datos
@@ -323,7 +406,7 @@ export class TiendaRevendedoresService {
         revendedorCreado.max_users,
         revendedorCreado.account_type,
         expiracionFinal,
-        plan.dias // Guardar la duración en días del plan
+        duracionDias // Guardar la duración en días del plan (incluye inferencia)
       );
 
       console.log(

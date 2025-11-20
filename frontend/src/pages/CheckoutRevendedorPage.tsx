@@ -155,8 +155,8 @@ const CheckoutRevendedorPage: React.FC = () => {
 
   if (!plan) {
     return (
-      <div className="min-h-screen bg-[#181818] pt-16 md:pt-14 flex items-center justify-center">
-        <div className="text-neutral-400">Cargando plan...</div>
+      <div className="min-h-screen bg-white pt-16 md:pt-14 flex items-center justify-center">
+        <div className="text-gray-600">Cargando plan...</div>
       </div>
     );
   }
@@ -164,19 +164,19 @@ const CheckoutRevendedorPage: React.FC = () => {
   const precioFinal = plan.precio - descuentoAplicado;
 
   return (
-    <div className="min-h-screen bg-[#181818] pt-16 md:pt-14">
-      {/* Main Content - Respeta sidebar global (56px en reposo) */}
+    <div className="min-h-screen bg-white pt-16 md:pt-14">
+      {/* Main Content - respeta el padding global del sidebar */}
       <main className="md:ml-14">
-        <div className="max-w-7xl mx-auto px-6 py-8 md:py-12">
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-8 md:py-12">
+        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
           {/* Left Column - Formulario */}
           <div className="space-y-8">
             {/* Header */}
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-neutral-100 mb-2">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-2">
                 Información Personal
               </h1>
-              <p className="text-neutral-400">
+              <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
                 Completa tus datos para finalizar la compra
               </p>
             </div>
@@ -185,35 +185,35 @@ const CheckoutRevendedorPage: React.FC = () => {
             <div className="space-y-6">
               {/* Nombre */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label className="block text-sm font-medium text-gray-900 mb-2">
                   Nombre completo
                 </label>
                 <input
                   ref={nombreInputRef}
                   type="text"
                   defaultValue=""
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors hover:border-neutral-600"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors hover:border-gray-300"
                   placeholder="Juan Pérez"
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-2">
+                <label className="block text-sm font-medium text-gray-900 mb-2">
                   Email
                 </label>
                 <input
                   ref={emailInputRef}
                   type="email"
                   defaultValue=""
-                  className="w-full px-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-colors hover:border-neutral-600"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors hover:border-gray-300"
                   placeholder="tu@email.com"
                 />
               </div>
 
               {/* Cupón */}
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-3">
+                <label className="block text-sm font-medium text-gray-900 mb-3">
                   Código de descuento (opcional)
                 </label>
                 <CuponInput
@@ -228,9 +228,9 @@ const CheckoutRevendedorPage: React.FC = () => {
 
               {/* Error */}
               {error && (
-                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p- p-4 flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-200">{error}</p>
+                <div className="bg-rose-50 border border-rose-300 rounded-lg p-4 flex items-start gap-3">
+                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-rose-700 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-rose-700">{error}</p>
                 </div>
               )}
             </div>
@@ -239,14 +239,14 @@ const CheckoutRevendedorPage: React.FC = () => {
           {/* Right Column - Resumen (Sticky) */}
           <div className="md:sticky md:top-32 h-fit space-y-6">
             {/* Plan Card */}
-            <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-6">
+            <div className="bg-gradient-to-br from-slate-900/90 via-gray-900/90 to-slate-800/90 rounded-lg p-5 sm:p-6 lg:p-8 xl:p-10 space-y-6 text-white">
               {/* Plan Info */}
               <div>
-                <div className="text-sm text-neutral-500 mb-2">Plan seleccionado</div>
-                <h2 className="text-2xl font-bold text-neutral-100 mb-1">
+                <div className="text-sm text-gray-400 mb-2">Plan seleccionado</div>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-1">
                   {plan.nombre}
                 </h2>
-                <p className="text-sm text-neutral-400">
+                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-400">
                   {plan.account_type === "credit"
                     ? `${plan.max_users} créditos`
                     : `${plan.max_users} usuarios`}
@@ -254,46 +254,46 @@ const CheckoutRevendedorPage: React.FC = () => {
               </div>
 
               {/* Divider */}
-              <div className="border-t border-neutral-800" />
+              <div className="border-t border-white/20" />
 
               {/* Price Breakdown */}
               <div className="space-y-3">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-neutral-400">Subtotal</span>
-                  <span className="text-neutral-200">
+                <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg">
+                  <span className="text-gray-400">Subtotal</span>
+                  <span className="text-white">
                     ${plan.precio.toLocaleString("es-AR")}
                   </span>
                 </div>
 
                 {descuentoAplicado > 0 && (
-                  <div className="flex justify-between items-center text-sm text-green-400">
+                  <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-400">
                     <span>Descuento ({cuponData?.codigo})</span>
                     <span>-${descuentoAplicado.toLocaleString("es-AR")}</span>
                   </div>
                 )}
 
-                <div className="border-t border-neutral-800 pt-3 flex justify-between items-center">
-                  <span className="text-neutral-300 font-medium">Total</span>
-                  <span className="text-3xl font-bold text-violet-400">
+                <div className="border-t border-white/20 pt-3 flex justify-between items-center">
+                  <span className="text-white font-medium">Total</span>
+                  <span className="text-3xl font-bold text-indigo-400">
                     ${precioFinal.toLocaleString("es-AR")}
                   </span>
                 </div>
               </div>
 
               {/* Divider */}
-              <div className="border-t border-neutral-800" />
+              <div className="border-t border-white/20" />
 
               {/* Plan Details */}
               <div className="space-y-3 text-sm">
                 <div className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-medium text-neutral-200">
+                    <div className="font-medium text-white">
                       {plan.account_type === "credit"
                         ? `${plan.max_users} créditos`
                         : `${plan.max_users} usuarios`}
                     </div>
-                    <div className="text-xs text-neutral-500">
+                    <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400">
                       {plan.account_type === "credit"
                         ? "Créditos de acceso"
                         : "30 días de validez"}
@@ -302,12 +302,12 @@ const CheckoutRevendedorPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-violet-400 flex-shrink-0 mt-0.5" />
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-medium text-neutral-200">
+                    <div className="font-medium text-white">
                       Acceso inmediato
                     </div>
-                    <div className="text-xs text-neutral-500">
+                    <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400">
                       Recibirás tus credenciales en el email
                     </div>
                   </div>
@@ -322,9 +322,9 @@ const CheckoutRevendedorPage: React.FC = () => {
             </div>
 
             {/* Security Badge */}
-            <div className="flex items-center justify-center gap-2 text-xs text-neutral-500 pt-4 border-t border-neutral-800">
+            <div className="flex items-center justify-center gap-2 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-700 pt-4 border-t border-gray-200">
               <svg
-                className="w-4 h-4 text-emerald-400"
+                className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-600"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -340,7 +340,7 @@ const CheckoutRevendedorPage: React.FC = () => {
             {/* Back Button */}
             <button
               onClick={() => navigate("/revendedores")}
-              className="w-full py-2 px-4 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium rounded-xl transition-colors"
+              className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-lg transition-colors"
             >
               Volver a planes
             </button>

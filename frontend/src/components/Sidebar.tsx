@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Users, CreditCard, Store, FileText, Shield, ChevronLeft, HandHeart, Star } from "lucide-react";
+import { Home, Users, CreditCard, Store, FileText, Shield, HandHeart, Star, Server } from "lucide-react";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -43,6 +43,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       path: "/planes",
     },
     {
+      icon: Store,
+      label: "Revendedores",
+      action: () => navigate("/revendedores"),
+      section: "main",
+      path: "/revendedores",
+    },
+    {
       icon: HandHeart,
       label: "Donaciones",
       action: () => navigate("/donaciones"),
@@ -57,11 +64,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       path: "/sponsors",
     },
     {
-      icon: Store,
-      label: "Revendedores",
-      action: () => navigate("/revendedores"),
+      icon: Server,
+      label: "Servidores",
+      action: () => navigate("/servidores"),
       section: "main",
-      path: "/revendedores",
+      path: "/servidores",
     },
     {
       icon: FileText,
@@ -93,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 bg-neutral-900 border-r border-neutral-800 pt-16 transition-all duration-200 ease-out ${
+        className={`fixed inset-y-0 left-0 z-50 bg-neutral-900 pt-16 transition-all duration-200 ease-out ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
         style={{ width: isExpanded ? "208px" : "56px" }}
@@ -112,7 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               return (
                 <React.Fragment key={index}>
                   {needsSeparator && (
-                    <div className="my-2 border-t border-neutral-800" />
+                    <div className="my-2" />
                   )}
                   <button
                     onClick={() => {
@@ -143,24 +150,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             })}
           </nav>
 
-          {/* Bottom Section */}
-          <div className="border-t border-neutral-800 p-2">
-            <button
-              onClick={() => setIsHovered(!isHovered)}
-              className="flex items-center justify-center w-full h-9 px-3 rounded-md text-neutral-500 hover:text-neutral-200 hover:bg-neutral-800 transition-colors duration-150"
-              title={isExpanded ? "Contraer sidebar" : "Expandir sidebar"}
-            >
-              <div className="flex items-center justify-center w-5 h-5">
-                <ChevronLeft
-                  size={20}
-                  strokeWidth={1.5}
-                  className={`transition-transform duration-200 ${
-                    isExpanded ? "rotate-0" : "rotate-180"
-                  }`}
-                />
-              </div>
-            </button>
-          </div>
+          {/* Eliminado: sección inferior con botón de colapso */}
         </div>
       </aside>
 

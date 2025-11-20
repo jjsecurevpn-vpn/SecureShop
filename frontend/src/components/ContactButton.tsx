@@ -78,7 +78,7 @@ export default function ContactButton() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full -right-20 md:right-0 mt-2 w-80 md:w-96 bg-neutral-900 rounded-xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute top-full -right-20 md:right-0 mt-2 w-80 md:w-96 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Header */}
           <div className="px-4 py-3">
             <div className="flex items-center gap-2">

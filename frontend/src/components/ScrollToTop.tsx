@@ -5,14 +5,16 @@ const ScrollToTop = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    // Scroll en el contenedor principal (overflow-y-auto)
-    const scrollContainer = document.querySelector('.flex-1.overflow-y-auto');
-    if (scrollContainer) {
-      scrollContainer.scrollTop = 0;
-    } else {
-      // Fallback para ventanas del navegador
+    // Usar requestAnimationFrame para asegurar que se ejecute después del render
+    requestAnimationFrame(() => {
+      // Intentar scroll en el contenedor primero
+      const scrollContainer = document.querySelector('.flex-1.overflow-y-auto');
+      if (scrollContainer) {
+        scrollContainer.scrollTop = 0;
+      }
+      // Siempre hacer scroll en window para cubrir casos en móvil
       window.scrollTo(0, 0);
-    }
+    });
   }, [pathname]);
 
   return null;

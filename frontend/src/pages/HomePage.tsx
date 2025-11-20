@@ -1,21 +1,17 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Home, BarChart3, Users } from "lucide-react";
 import { apiService } from "../services/api.service";
+import { PromoHeader } from "../components/PromoHeader";
 import HeroSection from "../sections/HeroSection";
-import ServerStatsSection from "../sections/ServerStatsSection";
-import LatestUsersSection from "../sections/LatestUsersSection";
-import BottomSheet from "../components/BottomSheet";
-import NavigationSidebar from "../components/NavigationSidebar";
+import AppDownloadSection from "../sections/AppDownloadSection";
+import InfrastructureFeaturesSection from "../sections/InfrastructureFeaturesSection";
 
 interface HomePageProps {
-  isMobileMenuOpen: boolean;
-  setIsMobileMenuOpen: (value: boolean) => void;
+  // Props vacío - HomePage no necesita parámetros
 }
 
-const HomePage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: HomePageProps) => {
+const HomePage = ({}: HomePageProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeSection, setActiveSection] = useState("hero");
 
   // Verificar si el usuario vuelve de MercadoPago
   useEffect(() => {
@@ -42,86 +38,25 @@ const HomePage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: HomePageProps) => {
     }
   };
 
-  const homeSections = [
-    {
-      id: "hero",
-      label: "Inicio",
-      subtitle: "Bienvenido",
-      icon: <Home className="w-4 h-4" />,
-    },
-    {
-      id: "server-stats",
-      label: "Estadísticas",
-      subtitle: "Servidores en tiempo real",
-      icon: <BarChart3 className="w-4 h-4" />,
-    },
-    {
-      id: "latest-users",
-      label: "Usuarios",
-      subtitle: "Últimos registrados",
-      icon: <Users className="w-4 h-4" />,
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-[#181818]">
-      {/* Sidebar */}
-      <NavigationSidebar
-        title="JJSecure VPN"
-        subtitle="Navega por la página"
-        sections={homeSections}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
-        sectionIdPrefix="section-"
-      />
-
-      {/* Mobile Bottom Sheet Navigation */}
-      <BottomSheet
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-        title="Navegación"
-        subtitle="Secciones"
-      >
-        <div className="space-y-1">
-          {homeSections.map((section) => (
-            <button
-              key={section.id}
-              onClick={() => {
-                setActiveSection(section.id);
-                setIsMobileMenuOpen(false);
-                setTimeout(() => {
-                  document.getElementById(`section-${section.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-                }, 300);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                activeSection === section.id
-                  ? "bg-violet-900/20 text-violet-300"
-                  : "text-neutral-400 hover:bg-neutral-800"
-              }`}
-            >
-              {section.icon}
-              {section.label}
-            </button>
-          ))}
-        </div>
-      </BottomSheet>
-
+    <div className="bg-white text-neutral-900">
       {/* Main Content */}
-      <main className="md:ml-[312px]">
+      <main className="md:ml-14">
+        {/* Promo Banner Header */}
+        <PromoHeader />
+
         {/* Hero Section */}
         <div id="section-hero">
           <HeroSection />
         </div>
 
-        {/* Server Stats - Real Time */}
-        <div id="section-server-stats">
-          <ServerStatsSection />
+        {/* App Download Section */}
+        <div id="section-app">
+          <AppDownloadSection />
         </div>
 
-        {/* Latest Users */}
-        <div id="section-latest-users">
-          <LatestUsersSection />
-        </div>
+        {/* Infrastructure highlights section */}
+        <InfrastructureFeaturesSection />
       </main>
     </div>
   );

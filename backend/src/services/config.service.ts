@@ -526,18 +526,39 @@ export class ConfigService {
   obtenerConfigHero(): any {
     const config = this.leerConfig();
 
+    // Obtener el estado actual de la promo
+    const promoActiva = config.promo_config?.activa || false;
+    const heroPromocion = config.hero?.promocion || {
+      habilitada: false,
+      texto: "",
+      estilo: "from-red-500 to-pink-500",
+      textColor: "text-white",
+      bgColor: "bg-gradient-to-r from-red-600 to-pink-600",
+    };
+
+    // Si hay promo activa en promo_config, activarla en el hero
+    if (promoActiva) {
+      return {
+        titulo: config.hero?.titulo || "Conecta sin Límites",
+        descripcion:
+          config.hero?.descripcion ||
+          "Planes flexibles y velocidad premium para tu estilo de vida digital",
+        promocion: {
+          habilitada: true,
+          texto: heroPromocion.texto || "¡Promoción especial activa!",
+          estilo: heroPromocion.estilo || "from-red-500 to-pink-500",
+          textColor: heroPromocion.textColor || "text-white",
+          bgColor: heroPromocion.bgColor || "bg-gradient-to-r from-red-600 to-pink-600",
+        },
+      };
+    }
+
     return {
       titulo: config.hero?.titulo || "Conecta sin Límites",
       descripcion:
         config.hero?.descripcion ||
         "Planes flexibles y velocidad premium para tu estilo de vida digital",
-      promocion: config.hero?.promocion || {
-        habilitada: false,
-        texto: "",
-        estilo: "from-red-500 to-pink-500",
-        textColor: "text-white",
-        bgColor: "bg-gradient-to-r from-red-600 to-pink-600",
-      },
+      promocion: heroPromocion,
     };
   }
 
@@ -683,20 +704,42 @@ export class ConfigService {
    * Obtiene la configuración del hero para revendedores
    */
   obtenerConfigHeroRevendedores(): any {
-    const config = this.leerConfigRevendedores();
+    const configRevendedores = this.leerConfigRevendedores();
+    const configPlanes = this.leerConfigPlanes();
+
+    // Obtener el estado actual de la promo
+    const promoActiva = configPlanes.promo_config?.activa || false;
+    const heroPromocion = configRevendedores.hero?.promocion || {
+      habilitada: false,
+      texto: "",
+      estilo: "from-purple-500 to-pink-500",
+      textColor: "text-white",
+      bgColor: "bg-gradient-to-r from-purple-600 to-pink-600",
+    };
+
+    // Si hay promo activa, activarla también en revendedores
+    if (promoActiva) {
+      return {
+        titulo: configRevendedores.hero?.titulo || "Sé Revendedor VPN",
+        descripcion:
+          configRevendedores.hero?.descripcion ||
+          "Gana dinero vendiendo acceso VPN premium a tus clientes",
+        promocion: {
+          habilitada: true,
+          texto: heroPromocion.texto || "¡Promoción especial activa!",
+          estilo: heroPromocion.estilo || "from-purple-500 to-pink-500",
+          textColor: heroPromocion.textColor || "text-white",
+          bgColor: heroPromocion.bgColor || "bg-gradient-to-r from-purple-600 to-pink-600",
+        },
+      };
+    }
 
     return {
-      titulo: config.hero?.titulo || "Sé Revendedor VPN",
+      titulo: configRevendedores.hero?.titulo || "Sé Revendedor VPN",
       descripcion:
-        config.hero?.descripcion ||
+        configRevendedores.hero?.descripcion ||
         "Gana dinero vendiendo acceso VPN premium a tus clientes",
-      promocion: config.hero?.promocion || {
-        habilitada: false,
-        texto: "",
-        estilo: "from-purple-500 to-pink-500",
-        textColor: "text-white",
-        bgColor: "bg-gradient-to-r from-purple-600 to-pink-600",
-      },
+      promocion: heroPromocion,
     };
   }
 

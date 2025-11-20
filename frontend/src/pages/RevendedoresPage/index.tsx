@@ -1,13 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BarChart3, Calendar, RefreshCw, Zap } from "lucide-react";
+import { BarChart3, RefreshCw, Zap } from "lucide-react";
 import HeroReventa from "../../components/HeroReventa";
-import NavigationSidebar from "../../components/NavigationSidebar";
 import { PlanRevendedor } from "../../types";
-import { apiService } from "../../services/api.service";
+import { apiService, ValidacionCupon } from "../../services/api.service";
 import { ModeSelector } from "./components/ModeSelector";
 import { RenovacionPanel } from "./components/RenovacionPanel";
-import { PlanGroupsSection } from "./components/PlanGroupsSection";
+import PlanGroupsSection from "./components/PlanGroupsSection";
 import { SupportSection } from "./components/SupportSection";
 import { MobileMenu } from "./components/MobileMenu";
 import { DIAS_POR_CREDITOS, EMAIL_REGEX } from "./constants";
@@ -20,6 +19,8 @@ import {
 } from "./types";
 import { extractUsersFromName } from "./utils";
 
+type CuponAplicado = NonNullable<ValidacionCupon["cupon"]>;
+
 export interface RevendedoresPageProps {
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (value: boolean) => void;
@@ -29,7 +30,6 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
   const navigate = useNavigate();
 
   const [planes, setPlanes] = useState<PlanRevendedor[]>([]);
-  const [expandedPlanId, setExpandedPlanId] = useState<number | null>(null);
   const [activeSection, setActiveSection] = useState("creditos");
   const [expandedMenuSections, setExpandedMenuSections] = useState<string[]>([]);
   const [modoSeleccion, setModoSeleccion] = useState<ModoSeleccion>("compra");
@@ -44,30 +44,8 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
   const [nombreRenovacion, setNombreRenovacion] = useState("");
   const [emailRenovacion, setEmailRenovacion] = useState("");
   const [procesandoRenovacion, setProcesandoRenovacion] = useState(false);
-
-  const sidebarSections = useMemo(
-    () => [
-      {
-        id: "renovacion",
-        label: "Renovación",
-        subtitle: "Renueva tu plan",
-        icon: <RefreshCw className="w-4 h-4" />,
-      },
-      {
-        id: "creditos",
-        label: "Sistema de Créditos",
-        subtitle: "Máxima flexibilidad",
-        icon: <Zap className="w-4 h-4" />,
-      },
-      {
-        id: "validez",
-        label: "Sistema de Validez",
-        subtitle: "Total control",
-        icon: <Calendar className="w-4 h-4" />,
-      },
-    ],
-    []
-  );
+  const [cuponRenovacion, setCuponRenovacion] = useState<CuponAplicado | null>(null);
+  const [descuentoRenovacion, setDescuentoRenovacion] = useState(0);
 
   const planesCredit = useMemo(
     () =>
@@ -85,20 +63,29 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
     [planes]
   );
 
-  const precioRenovacion = useMemo(() => {
+  const planSeleccionado = useMemo(() => {
     if (!revendedorRenovacion) {
-      return 0;
+      return null;
     }
 
     const planesFuente = tipoRenovacionSeleccionado === "credit" ? planesCredit : planesValidity;
-    const planEncontrado = planesFuente.find((plan) => plan.max_users === cantidadSeleccionada);
-    return planEncontrado?.precio ?? 0;
+    const planCoincidente = planesFuente.find((plan) => plan.max_users === cantidadSeleccionada);
+    return planCoincidente ?? null;
   }, [planesCredit, planesValidity, tipoRenovacionSeleccionado, cantidadSeleccionada, revendedorRenovacion]);
 
-  const diasRenovacion = useMemo(
-    () => (tipoRenovacionSeleccionado === "credit" ? DIAS_POR_CREDITOS[cantidadSeleccionada] ?? 30 : 30),
-    [tipoRenovacionSeleccionado, cantidadSeleccionada]
-  );
+  const precioRenovacion = planSeleccionado ? Math.round(planSeleccionado.precio) : 0;
+
+  const diasRenovacion = useMemo(() => {
+    if (planSeleccionado?.dias && planSeleccionado.dias > 0) {
+      return planSeleccionado.dias;
+    }
+
+    return tipoRenovacionSeleccionado === "credit"
+      ? DIAS_POR_CREDITOS[cantidadSeleccionada] ?? 30
+      : 30;
+  }, [planSeleccionado, tipoRenovacionSeleccionado, cantidadSeleccionada]);
+
+  const precioFinalRenovacion = Math.max(0, precioRenovacion - descuentoRenovacion);
 
   const puedeProcesarRenovacion =
     pasoRenovacion === "configurar" &&
@@ -106,7 +93,8 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
     nombreRenovacion.trim().length > 0 &&
     EMAIL_REGEX.test(emailRenovacion.trim()) &&
     cantidadSeleccionada > 0 &&
-    precioRenovacion > 0;
+    !!planSeleccionado &&
+    precioFinalRenovacion > 0;
 
   useEffect(() => {
     const cargarPlanes = async () => {
@@ -140,6 +128,11 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
     }
   }, [planesCredit, planesValidity, tipoRenovacionSeleccionado, revendedorRenovacion, cantidadSeleccionada]);
 
+  useEffect(() => {
+    setCuponRenovacion(null);
+    setDescuentoRenovacion(0);
+  }, [planSeleccionado?.id, tipoRenovacionSeleccionado, precioRenovacion]);
+
   const resetRenovacion = () => {
     setPasoRenovacion("buscar");
     setBusquedaRenovacion("");
@@ -151,6 +144,8 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
     setNombreRenovacion("");
     setEmailRenovacion("");
     setProcesandoRenovacion(false);
+    setCuponRenovacion(null);
+    setDescuentoRenovacion(0);
   };
 
   const activarModoCompra = () => {
@@ -171,6 +166,8 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
     setPasoRenovacion("buscar");
     setRevendedorRenovacion(null);
     setErrorRenovacion("");
+    setCuponRenovacion(null);
+    setDescuentoRenovacion(0);
   };
 
   const buscarRevendedor = async () => {
@@ -183,7 +180,7 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
     setErrorRenovacion("");
 
     try {
-      const response = await fetch("/api/renovacion/buscar", {
+      const response = await fetch("/api/renovacion/buscar?tipo=revendedor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ busqueda: busquedaRenovacion.trim() }),
@@ -203,6 +200,8 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
       const info = data as RevendedorEncontrado;
       setRevendedorRenovacion(info);
       setTipoRenovacionSeleccionado(info.datos.servex_account_type);
+      setCuponRenovacion(null);
+      setDescuentoRenovacion(0);
 
       const planesFuente = info.datos.servex_account_type === "credit" ? planesCredit : planesValidity;
       if (planesFuente.length > 0) {
@@ -222,10 +221,29 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
     }
   };
 
+  const manejarCuponValidado = (descuento: number, cupon: CuponAplicado) => {
+    const subtotal = precioRenovacion;
+    const descuentoNormalizado = Math.min(
+      Math.max(0, Math.round(descuento)),
+      Math.max(0, Math.round(subtotal))
+    );
+
+    setDescuentoRenovacion(descuentoNormalizado);
+    setCuponRenovacion(cupon);
+  };
+
+  const manejarCuponRemovido = () => {
+    setCuponRenovacion(null);
+    setDescuentoRenovacion(0);
+  };
+
   const procesarRenovacion = () => {
-    if (!puedeProcesarRenovacion || !revendedorRenovacion) {
+    if (!puedeProcesarRenovacion || !revendedorRenovacion || !planSeleccionado) {
       if (!EMAIL_REGEX.test(emailRenovacion.trim())) {
         setErrorRenovacion("Ingresa un email válido");
+      }
+      if (!planSeleccionado) {
+        setErrorRenovacion("Selecciona un plan disponible para continuar");
       }
       return;
     }
@@ -236,12 +254,25 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
       tipo: "revendedor",
       busqueda: busquedaRenovacion.trim(),
       dias: diasRenovacion.toString(),
-      precio: precioRenovacion.toString(),
+      precio: precioFinalRenovacion.toString(),
       nombre: nombreRenovacion.trim(),
       email: emailRenovacion.trim(),
       tipoRenovacion: tipoRenovacionSeleccionado,
       cantidadSeleccionada: cantidadSeleccionada.toString(),
+      precioOriginal: precioRenovacion.toString(),
     });
+
+    if (planSeleccionado?.id) {
+      params.set("planId", planSeleccionado.id.toString());
+    }
+
+    if (descuentoRenovacion > 0 && cuponRenovacion) {
+      params.set("descuento", descuentoRenovacion.toString());
+      params.set("codigoCupon", cuponRenovacion.codigo);
+      if (cuponRenovacion.id) {
+        params.set("cuponId", cuponRenovacion.id.toString());
+      }
+    }
 
     const username = revendedorRenovacion.datos.servex_username;
     if (username) {
@@ -256,16 +287,12 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
     navigate(`/checkout-renovacion?${params.toString()}`);
   };
 
-  const togglePlan = (planId: number) => {
-    setExpandedPlanId(expandedPlanId === planId ? null : planId);
-  };
-
   const groupedPlans: PlanGroup[] = useMemo(
     () => [
       {
         id: "creditos",
         title: "Sistema de Créditos",
-        subtitle: "Cuentas personalizadas sin límite de días",
+        subtitle: "1 crédito = 30 días de servicio",
         accent: "bg-emerald-500/10 border-emerald-500/20",
         accentText: "text-emerald-400",
         icon: <Zap className="w-5 h-5" />,
@@ -422,25 +449,6 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
     navigate(`/checkout-revendedor?planId=${plan.id}`);
   };
 
-  const handleSectionSelect = (id: string) => {
-    if (id === "renovacion") {
-      activarModoRenovacion();
-      setTimeout(() => {
-        document.getElementById("plan-renovacion")?.scrollIntoView({ behavior: "smooth" });
-      }, 0);
-      return;
-    }
-
-    if (modoSeleccion !== "compra") {
-      setModoSeleccion("compra");
-    }
-
-    setActiveSection(id);
-    setTimeout(() => {
-      document.getElementById(`plan-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 0);
-  };
-
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const handleMobileGroup = (section: MobileSection) => {
@@ -494,33 +502,25 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
   };
 
   return (
-    <div className="min-h-screen bg-[#181818]">
-      <NavigationSidebar
-        title="Revendedores"
-        subtitle="Planes disponibles"
-        sections={sidebarSections}
-        activeSection={activeSection}
-        onSectionChange={handleSectionSelect}
-        sectionIdPrefix="plan-"
-      />
-
-      <main className="md:ml-[312px]">
+    <div className="bg-white text-gray-900">
+      <main className="flex flex-col md:ml-14">
         <HeroReventa />
 
-        <section id="planes-section" className="pb-20">
-          <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
-            <div className="mb-12 space-y-8">
-              <div>
-                <h1 className="text-4xl md:text-5xl font-bold text-neutral-100 mb-4">Planes de Revendedor</h1>
-                <p className="text-xl text-neutral-400">Dos sistemas diseñados para adaptarse a tu modelo de negocio</p>
-              </div>
-
-              <ModeSelector
-                mode={modoSeleccion}
-                onSelectCompra={activarModoCompra}
-                onSelectRenovacion={activarModoRenovacion}
-              />
+        <section id="planes-section" className="bg-white py-12 sm:py-16 lg:py-20 xl:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 xl:px-12 space-y-8 sm:space-y-10 lg:space-y-12 xl:space-y-16">
+            <div className="space-y-3 text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 sm:text-sm lg:text-base xl:text-lg">Sistemas de venta</p>
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900">Planes de Revendedor</h1>
+              <p className="text-sm text-gray-600 sm:text-base lg:text-lg xl:text-xl">
+                Elegí entre Créditos o Validez, ambos diseñados para iterar precios, duraciones y márgenes sin fricciones.
+              </p>
             </div>
+
+            <ModeSelector
+              mode={modoSeleccion}
+              onSelectCompra={activarModoCompra}
+              onSelectRenovacion={activarModoRenovacion}
+            />
 
             {modoSeleccion === "renovacion" && (
               <RenovacionPanel
@@ -543,22 +543,26 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
                 puedeProcesar={puedeProcesarRenovacion}
                 diasRenovacion={diasRenovacion}
                 precioRenovacion={precioRenovacion}
+                precioFinal={precioFinalRenovacion}
                 planesCredit={planesCredit}
                 planesValidity={planesValidity}
                 onVerPlanes={activarModoCompra}
                 onVolverBuscar={volverABuscarRevendedor}
                 onProcesar={procesarRenovacion}
+                planSeleccionado={planSeleccionado}
+                cuponActual={cuponRenovacion}
+                descuentoAplicado={descuentoRenovacion}
+                onCuponValidado={manejarCuponValidado}
+                onCuponRemovido={manejarCuponRemovido}
               />
             )}
 
-            <div className={`space-y-16 ${modoSeleccion === "renovacion" ? "mt-16" : ""}`}>
+            {modoSeleccion === "compra" && (
               <PlanGroupsSection
                 groups={groupedPlans}
-                expandedPlanId={expandedPlanId}
-                onTogglePlan={togglePlan}
                 onConfirmarCompra={handleConfirmarCompra}
               />
-            </div>
+            )}
           </div>
         </section>
 

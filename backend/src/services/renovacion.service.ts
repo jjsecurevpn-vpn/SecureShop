@@ -111,31 +111,40 @@ export class RenovacionService {
    * Busca un cliente o revendedor por username en Servex
    * @param busqueda - Email o username a buscar
    * @param soloClientes - Si es true, solo busca clientes, no revendedores
+   * @param soloRevendedores - Si es true, solo busca revendedores, no clientes
    */
-  async buscarCliente(busqueda: string, soloClientes: boolean = false): Promise<{
+  async buscarCliente(busqueda: string, soloClientes: boolean = false, soloRevendedores: boolean = false): Promise<{
     encontrado: boolean;
     tipo?: 'cliente' | 'revendedor';
     datos?: any;
   }> {
+    console.log(`[Renovacion] 🔍 Buscando cuenta: "${busqueda}", soloClientes: ${soloClientes}, soloRevendedores: ${soloRevendedores}`);
+
     // Primero buscar en la base de datos local (compras anteriores)
-    const clienteDB = this.db.buscarClientePorEmailOUsername(busqueda);
-    if (clienteDB) {
-      return {
-        encontrado: true,
-        tipo: 'cliente',
-        datos: {
-          servex_cuenta_id: clienteDB.servex_cuenta_id,
-          servex_username: clienteDB.servex_username,
-          cliente_nombre: clienteDB.cliente_nombre,
-          cliente_email: clienteDB.cliente_email,
-          plan_nombre: clienteDB.plan_nombre
-        }
-      };
+    if (!soloRevendedores) {
+      const clienteDB = this.db.buscarClientePorUsername(busqueda);
+      if (clienteDB) {
+        console.log(`[Renovacion] ✅ Cliente encontrado en DB local: ${clienteDB.servex_username} (ID: ${clienteDB.servex_cuenta_id})`);
+        return {
+          encontrado: true,
+          tipo: 'cliente',
+          datos: {
+            servex_cuenta_id: clienteDB.servex_cuenta_id,
+            servex_username: clienteDB.servex_username,
+            cliente_nombre: clienteDB.cliente_nombre,
+            cliente_email: clienteDB.cliente_email,
+            plan_nombre: clienteDB.plan_nombre
+          }
+        };
+      }
     }
 
     if (!soloClientes) {
-      const revendedorDB = this.db.buscarRevendedorPorEmailOUsername(busqueda);
+      const revendedorDB = this.db.buscarRevendedorPorUsername(busqueda);
       if (revendedorDB) {
+        const maxUsersDb =
+          revendedorDB.servex_max_users ?? revendedorDB.max_users ?? 0;
+        console.log(`[Renovacion] ✅ Revendedor encontrado en DB local: ${revendedorDB.servex_username} (ID: ${revendedorDB.servex_revendedor_id}, max_users: ${maxUsersDb})`);
         return {
           encontrado: true,
           tipo: 'revendedor',
@@ -143,7 +152,7 @@ export class RenovacionService {
             servex_revendedor_id: revendedorDB.servex_revendedor_id,
             servex_username: revendedorDB.servex_username,
             servex_account_type: revendedorDB.servex_account_type,
-            max_users: revendedorDB.max_users || 0,
+            max_users: Number(maxUsersDb) || 0,
             expiration_date: revendedorDB.expiration_date,
             cliente_nombre: revendedorDB.cliente_nombre,
             cliente_email: revendedorDB.cliente_email,
@@ -155,24 +164,29 @@ export class RenovacionService {
 
     // Si no está en la DB, buscar directamente en Servex por username
     try {
-      const clienteServex = await this.servex.buscarClientePorUsername(busqueda);
-      if (clienteServex) {
-        return {
-          encontrado: true,
-          tipo: 'cliente',
-          datos: {
-            servex_cuenta_id: clienteServex.id,
-            servex_username: clienteServex.username,
-            connection_limit: clienteServex.connection_limit || 1,
-            cliente_nombre: busqueda,
-            cliente_email: ''
-          }
-        };
+      console.log(`[Renovacion] 🔍 Buscando en Servex API...`);
+      if (!soloRevendedores) {
+        const clienteServex = await this.servex.buscarClientePorUsername(busqueda);
+        if (clienteServex) {
+          console.log(`[Renovacion] ✅ Cliente encontrado en Servex: ${clienteServex.username} (ID: ${clienteServex.id})`);
+          return {
+            encontrado: true,
+            tipo: 'cliente',
+            datos: {
+              servex_cuenta_id: clienteServex.id,
+              servex_username: clienteServex.username,
+              connection_limit: clienteServex.connection_limit || 1,
+              cliente_nombre: busqueda,
+              cliente_email: ''
+            }
+          };
+        }
       }
 
       if (!soloClientes) {
         const revendedorServex = await this.servex.buscarRevendedorPorUsername(busqueda);
         if (revendedorServex) {
+          console.log(`[Renovacion] ✅ Revendedor encontrado en Servex: ${revendedorServex.username} (ID: ${revendedorServex.id}, max_users: ${revendedorServex.max_users})`);
           return {
             encontrado: true,
             tipo: 'revendedor',
@@ -189,9 +203,10 @@ export class RenovacionService {
         }
       }
     } catch (error: any) {
-      console.error('[Renovacion] Error buscando en Servex:', error.message);
+      console.error('[Renovacion] ❌ Error buscando en Servex:', error.message);
     }
 
+    console.log(`[Renovacion] ❌ Cuenta no encontrada: "${busqueda}"`);
     return { encontrado: false };
   }
 
@@ -211,10 +226,11 @@ export class RenovacionService {
     descuentoAplicado?: number;
     planId?: number;
   }): Promise<{ renovacion: any; linkPago: string; descuentoAplicado?: number; cuponAplicado?: any }> {
+    console.log(`[Renovacion] 🚀 Iniciando procesamiento de renovación de cliente: ${input.busqueda} (${input.dias} días)`);
     console.log('[Renovacion] Input recibido:', JSON.stringify(input, null, 2));
     
     // 1. Buscar cliente existente
-    const resultado = await this.buscarCliente(input.busqueda);
+    const resultado = await this.buscarCliente(input.busqueda, true);
     
     if (!resultado.encontrado || resultado.tipo !== 'cliente') {
       throw new Error('Cliente no encontrado');
@@ -335,6 +351,7 @@ export class RenovacionService {
 
       console.log('[Renovacion] Preferencia de MercadoPago creada:', preferenceId);
 
+      console.log(`[Renovacion] ✅ Renovación de cliente procesada exitosamente: ID ${renovacionId}, link: ${initPoint}`);
       return {
         renovacion,
         linkPago: initPoint,
@@ -404,9 +421,16 @@ export class RenovacionService {
     clienteNombre: string;
     tipoRenovacion?: 'validity' | 'credit';
     cantidadSeleccionada?: number;
-  }): Promise<{ renovacion: any; linkPago: string }> {
-    // 1. Buscar revendedor existente
-    const resultado = await this.buscarCliente(input.busqueda);
+    precio?: number;
+    precioOriginal?: number;
+    codigoCupon?: string;
+    cuponId?: number;
+    descuentoAplicado?: number;
+    planId?: number;
+  }): Promise<{ renovacion: any; linkPago: string; descuentoAplicado?: number; cuponAplicado?: any }> {
+    console.log(`[Renovacion] 🚀 Iniciando procesamiento de renovación de revendedor: ${input.busqueda} (${input.dias} días, tipo: ${input.tipoRenovacion})`);
+    console.log('[Renovacion] Input recibido:', JSON.stringify(input, null, 2));
+    const resultado = await this.buscarCliente(input.busqueda, false);
     
     if (!resultado.encontrado || resultado.tipo !== 'revendedor') {
       throw new Error('Revendedor no encontrado');
@@ -421,34 +445,119 @@ export class RenovacionService {
     console.log(`[Renovacion] 📊 Planes con overrides: ${planesConOverrides.length} planes`);
     
     // 3. Calcular precio según el plan seleccionado
-    let monto = 0;
     const tipoRenovacion = input.tipoRenovacion || 'validity';
     const cantidad = input.cantidadSeleccionada || 5;
     
     console.log(`[Renovacion] 🔍 Buscando plan con: tipo=${tipoRenovacion}, cantidad=${cantidad}`);
     console.log(`[Renovacion] 📋 Planes disponibles: ${JSON.stringify(planesConOverrides.map((p: any) => ({id: p.id, max_users: p.max_users, account_type: p.account_type, precio: p.precio})))}`);
 
-    if (tipoRenovacion === 'validity') {
-      // Buscar un plan de validez con cantidad similar
-      const plan = planesConOverrides.find((p: any) => 
-        p.account_type === 'validity' && p.max_users === cantidad
-      );
-      monto = plan?.precio || 8500; // Default si no encuentra
-      console.log(`[Renovacion] ✅ Renovación VALIDITY - Cantidad usuarios: ${cantidad}, Plan encontrado ID=${plan?.id}, Monto: ${monto}`);
-    } else {
-      // Buscar un plan de créditos con cantidad similar
-      const plan = planesConOverrides.find((p: any) => 
-        p.account_type === 'credit' && p.max_users === cantidad
-      );
-      monto = plan?.precio || 10200; // Default si no encuentra
-      console.log(`[Renovacion] ✅ Renovación CREDIT - Cantidad créditos: ${cantidad}, Plan encontrado ID=${plan?.id}, Monto: ${monto}`);
+    let planSeleccionado: any = null;
+
+    if (input.planId) {
+      planSeleccionado = planesConOverrides.find((p: any) => Number(p.id) === Number(input.planId)) || null;
     }
 
-    // 4. Preparar datos para almacenar
-    const datosNuevos = {
+    if (!planSeleccionado) {
+      planSeleccionado = planesConOverrides.find((p: any) =>
+        p.account_type === tipoRenovacion && p.max_users === cantidad
+      ) || null;
+    }
+
+    if (!planSeleccionado) {
+      console.warn(`[Renovacion] ⚠️ No se encontró un plan exacto para tipo=${tipoRenovacion}, cantidad=${cantidad}. Usando defaults.`);
+    }
+
+    let precioBase = planSeleccionado?.precio ? Math.round(Number(planSeleccionado.precio)) : 0;
+
+    if (!precioBase) {
+      precioBase = tipoRenovacion === 'validity' ? 8500 : 10200;
+    }
+
+    if (input.precioOriginal && input.precioOriginal > 0) {
+      if (Math.abs(input.precioOriginal - precioBase) > 1) {
+        console.warn(
+          `[Renovacion] ⚠️ Precio original recibido (${input.precioOriginal}) difiere del calculado (${precioBase}). Usando recibido.`
+        );
+      }
+      precioBase = Math.round(input.precioOriginal);
+    }
+
+    let cuponAplicado: any = null;
+    let descuentoAplicado = 0;
+
+    if (input.codigoCupon) {
+      const codigoNormalizado = input.codigoCupon.trim().toUpperCase();
+      console.log(`[Renovacion] Validando cupón ${codigoNormalizado} para renovación de revendedor`);
+
+      const validacion = await cuponesService.validarCupon(
+        codigoNormalizado,
+        planSeleccionado?.id ?? input.planId,
+        input.clienteEmail
+      );
+
+      if (!validacion.valido || !validacion.cupon) {
+        throw new Error(validacion.mensaje_error || 'Cupón inválido');
+      }
+
+      cuponAplicado = validacion.cupon;
+
+      if (input.cuponId && cuponAplicado.id && input.cuponId !== cuponAplicado.id) {
+        console.warn(
+          `[Renovacion] ⚠️ ID de cupón recibido (${input.cuponId}) difiere del validado (${cuponAplicado.id})`
+        );
+      }
+
+      descuentoAplicado = Math.min(
+        precioBase,
+        Math.round(cuponesService.calcularDescuento(cuponAplicado, precioBase))
+      );
+
+      console.log(`[Renovacion] Cupón ${cuponAplicado.codigo} aplicado. Descuento: $${descuentoAplicado}. Precio base: $${precioBase}`);
+    }
+
+    if (!input.codigoCupon && input.descuentoAplicado) {
+      console.warn(
+        `[Renovacion] ⚠️ Se recibió descuento aplicado (${input.descuentoAplicado}) sin código de cupón. Ignorando valor recibido.`
+      );
+    }
+
+    if (input.descuentoAplicado && Math.abs(input.descuentoAplicado - descuentoAplicado) > 1) {
+      console.warn(
+        `[Renovacion] ⚠️ Diferencia entre descuento recibido (${input.descuentoAplicado}) y calculado (${descuentoAplicado}). Se utilizará el calculado.`
+      );
+    }
+
+    let montoCalculado = Math.max(0, Math.round(precioBase - descuentoAplicado));
+
+    if (input.precio && Math.abs(input.precio - montoCalculado) > 1) {
+      console.warn(
+        `[Renovacion] ⚠️ Diferencia entre precio recibido (${input.precio}) y calculado (${montoCalculado}). Se usará el calculado.`
+      );
+    }
+
+    if (!montoCalculado || montoCalculado <= 0) {
+      throw new Error('El total a pagar con el cupón debe ser mayor a 0');
+    }
+
+    const datosNuevos: any = {
       tipo_renovacion: tipoRenovacion,
-      cantidad: cantidad,
+      cantidad,
+      precio_base: precioBase,
+      precio_final: montoCalculado,
     };
+
+    if (planSeleccionado?.id) {
+      datosNuevos.plan_id = planSeleccionado.id;
+    }
+
+    if (planSeleccionado?.nombre) {
+      datosNuevos.plan_nombre = planSeleccionado.nombre;
+    }
+
+    if (cuponAplicado) {
+      datosNuevos.cupon_codigo = cuponAplicado.codigo;
+      datosNuevos.descuento_aplicado = descuentoAplicado;
+    }
 
     // 5. Crear registro de renovación
     const renovacion = this.db.crearRenovacion({
@@ -458,11 +567,13 @@ export class RenovacionService {
       operacion: 'renovacion',
       dias_agregados: input.dias,
       datos_nuevos: JSON.stringify(datosNuevos),
-      monto,
+      monto: montoCalculado,
       metodo_pago: 'mercadopago',
       cliente_email: input.clienteEmail,
       cliente_nombre: input.clienteNombre,
-      estado: 'pendiente'
+      estado: 'pendiente',
+      cupon_id: cuponAplicado?.id || null,
+      descuento_aplicado: descuentoAplicado
     });
 
     const renovacionId = renovacion.id;
@@ -477,7 +588,7 @@ export class RenovacionService {
       const { id: preferenceId, initPoint } = await this.mercadopago.crearPreferencia(
         renovacionId.toString(),
         descripcion,
-        monto,
+        montoCalculado,
         input.clienteEmail,
         input.clienteNombre,
         'renovacion-revendedor'
@@ -485,9 +596,12 @@ export class RenovacionService {
 
       console.log('[Renovacion] Preferencia de MercadoPago creada:', preferenceId);
 
+      console.log(`[Renovacion] ✅ Renovación de revendedor procesada exitosamente: ID ${renovacionId}, link: ${initPoint}`);
       return {
         renovacion,
         linkPago: initPoint,
+        descuentoAplicado: descuentoAplicado > 0 ? descuentoAplicado : undefined,
+        cuponAplicado
       };
     } catch (error: any) {
       this.db.actualizarEstadoRenovacion(renovacionId, 'rechazado');
@@ -500,6 +614,10 @@ export class RenovacionService {
    */
   async confirmarRenovacion(renovacionId: number, mpPaymentId: string): Promise<void> {
     console.log('[Renovacion] Confirmando renovación:', renovacionId);
+
+    if (!mpPaymentId || mpPaymentId.trim() === '') {
+      throw new Error('No se puede confirmar renovación sin ID de pago válido');
+    }
 
     const renovacion = this.db.obtenerRenovacionPorId(renovacionId);
     if (!renovacion) {
@@ -573,6 +691,13 @@ export class RenovacionService {
               account_type: 'validity',
               expiration_date: expirationDate
             }, renovacion.servex_username);
+
+            this.db.actualizarDatosRevendedorPorServexId({
+              servexId: renovacion.servex_id,
+              maxUsers: cantidad,
+              expiracion: expirationDate,
+              accountType: 'validity'
+            });
           } else if (tipoRenovacion === 'credit') {
             // Recarga de créditos: Agregar días según plan + SUMAR créditos
             console.log(`[Renovacion] Credit: Agregando ${renovacion.dias_agregados} días y sumando ${cantidad} créditos`);
@@ -597,6 +722,13 @@ export class RenovacionService {
               account_type: 'credit',
               expiration_date: expirationDate
             }, renovacion.servex_username);
+
+            this.db.actualizarDatosRevendedorPorServexId({
+              servexId: renovacion.servex_id,
+              maxUsers: creditosTotales,
+              expiracion: expirationDate,
+              accountType: 'credit'
+            });
           }
           
           console.log('[Renovacion] ✅ Revendedor actualizado exitosamente');
@@ -765,6 +897,15 @@ export class RenovacionService {
       return await this.servex.buscarClientePorUsername(username);
     } catch (error) {
       console.error('[Renovacion] Error obteniendo cliente actualizado:', error);
+      return null;
+    }
+  }
+
+  async obtenerRevendedorActualizado(username: string): Promise<any | null> {
+    try {
+      return await this.servex.buscarRevendedorPorUsername(username);
+    } catch (error) {
+      console.error('[Renovacion] Error obteniendo revendedor actualizado:', error);
       return null;
     }
   }

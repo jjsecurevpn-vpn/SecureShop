@@ -766,6 +766,34 @@ export class DatabaseService {
     );
   }
 
+  actualizarDatosRevendedorPorServexId(options: {
+    servexId: number;
+    maxUsers?: number;
+    expiracion?: string | null;
+    accountType?: string;
+  }): void {
+    const { servexId, maxUsers, expiracion, accountType } = options;
+
+    const stmt = this.db.prepare(`
+      UPDATE pagos_revendedores
+      SET servex_max_users = CASE WHEN ? IS NOT NULL THEN ? ELSE servex_max_users END,
+          servex_expiracion = CASE WHEN ? IS NOT NULL THEN ? ELSE servex_expiracion END,
+          servex_account_type = CASE WHEN ? IS NOT NULL THEN ? ELSE servex_account_type END,
+          fecha_actualizacion = datetime('now')
+      WHERE servex_revendedor_id = ?
+    `);
+
+    stmt.run(
+      maxUsers !== undefined ? maxUsers : null,
+      maxUsers !== undefined ? maxUsers : null,
+      expiracion !== undefined ? expiracion : null,
+      expiracion !== undefined ? expiracion : null,
+      accountType !== undefined ? accountType : null,
+      accountType !== undefined ? accountType : null,
+      servexId
+    );
+  }
+
   // ============================================
   // MAPPERS PARA REVENDEDORES
   // ============================================
@@ -813,31 +841,31 @@ export class DatabaseService {
   // ============================================
 
   /**
-   * Busca un cliente por email o username
+   * Busca un cliente por username
    */
-  buscarClientePorEmailOUsername(busqueda: string): any | null {
+  buscarClientePorUsername(username: string): any | null {
     const stmt = this.db.prepare(`
       SELECT * FROM pagos 
-      WHERE (cliente_email = ? OR servex_username = ?)
+      WHERE servex_username = ?
       AND estado = 'aprobado'
       ORDER BY fecha_creacion DESC
       LIMIT 1
     `);
-    return stmt.get(busqueda, busqueda);
+    return stmt.get(username);
   }
 
   /**
-   * Busca un revendedor por email o username
+   * Busca un revendedor por username
    */
-  buscarRevendedorPorEmailOUsername(busqueda: string): any | null {
+  buscarRevendedorPorUsername(username: string): any | null {
     const stmt = this.db.prepare(`
       SELECT * FROM pagos_revendedores 
-      WHERE (cliente_email = ? OR servex_username = ?)
+      WHERE servex_username = ?
       AND estado = 'aprobado'
       ORDER BY fecha_creacion DESC
       LIMIT 1
     `);
-    return stmt.get(busqueda, busqueda);
+    return stmt.get(username);
   }
 
   /**

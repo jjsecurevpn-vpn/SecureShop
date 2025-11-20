@@ -8,6 +8,27 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
   const router = Router();
   console.log("[crearRutasTienda] 🚀 INICIALIZANDO RUTAS DE TIENDA...");
 
+  const sanitizeReference = (value: unknown): string | null => {
+    if (!value) return null;
+    if (Array.isArray(value)) {
+      return sanitizeReference(value[0]);
+    }
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      if (!trimmed) return null;
+      const firstSegment = trimmed.includes(",") ? trimmed.split(",")[0]?.trim() : trimmed;
+      return firstSegment || null;
+    }
+    return null;
+  };
+
+  const sanitizeTipo = (value: unknown): string => {
+    if (Array.isArray(value)) {
+      return sanitizeTipo(value[0]);
+    }
+    return typeof value === "string" && value.trim() ? value.trim() : "cliente";
+  };
+
   /**
    * GET /api/planes
    * Obtiene la lista de planes disponibles
@@ -129,19 +150,29 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
    */
   router.get("/pago/success", async (req: Request, res: Response) => {
     const { payment_id, external_reference, tipo } = req.query;
+    const externalReference = sanitizeReference(external_reference);
+    const tipoNormalizado = sanitizeTipo(tipo);
+
+    if (!externalReference) {
+      console.error("[Success] ❌ external_reference ausente o inválido", external_reference);
+      res.redirect(
+        `${process.env.CORS_ORIGIN || "http://localhost:3000"}/error?code=INVALID_REFERENCE&operacion=compra`
+      );
+      return;
+    }
 
     // 🔍 VERIFICACIÓN SINCRÓNICA: No confiar solo en webhooks
-    if (external_reference) {
+    if (externalReference) {
       try {
         console.log(
-          `[Success] 🔍 Verificando pago ${external_reference} contra MercadoPago...`
+          `[Success] 🔍 Verificando pago ${externalReference} contra MercadoPago...`
         );
         const timestamp = new Date().toISOString();
 
         // Consultar MercadoPago directamente
         const pagoMP = await tiendaService
           .getMercadoPagoService()
-          .verificarPagoPorReferencia(external_reference as string);
+          .verificarPagoPorReferencia(externalReference);
 
         if (pagoMP && pagoMP.status === "approved") {
           console.log(
@@ -151,7 +182,7 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
           // Procesar inmediatamente
           try {
             await tiendaService.verificarYProcesarPago(
-              external_reference as string
+              externalReference
             );
             console.log(
               `[${timestamp}] ✅ Pago procesado exitosamente ANTES de redirigir`
@@ -193,8 +224,8 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
     res.redirect(
       `${
         process.env.CORS_ORIGIN || "http://localhost:3000"
-      }/success?status=approved&payment_id=${payment_id}&pago_id=${external_reference}&tipo=${
-        tipo || "cliente"
+      }/success?status=approved&payment_id=${Array.isArray(payment_id) ? payment_id[0] : payment_id}&pago_id=${externalReference}&tipo=${
+        tipoNormalizado
       }`
     );
   });
@@ -203,14 +234,60 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
    * GET /api/pago/failure
    * Página de fallo después del pago
    */
-  router.get("/pago/failure", (req: Request, res: Response) => {
-    const { external_reference, tipo } = req.query;
+  router.get("/pago/failure", async (req: Request, res: Response) => {
+    const { external_reference, tipo, reason } = req.query;
+    const externalReference = sanitizeReference(external_reference);
+    const tipoNormalizado = sanitizeTipo(tipo);
+    const frontendBase = process.env.CORS_ORIGIN || "http://localhost:3000";
+
+    if (externalReference) {
+      try {
+        console.log(
+          `[Failure] 🔍 Verificando pago ${externalReference} contra MercadoPago...`
+        );
+        const pagoMP = await tiendaService
+          .getMercadoPagoService()
+          .verificarPagoPorReferencia(externalReference);
+
+        if (pagoMP && pagoMP.status === "approved") {
+          const timestamp = new Date().toISOString();
+          console.log(
+            `[${timestamp}] ✅ Pago aprobado detectado desde ruta failure, procesando...`
+          );
+
+          try {
+            await tiendaService.verificarYProcesarPago(
+              externalReference
+            );
+            console.log(
+              `[${timestamp}] ✅ Pago procesado exitosamente desde ruta failure`
+            );
+          } catch (procError: any) {
+            console.error(
+              `[${timestamp}] ⚠️ Error procesando pago en ruta failure:`,
+              procError.message
+            );
+          }
+
+          res.redirect(
+            `${frontendBase}/success?status=approved&payment_id=${pagoMP.id}&pago_id=${externalReference}&tipo=${
+              tipoNormalizado
+            }`
+          );
+          return;
+        }
+      } catch (error: any) {
+        console.error(
+          `[Failure] ❌ Error verificando pago en MercadoPago:`,
+          error.message
+        );
+      }
+    }
+
     res.redirect(
-      `${
-        process.env.CORS_ORIGIN || "http://localhost:3000"
-      }/?status=rejected&pago_id=${external_reference}&tipo=${
-        tipo || "cliente"
-      }`
+      `${frontendBase}/error?code=PAYMENT_REJECTED&pago_id=${externalReference || ""}&tipo=${
+        tipoNormalizado
+      }&operacion=compra${reason ? `&message=${encodeURIComponent(reason as string)}` : ""}`
     );
   });
 
@@ -218,13 +295,72 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
    * GET /api/pago/pending
    * Página de pago pendiente
    */
-  router.get("/pago/pending", (req: Request, res: Response) => {
+  router.get("/pago/pending", async (req: Request, res: Response) => {
     const { external_reference, tipo } = req.query;
+    const externalReference = sanitizeReference(external_reference);
+    const tipoNormalizado = sanitizeTipo(tipo);
+    const frontendBase = process.env.CORS_ORIGIN || "http://localhost:3000";
+
+    if (externalReference) {
+      try {
+        console.log(
+          `[Pending] 🔍 Verificando pago ${externalReference} contra MercadoPago...`
+        );
+        const pagoMP = await tiendaService
+          .getMercadoPagoService()
+          .verificarPagoPorReferencia(externalReference);
+
+        if (pagoMP && pagoMP.status === "approved") {
+          const timestamp = new Date().toISOString();
+          console.log(
+            `[${timestamp}] ✅ Pago aprobado detectado desde ruta pending, procesando...`
+          );
+
+          try {
+            await tiendaService.verificarYProcesarPago(
+              externalReference
+            );
+            console.log(
+              `[${timestamp}] ✅ Pago procesado exitosamente desde ruta pending`
+            );
+          } catch (procError: any) {
+            console.error(
+              `[${timestamp}] ⚠️ Error procesando pago en ruta pending:`,
+              procError.message
+            );
+          }
+
+          res.redirect(
+            `${frontendBase}/success?status=approved&payment_id=${pagoMP.id}&pago_id=${externalReference}&tipo=${
+              tipoNormalizado
+            }`
+          );
+          return;
+        }
+
+        if (pagoMP && pagoMP.status === "rejected") {
+          console.log(
+            `[Pending] ⚠️ MercadoPago indica rechazo para ${externalReference}`
+          );
+          res.redirect(
+            `${frontendBase}/error?code=PAYMENT_REJECTED&pago_id=${externalReference}&tipo=${
+              tipoNormalizado
+            }&operacion=compra`
+          );
+          return;
+        }
+      } catch (error: any) {
+        console.error(
+          `[Pending] ❌ Error verificando pago en MercadoPago:`,
+          error.message
+        );
+      }
+    }
 
     res.redirect(
-      `${
-        process.env.CORS_ORIGIN || "http://localhost:3000"
-      }/?status=pending&pago_id=${external_reference}&tipo=${tipo || "cliente"}`
+      `${frontendBase}/error?code=PAYMENT_PENDING&pago_id=${externalReference || ""}&tipo=${
+        tipoNormalizado
+      }&operacion=compra`
     );
   });
 
@@ -235,9 +371,18 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
   router.get("/pago/:id", async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
+      const pagoId = sanitizeReference(id);
+
+      if (!pagoId) {
+        res.status(400).json({
+          success: false,
+          error: "ID de pago inválido",
+        } as ApiResponse);
+        return;
+      }
 
       // Verificar y procesar el pago
-      const pago = await tiendaService.verificarYProcesarPago(id);
+      const pago = await tiendaService.verificarYProcesarPago(pagoId);
 
       if (!pago) {
         res.status(404).json({
@@ -273,15 +418,28 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
       try {
         const { id } = req.params;
         const timestamp = new Date().toISOString();
+        const pagoId = sanitizeReference(id);
+
+        if (!pagoId) {
+          console.log(
+            `[${timestamp}] ⚠️ ID de pago inválido recibido en verificación forzada:`,
+            id
+          );
+          res.status(400).json({
+            success: false,
+            error: "ID de pago inválido",
+          } as ApiResponse);
+          return;
+        }
 
         console.log(
-          `[${timestamp}] 🚨 VERIFICACIÓN FORZADA SOLICITADA para pago: ${id}`
+          `[${timestamp}] 🚨 VERIFICACIÓN FORZADA SOLICITADA para pago: ${pagoId}`
         );
 
         // Consultar MercadoPago directamente
         const pagoMP = await tiendaService
           .getMercadoPagoService()
-          .verificarPagoPorReferencia(id);
+          .verificarPagoPorReferencia(pagoId);
 
         if (!pagoMP) {
           console.log(`[${timestamp}] ⚠️ Pago no encontrado en MercadoPago`);
@@ -300,11 +458,11 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
         if (pagoMP.status === "approved") {
           console.log(`[${timestamp}] ✅ Pago aprobado! Procesando...`);
           try {
-            await tiendaService.verificarYProcesarPago(id);
+            await tiendaService.verificarYProcesarPago(pagoId);
             console.log(`[${timestamp}] ✅ Pago procesado exitosamente`);
           } catch (procError: any) {
             console.error(
-              `[${timestamp}] ⚠️ Error procesando:`,
+              `[${timestamp}] ⚠️ Error procesando pago aprobado:`,
               procError.message
             );
             // Continuar de todos modos
@@ -312,11 +470,14 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
         }
 
         // Obtener información actualizada
-        const pago = tiendaService.obtenerPago(id);
+        const pago = tiendaService.obtenerPago(pagoId);
 
         res.json({
           success: true,
           data: pago,
+          meta: {
+            mercadoPagoStatus: pagoMP.status,
+          },
         } as ApiResponse);
       } catch (error: any) {
         console.error("[Rutas] Error en verificación forzada:", error);
@@ -327,6 +488,21 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
       }
     }
   );
+
+  /**
+   * GET /api/pago/error
+   * Ruta genérica para errores de pago (si MercadoPago falla antes de redirigir)
+   */
+  router.get("/pago/error", (req: Request, res: Response) => {
+    const { external_reference, tipo, message } = req.query;
+    res.redirect(
+      `${
+        process.env.CORS_ORIGIN || "http://localhost:3000"
+      }/error?code=PAYMENT_ERROR&pago_id=${external_reference}&tipo=${
+        tipo || "cliente"
+      }&operacion=compra${message ? `&message=${encodeURIComponent(message as string)}` : ""}`
+    );
+  });
 
   /**
    * GET /api/config/info

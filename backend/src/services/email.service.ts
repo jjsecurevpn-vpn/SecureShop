@@ -245,13 +245,7 @@ class EmailService {
       cupon?: InformacionCupon;
     }
   ): Promise<boolean> {
-    const adminEmail = process.env.EMAIL_USER;
-    if (!adminEmail) {
-      console.error(
-        "[Email] ❌ EMAIL_USER no configurado para notificaciones al admin"
-      );
-      return false;
-    }
+    const jazminEmail = "jazmincardozoh05@gmail.com";
 
     const tipoTexto = {
       cliente: "Nueva venta - Cliente VPN",
@@ -360,7 +354,7 @@ class EmailService {
     `;
 
     return this.enviarEmail({
-      to: adminEmail,
+      to: jazminEmail,
       subject: `🔔 ${tipoTexto[tipo]} - $${datos.monto}`,
       html,
     });

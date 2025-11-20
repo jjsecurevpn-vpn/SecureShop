@@ -1,4 +1,5 @@
-import { Shield, MessageCircle, Users, Sparkles, Signal } from "lucide-react";
+import React from "react";
+import { ArrowRight, MessageCircle, Shield, Signal, Sparkles, Users } from "lucide-react";
 import { PromoTimerRevendedores } from "./PromoTimerRevendedores";
 import { useHeroConfigRevendedores } from "../hooks/useHeroConfigRevendedores";
 import { useRevendedoresCount } from "../hooks/useRevendedoresCount";
@@ -22,119 +23,75 @@ export default function HeroReventa() {
     window.open("https://wa.me/5493812531123", "_blank");
   };
 
+  const stats = [
+    { value: "99.9%", label: "Uptime", icon: <Signal className="w-4 h-4" /> },
+    { value: "24/7", label: "Soporte", icon: <MessageCircle className="w-4 h-4" /> },
+    { value: totalRevendedores > 0 ? `${totalRevendedores}+` : "...", label: "Revendedores", icon: <Users className="w-4 h-4" /> },
+    { value: "Premium", label: "Calidad", icon: <Shield className="w-4 h-4" /> },
+  ];
+
   return (
-    <section className="relative pt-4 md:pt-12 pb-16 md:pb-20">
-      <div className="max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-8 items-center">
-          {/* Contenido de texto */}
-          <div className="max-w-3xl text-center lg:text-left px-2 md:px-0">
-            {/* Banner de Promoción - Más prominente */}
+    <section className="bg-white py-12 sm:py-16 lg:py-20 xl:py-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+        <div className="flex justify-center">
+          <div className="w-full space-y-6 sm:space-y-7 lg:space-y-8 xl:space-y-10 text-center">
             {heroConfig?.promocion?.habilitada && (
-              <div className="mb-8 flex justify-center lg:justify-start">
-                <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/30 text-blue-300 rounded-full px-6 py-3 shadow-lg shadow-blue-500/20">
-                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                  <span className="text-sm font-semibold">
+              <div className="flex justify-center">
+                <div className="inline-flex items-center gap-3 rounded-full border border-emerald-300 bg-emerald-50 px-4 sm:px-5 lg:px-6 xl:px-7 py-2 text-emerald-700">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-xs font-semibold uppercase tracking-[0.3em] sm:text-sm lg:text-base xl:text-lg">
                     {heroConfig.promocion.texto}
                   </span>
                 </div>
               </div>
             )}
 
-            <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-full px-4 py-2 mb-6">
-              <Sparkles className="w-4 h-4" />
-              <span className="text-sm font-medium">
-                Programa de Revendedores
-              </span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-indigo-700 sm:text-xs lg:text-sm xl:text-base">
+              <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
+              Programa de Revendedores
             </div>
 
-            <h1 className="text-3xl md:text-4xl lg:text-6xl font-bold text-neutral-200 mb-6 break-words px-2 lg:px-0">
-              {heroConfig?.titulo || "Sé Revendedor VPN"}
-            </h1>
+            <div className="space-y-4">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900">
+                {heroConfig?.titulo || "Sé Revendedor VPN"}
+              </h1>
+              <p className="text-sm text-gray-600 sm:text-base lg:text-lg xl:text-xl">
+                {heroConfig?.descripcion || "Gana dinero vendiendo acceso VPN premium a tus clientes"}
+              </p>
+            </div>
 
-            <p className="text-base md:text-lg text-neutral-400 mb-8 break-words px-2 lg:px-0">
-              {heroConfig?.descripcion ||
-                "Gana dinero vendiendo acceso VPN premium a tus clientes"}
-            </p>
-
-            {/* Temporizador de Promoción - Más prominente */}
-            <div className="mb-8">
+            <div className="rounded-3xl border border-gray-200 bg-gray-50 p-4 sm:p-5 lg:p-6 xl:p-7 shadow-sm shadow-gray-100">
               <PromoTimerRevendedores />
             </div>
 
-            {/* Stats */}
-            <div className="grid gap-2 md:gap-3 mb-12 w-full" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))" }}>
-              {[
-                {
-                  value: "99.9%",
-                  label: "Uptime",
-                  icon: <Signal className="w-4 h-4 md:w-5 md:h-5" />,
-                },
-                {
-                  value: "24/7",
-                  label: "Soporte",
-                  icon: <MessageCircle className="w-4 h-4 md:w-5 md:h-5" />,
-                },
-                {
-                  value: totalRevendedores > 0 ? `${totalRevendedores}+` : "...",
-                  label: "Revendedores",
-                  icon: <Users className="w-4 h-4 md:w-5 md:h-5" />,
-                },
-                {
-                  value: "Premium",
-                  label: "Calidad",
-                  icon: <Shield className="w-4 h-4 md:w-5 md:h-5" />,
-                },
-              ].map((stat, i) => (
+            <div className="grid gap-2 sm:gap-3 lg:gap-4 xl:gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))" }}>
+              {stats.map((stat) => (
                 <div
-                  key={i}
-                  className="flex flex-col items-center justify-center p-3 md:p-4 rounded-xl border bg-neutral-900/50 border-neutral-800 hover:border-neutral-700 transition-all group min-h-[100px]"
+                  key={stat.label}
+                  className="flex flex-col items-center justify-center rounded-2xl px-4 py-3 shadow-[2px_4px_8px_-3px_rgba(0,0,0,0.08),-2px_4px_8px_-3px_rgba(0,0,0,0.08)]"
                 >
-                  <div className="p-1.5 rounded-full bg-white/5 group-hover:bg-white/10 transition-all mb-1.5">
-                    <div className="text-blue-400">{stat.icon}</div>
-                  </div>
-                  <div className="text-lg md:text-xl font-bold text-white text-center">
-                    {stat.value}
-                  </div>
-                  <div className="text-xs text-neutral-400 text-center font-medium mt-1">
-                    {stat.label}
-                  </div>
+                  <div className="mb-1 text-emerald-600">{React.cloneElement(stat.icon, { className: "w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6" })}</div>
+                  <p className="text-lg font-semibold text-gray-900 sm:text-xl lg:text-2xl xl:text-3xl">{stat.value}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-600 sm:text-xs lg:text-sm xl:text-base">{stat.label}</p>
                 </div>
               ))}
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start px-4 lg:px-0">
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
               <button
                 onClick={handleComenzarAhora}
-                className="inline-flex items-center justify-center gap-2 px-4 md:px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-sm font-semibold text-white transition-colors w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-indigo-600 px-6 sm:px-8 lg:px-10 xl:px-12 py-3 sm:py-3.5 lg:py-4 xl:py-5 text-sm font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-300 sm:text-base lg:text-lg xl:text-xl"
               >
-                <Users className="w-4 h-4" />
-                <span className="break-words">Comenzar ahora</span>
+                Comenzar ahora
+                <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
               </button>
               <button
                 onClick={handleContactarSoporte}
-                className="inline-flex items-center justify-center gap-2 px-4 md:px-6 py-3 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-xl text-sm font-semibold text-neutral-200 transition-colors w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-indigo-600 bg-white px-6 sm:px-8 lg:px-10 xl:px-12 py-3 sm:py-3.5 lg:py-4 xl:py-5 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-600 hover:text-white sm:text-base lg:text-lg xl:text-xl"
               >
-                <MessageCircle className="w-4 h-4" />
-                <span className="break-words">Contactar soporte</span>
+                <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
+                Contactar soporte
               </button>
-            </div>
-          </div>
-
-          {/* Imagen del Panel */}
-          <div className="flex justify-center mt-8 md:mt-0 lg:justify-end">
-            <div className="relative w-full md:w-auto">
-              {/* Glow sutil */}
-              <div className="absolute inset-0 bg-blue-600/20 blur-3xl rounded-full" />
-              
-              {/* Imagen */}
-              <div className="relative z-10 px-4 md:px-0">
-                <img
-                  src="/PanelReventa.png"
-                  alt="Panel de Revendedores"
-                  className="w-full md:max-w-lg h-auto object-contain drop-shadow-xl rounded-xl"
-                />
-              </div>
             </div>
           </div>
         </div>

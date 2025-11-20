@@ -32,7 +32,7 @@ export default function BottomSheet({
         } max-h-[80vh] rounded-t-lg overflow-hidden`}
       >
         {/* Header */}
-        <div className="p-4 border-b border-neutral-700 flex justify-between items-center">
+        <div className="p-4 flex justify-between items-center">
           <div>
             <h2 className="text-lg font-semibold">{title}</h2>
             {subtitle && <p className="text-sm text-gray-400">{subtitle}</p>}

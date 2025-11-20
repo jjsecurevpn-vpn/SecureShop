@@ -78,17 +78,25 @@ export class MercadoPagoService {
         ? `${baseUrl}/api/renovacion/success/${pagoId}?t=${timestamp}`
         : esDonacion
         ? `${baseUrl}/donaciones/success?donacion_id=${pagoId}&t=${timestamp}`
-        : `${baseUrl}/success?pago_id=${pagoId}&tipo=${tipo}&t=${timestamp}`;
+        : tipo === "revendedor"
+        ? `${baseUrl}/api/pago-revendedor/success?external_reference=${pagoId}&payment_id=MP&t=${timestamp}`
+        : `${baseUrl}/api/pago/success?external_reference=${pagoId}&payment_id=MP&tipo=${tipo}&t=${timestamp}`;
+      
       const failureUrl = esRenovacion
-        ? `${baseUrl}/?error=pago-rechazado&ref=${pagoId}&t=${timestamp}`
+        ? `${baseUrl}/api/renovacion/failure?external_reference=${pagoId}&tipo=${tipo.split('-')[1] || 'cliente'}&t=${timestamp}`
         : esDonacion
         ? `${baseUrl}/donaciones?status=error&t=${timestamp}`
-        : `${baseUrl}/?error=pago-fallido&tipo=${tipo}&t=${timestamp}`;
+        : tipo === "revendedor"
+        ? `${baseUrl}/api/pago-revendedor/failure?external_reference=${pagoId}&t=${timestamp}`
+        : `${baseUrl}/api/pago/failure?external_reference=${pagoId}&tipo=${tipo}&t=${timestamp}`;
+      
       const pendingUrl = esRenovacion
-        ? `${baseUrl}/?info=pago-pendiente&ref=${pagoId}&t=${timestamp}`
+        ? `${baseUrl}/api/renovacion/pending?external_reference=${pagoId}&tipo=${tipo.split('-')[1] || 'cliente'}&t=${timestamp}`
         : esDonacion
         ? `${baseUrl}/donaciones?status=pending&t=${timestamp}`
-        : `${baseUrl}/?info=pago-pendiente&tipo=${tipo}&t=${timestamp}`;
+        : tipo === "revendedor"
+        ? `${baseUrl}/api/pago-revendedor/pending?external_reference=${pagoId}&t=${timestamp}`
+        : `${baseUrl}/api/pago/pending?external_reference=${pagoId}&tipo=${tipo}&t=${timestamp}`;
 
       const preferencia: PreferenciaMercadoPago = {
         items: [

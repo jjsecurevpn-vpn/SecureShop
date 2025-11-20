@@ -41,6 +41,7 @@ export interface Pago {
   servex_categoria?: string;
   servex_expiracion?: string;
   servex_connection_limit?: number;
+  servex_creditos?: number;
   fecha_creacion: string;
   fecha_actualizacion: string;
 }
@@ -153,6 +154,12 @@ export interface RenovacionRevendedorRequest {
   clienteNombre: string;
   tipoRenovacion?: "validity" | "credit";
   cantidadSeleccionada?: number;
+  precio?: number;
+  precioOriginal?: number;
+  codigoCupon?: string;
+  cuponId?: number;
+  descuentoAplicado?: number;
+  planId?: number;
 }
 
 export interface RenovacionResponse {

@@ -120,6 +120,12 @@ const CheckoutRenovacionPage: React.FC = () => {
               ...basePayload,
               tipoRenovacion,
               cantidadSeleccionada,
+              precio,
+              precioOriginal: precioBase > 0 ? precioBase : undefined,
+              codigoCupon,
+              cuponId,
+              descuentoAplicado: hayDescuento ? descuentoFinal : undefined,
+              planId,
             })
           : await apiService.procesarRenovacionCliente({
               ...basePayload,
@@ -182,7 +188,7 @@ const CheckoutRenovacionPage: React.FC = () => {
     try {
       const { linkPago } = await createPreference();
       window.location.href = linkPago;
-    } catch (err) {
+    } catch {
       // El error ya se maneja en createPreference
     } finally {
       setProcessingPayment(false);
@@ -203,8 +209,8 @@ const CheckoutRenovacionPage: React.FC = () => {
         if (mounted) {
           setMpFallbackVisible(false);
         }
-      } catch (err) {
-        console.error("[CheckoutRenovacion] Error inicializando MercadoPago:", err);
+      } catch (_err) {
+        console.error("[CheckoutRenovacion] Error inicializando MercadoPago:", _err);
         if (mounted) {
           setMpFallbackVisible(true);
         }
@@ -220,19 +226,19 @@ const CheckoutRenovacionPage: React.FC = () => {
 
   if (datosInvalidos) {
     return (
-      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center gap-4 text-center px-6">
-        <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-          <AlertCircle className="w-8 h-8 text-red-400" />
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 text-center px-6">
+        <div className="w-16 h-16 rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center">
+          <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-rose-700" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-xl font-semibold text-neutral-100">No pudimos cargar tu renovación</h1>
-          <p className="text-sm text-neutral-400">
+          <h1 className="text-xl font-semibold text-gray-900">No pudimos cargar tu renovación</h1>
+          <p className="text-sm text-gray-600">
             Vuelve a la página de planes e inicia nuevamente el proceso de renovación.
           </p>
         </div>
         <button
           onClick={() => navigate("/planes")}
-          className="px-5 py-3 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 font-medium rounded-lg transition-colors"
+          className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
         >
           Volver a planes
         </button>
@@ -241,224 +247,231 @@ const CheckoutRenovacionPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#181818] pt-16 md:pt-14">
+    <div className="min-h-screen bg-white pt-16 md:pt-14">
       <main className="md:ml-14">
-        <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-8 pb-10 md:pb-14">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <div className="md:col-span-2 space-y-8">
-              <section>
-                <div className="mb-4">
-                  <h2 className="text-sm font-semibold text-neutral-200 uppercase tracking-tight">
-                    Datos de contacto
-                  </h2>
-                  <p className="text-xs text-neutral-500 mt-1">
-                    Confirma tu información antes de completar el pago
-                  </p>
-                </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-8 md:py-12">
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
+            {/* Left Column - Formulario */}
+            <div className="space-y-8">
+              {/* Header */}
+              <div>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-2">
+                  Renovar tu cuenta
+                </h1>
+                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
+                  Completa tus datos para finalizar la renovación
+                </p>
+              </div>
 
+              {/* Form */}
+              <div className="space-y-6">
+                {/* Error */}
                 {error && (
-                  <div className="mb-4 flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-                    <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-red-400">{error}</p>
+                  <div className="bg-rose-50 border border-rose-300 rounded-lg p-4 flex items-start gap-3">
+                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-rose-700 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-rose-700">{error}</p>
                   </div>
                 )}
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                      Nombre completo
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
-                      <input
-                        type="text"
-                        value={nombre}
-                        onChange={(event) => {
-                          setNombre(event.target.value);
-                          setError("");
-                        }}
-                        className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
-                        placeholder="Juan Pérez"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">Email</label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(event) => {
-                          setEmail(event.target.value);
-                          setError("");
-                        }}
-                        className="w-full pl-10 pr-4 py-3 bg-neutral-800 border border-neutral-700 rounded-xl text-neutral-200 placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
-                        placeholder="tu@email.com"
-                      />
-                    </div>
-                    <p className="text-neutral-500 text-xs mt-2 flex items-center gap-1.5">
-                      <Shield className="w-3.5 h-3.5 text-violet-400" />
-                      Te enviaremos la confirmación de la renovación a este correo
-                    </p>
+                {/* Nombre */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Nombre completo
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-gray-400" />
+                    <input
+                      type="text"
+                      value={nombre}
+                      onChange={(event) => {
+                        setNombre(event.target.value);
+                        setError("");
+                      }}
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                      placeholder="Juan Pérez"
+                    />
                   </div>
                 </div>
-              </section>
 
-              <section>
-                <div className="mb-4">
-                  <h2 className="text-sm font-semibold text-neutral-200 uppercase tracking-tight">
-                    Resumen de la operación
-                  </h2>
-                  <p className="text-xs text-neutral-500 mt-1">
-                    Verifica los datos antes de continuar con el pago
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-gray-400" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(event) => {
+                        setEmail(event.target.value);
+                        setError("");
+                      }}
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                      placeholder="tu@email.com"
+                    />
+                  </div>
+                  <p className="text-gray-600 text-xs mt-2 flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-indigo-600" />
+                    Te enviaremos la confirmación de la renovación a este correo
                   </p>
                 </div>
+              </div>
 
-                <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 space-y-4">
-                  <div className="flex justify-between items-center">
+              {/* Resumen de detalles */}
+              <div className="space-y-4">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-xs font-semibold text-neutral-500 uppercase tracking-tight mb-1">
+                      <p className="text-xs font-semibold text-gray-600 uppercase tracking-tight">
                         Usuario
                       </p>
-                      <p className="text-sm font-medium text-neutral-200">{username}</p>
+                      <p className="text-lg font-semibold text-gray-900 mt-1">{username}</p>
                       {planNombre && (
-                        <p className="text-xs text-neutral-500 mt-1">Plan actual: {planNombre}</p>
+                        <p className="text-xs text-gray-600 mt-1">Plan actual: {planNombre}</p>
                       )}
                     </div>
-                    <div className="w-10 h-10 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
-                      <RefreshCw className="w-5 h-5 text-violet-400" />
+                    <div className="w-10 h-10 rounded-lg bg-indigo-100 border border-indigo-200 flex items-center justify-center">
+                      <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-600" />
                     </div>
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="bg-neutral-800/40 border border-neutral-700/60 rounded-lg p-4">
-                      <p className="text-xs text-neutral-500 uppercase tracking-wide flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        Días a agregar
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <p className="text-xs text-gray-600 uppercase tracking-wide flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      Días a agregar
+                    </p>
+                    <p className="text-lg font-semibold text-gray-900 mt-1">{dias} días</p>
+                  </div>
+
+                  {tipo === "cliente" && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <p className="text-xs text-gray-600 uppercase tracking-wide flex items-center gap-1">
+                        <Shield className="w-3.5 h-3.5" />
+                        Dispositivos
                       </p>
-                      <p className="text-lg font-semibold text-neutral-100 mt-1">{dias} días</p>
+                      <p className="text-lg font-semibold text-gray-900 mt-1">
+                        {connectionDestino || connectionActual}
+                      </p>
+                      {hayCambioDispositivos && (
+                        <p className="text-[11px] text-indigo-700 mt-1">
+                          Upgrade desde {connectionActual}
+                        </p>
+                      )}
                     </div>
+                  )}
 
-                    {tipo === "cliente" && (
-                      <div className="bg-neutral-800/40 border border-neutral-700/60 rounded-lg p-4">
-                        <p className="text-xs text-neutral-500 uppercase tracking-wide flex items-center gap-1">
-                          <Shield className="w-3.5 h-3.5" />
-                          Dispositivos
+                  {tipo === "revendedor" && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <p className="text-xs text-gray-600 uppercase tracking-wide">
+                        Tipo
+                      </p>
+                      <p className="text-sm font-semibold text-gray-900 mt-1">{tipoRenovacion}</p>
+                      {cantidadSeleccionada && (
+                        <p className="text-[11px] text-gray-600 mt-1">
+                          Cant: {cantidadSeleccionada}
                         </p>
-                        <p className="text-lg font-semibold text-neutral-100 mt-1">
-                          {connectionDestino || connectionActual} dispositivos
-                        </p>
-                        {hayCambioDispositivos ? (
-                          <p className="text-[11px] text-violet-300 mt-1">
-                            Upgrade desde {connectionActual} dispositivos
-                          </p>
-                        ) : (
-                          <p className="text-[11px] text-neutral-500 mt-1">
-                            Sin cambios en el límite actual
-                          </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {hayDescuento && (
+                  <div className="bg-emerald-50 border border-emerald-300 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[11px] text-emerald-700 uppercase tracking-wide">Cupón aplicado</p>
+                        {codigoCupon && (
+                          <p className="text-sm font-semibold text-emerald-900 mt-0.5">{codigoCupon}</p>
                         )}
                       </div>
-                    )}
+                      <span className="text-sm font-semibold text-emerald-700">
+                        - ${descuentoFinal.toLocaleString("es-AR")}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
-                    {tipo === "revendedor" && (
-                      <div className="bg-neutral-800/40 border border-neutral-700/60 rounded-lg p-4">
-                        <p className="text-xs text-neutral-500 uppercase tracking-wide flex items-center gap-1">
-                          <Shield className="w-3.5 h-3.5" />
-                          Tipo de renovación
-                        </p>
-                        <p className="text-sm font-semibold text-neutral-100 mt-1">{tipoRenovacion}</p>
-                        {cantidadSeleccionada && (
-                          <p className="text-[11px] text-neutral-500 mt-1">
-                            Cantidad: {cantidadSeleccionada}
-                          </p>
-                        )}
+            {/* Right Column - Resumen (Sticky) */}
+            <div className="md:sticky md:top-32 h-fit space-y-6">
+              {/* Plan Card */}
+              <div className="bg-gradient-to-br from-slate-900/90 via-gray-900/90 to-slate-800/90 rounded-lg p-5 sm:p-6 lg:p-8 xl:p-10 space-y-6 text-white">
+                {/* Info Header */}
+                <div>
+                  <div className="text-sm text-gray-400 mb-2">Resumen de renovación</div>
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-1">
+                    Renovación de {dias} días
+                  </h2>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-white/20" />
+
+                {/* Price Breakdown */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg">
+                    <span className="text-gray-400">Precio por día</span>
+                    {hayDescuento ? (
+                      <div className="text-right">
+                        <span className="text-white font-medium">
+                          ${precioPorDia.toLocaleString("es-AR")}
+                        </span>
+                        <span className="text-[11px] text-gray-500 line-through block">
+                          ${precioPorDiaBase.toLocaleString("es-AR")}
+                        </span>
                       </div>
+                    ) : (
+                      <span className="text-white font-medium">
+                        ${precioPorDia.toLocaleString("es-AR")}
+                      </span>
                     )}
                   </div>
 
                   {hayDescuento && (
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 flex items-center justify-between">
-                      <div>
-                        <p className="text-[11px] text-emerald-300 uppercase tracking-wide">Cupón aplicado</p>
-                        {codigoCupon && (
-                          <p className="text-sm font-semibold text-neutral-100 mt-0.5">{codigoCupon}</p>
-                        )}
-                      </div>
-                      <span className="text-sm font-semibold text-emerald-300">
-                        - ${descuentoFinal.toLocaleString("es-AR")}
+                    <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg">
+                      <span className="text-gray-400">Precio original</span>
+                      <span className="text-gray-400 line-through">
+                        ${precioBase.toLocaleString("es-AR")}
                       </span>
                     </div>
                   )}
 
-                  <div className="border-t border-neutral-800 pt-4 space-y-2">
-                    <div className="flex justify-between text-sm text-neutral-400">
-                      <span>Precio por día</span>
-                      {hayDescuento ? (
-                        <div className="text-right">
-                          <span className="block text-neutral-200 font-medium">
-                            ${precioPorDia.toLocaleString("es-AR")}
-                          </span>
-                          <span className="text-[11px] text-neutral-500 line-through">
-                            ${precioPorDiaBase.toLocaleString("es-AR")}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-neutral-200 font-medium">
-                          ${precioPorDia.toLocaleString("es-AR")}
-                        </span>
-                      )}
+                  {hayDescuento && (
+                    <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-400">
+                      <span>Descuento {codigoCupon ? `(${codigoCupon})` : ""}</span>
+                      <span>- ${descuentoFinal.toLocaleString("es-AR")}</span>
                     </div>
+                  )}
 
-                    {hayDescuento && (
-                      <div className="flex justify-between text-xs text-neutral-500">
-                        <span>Precio original</span>
-                        <span className="line-through">
-                          ${precioBase.toLocaleString("es-AR")}
-                        </span>
-                      </div>
-                    )}
-
-                    {hayDescuento && (
-                      <div className="flex justify-between text-sm text-emerald-400">
-                        <span>
-                          Descuento
-                          {codigoCupon ? ` (${codigoCupon})` : ""}
-                        </span>
-                        <span>- ${descuentoFinal.toLocaleString("es-AR")}</span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between items-baseline">
-                      <span className="text-neutral-300 font-semibold">Total a pagar</span>
-                      <span className="text-3xl font-bold text-violet-400">
-                        ${precio.toLocaleString("es-AR")}
-                      </span>
-                    </div>
+                  <div className="border-t border-white/20 pt-3 flex justify-between items-center">
+                    <span className="text-white font-medium">Total</span>
+                    <span className="text-3xl font-bold text-indigo-400">
+                      ${precio.toLocaleString("es-AR")}
+                    </span>
                   </div>
                 </div>
-              </section>
-            </div>
 
-            <div className="md:col-span-1">
-              <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 sticky top-24 space-y-5">
-                <div>
-                  <p className="text-xs font-semibold text-neutral-500 uppercase tracking-tight mb-2">
-                    Completar pago
-                  </p>
-                  <p className="text-sm text-neutral-400">
-                    Al pagar, procesaremos tu renovación automáticamente y recibirás un email con la confirmación.
-                  </p>
+                {/* Divider */}
+                <div className="border-t border-white/20" />
+
+                {/* Details */}
+                <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400 space-y-2">
+                  <p>Al pagar, procesaremos tu renovación automáticamente.</p>
+                  <p>Recibirás un email con la confirmación.</p>
                 </div>
+              </div>
 
-                <div id="mp-wallet-container-unique" className="min-h-12 w-full" />
+              {/* MercadoPago Button Section */}
+              <div className="space-y-3">
+                <div id="mp-wallet-container-unique" className="min-h-[56px]" />
 
                 {mpFallbackVisible && (
                   <button
                     onClick={handleFallbackPayment}
                     disabled={processingPayment}
-                    className="w-full py-3 px-4 bg-violet-600 hover:bg-violet-700 disabled:bg-neutral-600 text-white text-sm font-semibold rounded-md transition-colors"
+                    className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white text-sm font-semibold rounded-lg transition-colors shadow-md shadow-indigo-100"
                   >
                     {processingPayment ? (
                       <span className="flex items-center justify-center gap-2">
@@ -470,33 +483,33 @@ const CheckoutRenovacionPage: React.FC = () => {
                     )}
                   </button>
                 )}
-
-                <button
-                  onClick={() => navigate(-1)}
-                  className="w-full py-2 px-4 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium rounded-md transition-colors"
-                >
-                  Volver atrás
-                </button>
-
-                {renovacionId && (
-                  <p className="text-[11px] text-neutral-600 text-center">
-                    ID de renovación: <span className="text-neutral-400">{renovacionId}</span>
-                  </p>
-                )}
-
-                {ultimoLinkPago && !mpFallbackVisible && (
-                  <p className="text-[11px] text-neutral-500 text-center">
-                    Si tienes problemas con el botón, usa la opción "Ir a pagar".
-                  </p>
-                )}
-
-                <div className="flex items-start gap-3 text-xs text-neutral-500 bg-neutral-800/40 border border-neutral-700/50 rounded-xl p-4">
-                  <Shield className="w-4 h-4 text-neutral-500 flex-shrink-0" />
-                  <span>
-                    Pago seguro con <span className="text-neutral-200 font-medium">MercadoPago</span>
-                  </span>
-                </div>
               </div>
+
+              {/* Security Badge */}
+              <div className="flex items-start gap-3 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <Shield className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-600 flex-shrink-0 mt-0.5" />
+                <span>Pago 100% seguro con <span className="font-medium">MercadoPago</span></span>
+              </div>
+
+              {/* Back Button */}
+              <button
+                onClick={() => navigate(-1)}
+                className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-lg transition-colors"
+              >
+                Volver atrás
+              </button>
+
+              {renovacionId && (
+                <p className="text-[11px] text-gray-600 text-center">
+                  ID de renovación: <span className="text-gray-700">{renovacionId}</span>
+                </p>
+              )}
+
+              {ultimoLinkPago && !mpFallbackVisible && (
+                <p className="text-[11px] text-gray-600 text-center">
+                  Si tienes problemas con el botón, usa la opción "Ir a pagar".
+                </p>
+              )}
             </div>
           </div>
         </div>
