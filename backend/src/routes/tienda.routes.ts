@@ -763,5 +763,80 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
     }
   );
 
+  /**
+   * POST /api/admin/reenviar-email
+   * Reenvía el email de credenciales a un cliente (útil cuando falla el envío original)
+   */
+  router.post("/admin/reenviar-email", async (req: Request, res: Response) => {
+    try {
+      const { pagoId } = req.body;
+
+      if (!pagoId) {
+        res.status(400).json({
+          success: false,
+          error: "Falta el ID del pago",
+        } as ApiResponse);
+        return;
+      }
+
+      const pago = tiendaService.obtenerPago(pagoId);
+
+      if (!pago) {
+        res.status(404).json({
+          success: false,
+          error: "Pago no encontrado",
+        } as ApiResponse);
+        return;
+      }
+
+      if (pago.estado !== "aprobado") {
+        res.status(400).json({
+          success: false,
+          error: `Pago en estado: ${pago.estado}. Solo pagos aprobados pueden reenviar email.`,
+        } as ApiResponse);
+        return;
+      }
+
+      if (!pago.servex_username || !pago.servex_password) {
+        res.status(400).json({
+          success: false,
+          error: "El pago no tiene credenciales asociadas",
+        } as ApiResponse);
+        return;
+      }
+
+      // Obtener información del plan (no necesaria para el email pero útil para el log)
+      // const plan = tiendaService.obtenerPlanPorId(pago.plan_id);
+
+      // Reenviar email
+      const emailService = (await import("../services/email.service")).default;
+      
+      await emailService.enviarCredencialesCliente(pago.cliente_email, {
+        username: pago.servex_username,
+        password: pago.servex_password,
+        categoria: pago.servex_categoria || "Clientes",
+        expiracion: pago.servex_expiracion || "30 días",
+        servidores: wsService.obtenerEstadisticas().map((s: any) => `${s.serverName} (${s.location})`),
+      });
+
+      console.log(`[Admin] ✅ Email reenviado a ${pago.cliente_email} para pago ${pagoId}`);
+
+      res.json({
+        success: true,
+        message: `Email reenviado exitosamente a ${pago.cliente_email}`,
+        data: {
+          email: pago.cliente_email,
+          username: pago.servex_username,
+        },
+      } as ApiResponse);
+    } catch (error: any) {
+      console.error("[Admin] Error reenviando email:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Error reenviando email",
+      } as ApiResponse);
+    }
+  });
+
   return router;
 }
