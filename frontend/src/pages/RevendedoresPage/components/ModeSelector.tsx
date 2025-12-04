@@ -15,7 +15,7 @@ export function ModeSelector({ mode, onSelectCompra, onSelectRenovacion }: ModeS
         <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 xl:gap-5">
           <button
             onClick={onSelectCompra}
-            className={`group flex flex-col items-center gap-2 sm:gap-3 lg:gap-4 xl:gap-5 px-3 sm:px-4 lg:px-5 xl:px-6 py-3 sm:py-4 lg:py-5 xl:py-6 rounded-xl transition-all ${
+            className={`group flex flex-col items-center gap-2 sm:gap-3 lg:gap-4 px-3 sm:px-4 lg:px-5 py-2 sm:py-3 lg:py-4 xl:py-5 rounded-xl transition-all ${
               mode === "compra"
                 ? "bg-white text-gray-900 shadow-lg"
                 : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
@@ -31,16 +31,16 @@ export function ModeSelector({ mode, onSelectCompra, onSelectRenovacion }: ModeS
               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 xl:h-7 xl:w-7" />
             </div>
             <div className="text-center">
-              <p className={`text-sm font-semibold sm:text-base lg:text-lg xl:text-xl ${mode === "compra" ? "text-gray-900" : "text-gray-700"}`}>
+              <p className={`text-xs font-semibold sm:text-sm ${mode === "compra" ? "text-gray-900" : "text-gray-700"}`}>
                 Comprar Plan
               </p>
-              <p className="text-[10px] text-gray-600 sm:text-xs lg:text-sm xl:text-base mt-1">Adquiere nuevos planes</p>
+              <p className="text-[10px] text-gray-600 sm:text-xs mt-1">Adquiere nuevos planes</p>
             </div>
           </button>
 
           <button
             onClick={onSelectRenovacion}
-            className={`group flex flex-col items-center gap-2 sm:gap-3 lg:gap-4 xl:gap-5 px-3 sm:px-4 lg:px-5 xl:px-6 py-3 sm:py-4 lg:py-5 xl:py-6 rounded-xl transition-all ${
+            className={`group flex flex-col items-center gap-2 sm:gap-3 lg:gap-4 px-3 sm:px-4 lg:px-5 py-2 sm:py-3 lg:py-4 xl:py-5 rounded-xl transition-all ${
               mode === "renovacion"
                 ? "bg-white text-gray-900 shadow-lg"
                 : "text-gray-600 hover:text-gray-900 hover:bg-white/50"
@@ -56,16 +56,16 @@ export function ModeSelector({ mode, onSelectCompra, onSelectRenovacion }: ModeS
               <RefreshCw className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 xl:h-7 xl:w-7" />
             </div>
             <div className="text-center">
-              <p className={`text-sm font-semibold sm:text-base lg:text-lg xl:text-xl ${mode === "renovacion" ? "text-gray-900" : "text-gray-700"}`}>
+              <p className={`text-xs font-semibold sm:text-sm ${mode === "renovacion" ? "text-gray-900" : "text-gray-700"}`}>
                 Renovar Plan
               </p>
-              <p className="text-[10px] text-gray-600 sm:text-xs lg:text-sm xl:text-base mt-1">Renueva tu plan existente</p>
+              <p className="text-[10px] text-gray-600 sm:text-xs mt-1">Renueva tu plan existente</p>
             </div>
           </button>
         </div>
       </div>
 
-      <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 px-5 sm:px-6 lg:px-7 xl:px-8 py-4 sm:py-5 lg:py-6 xl:py-7 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-700">
+      <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 px-4 sm:px-5 lg:px-6 py-3 sm:py-4 lg:py-5 text-xs sm:text-sm text-gray-700 text-center">
         {mode === "compra" ? (
           <span>
             <span className="font-semibold text-emerald-600">Modo compra:</span> Combina Créditos y Validez para armar planes flexibles según tu estrategia.

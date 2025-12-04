@@ -55,20 +55,20 @@ export default function NoticiasPopover() {
   const hasActiveNoticia = !loading && noticiasConfig?.aviso?.habilitado;
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative overflow-visible" ref={dropdownRef}>
       {/* News Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`relative p-2 rounded-xl transition-colors duration-150 ${
           hasActiveNoticia
-            ? "text-red-400 hover:text-red-300 hover:bg-red-500/10"
-            : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
+            ? "text-red-600 hover:text-red-700 hover:bg-red-100"
+            : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
         }`}
         aria-label="Ver noticias"
       >
         <Bell size={20} />
         {hasActiveNoticia && (
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-neutral-900 animate-pulse" />
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse" />
         )}
       </button>
 
@@ -78,17 +78,17 @@ export default function NoticiasPopover() {
           isOpen={true}
           onClose={() => setIsOpen(false)}
           title="Noticia Importante"
-          icon={getIcon()}
-          arrowPosition="right-8"
-          position="right-4"
-          width="w-80"
+          icon={<span className="text-gray-700">{getIcon()}</span>}
+          arrowPosition="left-1/2 -translate-x-1/2 hidden md:block"
+          position="fixed md:absolute top-14 md:top-full left-1/2 -translate-x-1/2 md:mt-2"
+          width="w-72"
         >
           {noticiasConfig?.aviso ? (
             <div className="space-y-3">
               <div
-                className={`p-3 rounded-xl text-sm ${
-                  noticiasConfig.aviso.bgColor || "bg-neutral-800"
-                } ${noticiasConfig.aviso.textColor || "text-neutral-300"}`}
+                className={`p-3 rounded-lg text-sm ${
+                  noticiasConfig.aviso.bgColor || "bg-gray-100"
+                } ${noticiasConfig.aviso.textColor || "text-gray-800"}`}
               >
                 <div className="flex items-start gap-2">
                   <div className="flex-shrink-0 mt-0.5">{getIcon()}</div>
@@ -107,8 +107,8 @@ export default function NoticiasPopover() {
             </div>
           ) : (
             <div className="text-center py-4">
-              <Info className="w-8 h-8 text-neutral-500 mx-auto mb-2" />
-              <p className="text-xs text-neutral-400">
+              <Info className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+              <p className="text-xs text-gray-500">
                 No hay noticias disponibles.
               </p>
             </div>

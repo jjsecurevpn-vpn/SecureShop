@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { apiService } from "../services/api.service";
-import { PromoHeader } from "../components/PromoHeader";
 import HeroSection from "../sections/HeroSection";
 import AppDownloadSection from "../sections/AppDownloadSection";
 import InfrastructureFeaturesSection from "../sections/InfrastructureFeaturesSection";
@@ -41,10 +40,7 @@ const HomePage = ({}: HomePageProps) => {
   return (
     <div className="bg-white text-neutral-900">
       {/* Main Content */}
-      <main className="md:ml-14">
-        {/* Promo Banner Header */}
-        <PromoHeader />
-
+      <main>
         {/* Hero Section */}
         <div id="section-hero">
           <HeroSection />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { BarChart2, Cpu, Gauge, MapPin, ChevronDown } from "lucide-react";
+import { BarChart2, MapPin, ChevronDown } from "lucide-react";
 import { useServerStats } from "../../../hooks/useServerStats";
 
 type Server = ReturnType<typeof useServerStats>["servers"][number];
@@ -25,11 +25,11 @@ const ServerCard = ({ server, isExpanded, onToggle }: { server: Server; isExpand
   const isOnline = server.status === "online";
 
   return (
-    <div className="w-full rounded-xl sm:rounded-2xl border border-slate-700/60 bg-slate-900/95 backdrop-blur-sm text-white overflow-hidden shadow-xl">
+    <div className="w-full rounded-xl sm:rounded-2xl border border-slate-700/60 bg-slate-900/95 text-white overflow-hidden shadow-xl">
       {/* HEADER - siempre visible */}
       <button
         onClick={onToggle}
-        className="w-full p-4 sm:p-5 lg:p-6 text-left hover:bg-slate-800/50 transition-all duration-300"
+        className="w-full p-4 sm:p-5 lg:p-6 text-left transition-all duration-300"
       >
         <div className="flex flex-col gap-4">
           {/* Primera fila: bandera + nombre + ubicación + chevron */}
@@ -103,42 +103,6 @@ const ServerCard = ({ server, isExpanded, onToggle }: { server: Server; isExpand
           }`}>
             <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? "bg-emerald-400 animate-pulse" : "bg-gray-500"}`} />
             {isOnline ? "En línea" : "Desconectado"}
-          </div>
-
-          {/* Indicadores circulares grandes */}
-          <div className="grid grid-cols-2 gap-6">
-            {[
-              { value: server.cpuUsage ?? 0, label: "CPU", icon: Cpu },
-              { value: server.memoryUsage ?? 0, label: "RAM", icon: Gauge },
-            ].map((metric) => {
-              const metricColors = getUtilizationColor(metric.value);
-              const circumference = 2 * Math.PI * 50;
-              const offset = circumference - (metric.value / 100) * circumference;
-
-              return (
-                <div key={metric.label} className="flex flex-col items-center">
-                  <div className="relative w-32 h-32 sm:w-36 sm:h-36">
-                    <svg className="w-full h-full -rotate-90">
-                      <circle cx="50%" cy="50%" r="50" fill="none" stroke="#1e293b" strokeWidth="10" />
-                      <circle
-                        cx="50%" cy="50%" r="50"
-                        fill="none"
-                        strokeWidth="10"
-                        strokeLinecap="round"
-                        strokeDasharray={circumference}
-                        strokeDashoffset={offset}
-                        className={`transition-all duration-1000 ${metricColors.bar.replace("bg-", "stroke-")}`}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-4xl sm:text-5xl font-bold text-white">{metric.value.toFixed(0)}</span>
-                      <span className="text-3xl text-gray-400">%</span>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-lg font-semibold text-gray-300">{metric.label}</p>
-                </div>
-              );
-            })}
           </div>
 
           {/* Barra de usuarios conectados */}

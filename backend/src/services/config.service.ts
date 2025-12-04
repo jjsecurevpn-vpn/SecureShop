@@ -705,10 +705,8 @@ export class ConfigService {
    */
   obtenerConfigHeroRevendedores(): any {
     const configRevendedores = this.leerConfigRevendedores();
-    const configPlanes = this.leerConfigPlanes();
 
-    // Obtener el estado actual de la promo
-    const promoActiva = configPlanes.promo_config?.activa || false;
+    // La promoción de revendedores es independiente de la global
     const heroPromocion = configRevendedores.hero?.promocion || {
       habilitada: false,
       texto: "",
@@ -716,23 +714,6 @@ export class ConfigService {
       textColor: "text-white",
       bgColor: "bg-gradient-to-r from-purple-600 to-pink-600",
     };
-
-    // Si hay promo activa, activarla también en revendedores
-    if (promoActiva) {
-      return {
-        titulo: configRevendedores.hero?.titulo || "Sé Revendedor VPN",
-        descripcion:
-          configRevendedores.hero?.descripcion ||
-          "Gana dinero vendiendo acceso VPN premium a tus clientes",
-        promocion: {
-          habilitada: true,
-          texto: heroPromocion.texto || "¡Promoción especial activa!",
-          estilo: heroPromocion.estilo || "from-purple-500 to-pink-500",
-          textColor: heroPromocion.textColor || "text-white",
-          bgColor: heroPromocion.bgColor || "bg-gradient-to-r from-purple-600 to-pink-600",
-        },
-      };
-    }
 
     return {
       titulo: configRevendedores.hero?.titulo || "Sé Revendedor VPN",

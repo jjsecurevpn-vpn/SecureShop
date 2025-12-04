@@ -1,17 +1,18 @@
 import { Wifi, Smartphone, Globe } from "lucide-react";
+import { Title } from "../../../components/Title";
 import { SectionTitle } from "./SectionTitle";
 
 export function ComoFuncionaSection() {
   return (
-    <section id="como-funciona" className="mb-20 scroll-mt-24">
-      <div className="max-w-6xl mx-auto">
+    <section id="como-funciona" className="w-full px-4 md:px-8 xl:px-16 py-8 md:py-12 xl:py-16 scroll-mt-24">
+      <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
         <SectionTitle
           icon={<Wifi className="h-5 w-5" />}
           title="Cómo funciona"
           subtitle="Onboarding simple en tres pasos"
         />
 
-        <div className="mb-10 grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:gap-6">
           {[
             {
               step: "01",
@@ -32,18 +33,18 @@ export function ComoFuncionaSection() {
               icon: <Globe className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 xl:h-8 xl:w-8" />,
             },
           ].map((item) => (
-            <article key={item.title} className="rounded-lg bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
-              <div className="flex items-center gap-3 text-xs sm:text-sm lg:text-base xl:text-lg uppercase tracking-[0.3em] text-gray-600">
+            <article key={item.title} className="rounded-lg bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-3 md:p-4 xl:p-5">
+              <div className="flex items-center gap-3 text-xs uppercase tracking-[0.3em] text-gray-600">
                 <span className="text-gray-800">{item.step}</span>
                 <span className="text-emerald-600">{item.icon}</span>
               </div>
-              <h3 className="mt-4 text-base sm:text-lg lg:text-xl xl:text-2xl font-semibold text-gray-900">{item.title}</h3>
-              <p className="mt-2 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700">{item.desc}</p>
+              <Title as="h3" className="mt-2">{item.title}</Title>
+              <p className="mt-1 text-xs sm:text-sm md:text-base text-gray-700">{item.desc}</p>
             </article>
           ))}
         </div>
 
-        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-6 sm:p-8 lg:p-10 xl:p-12 text-sm sm:text-base lg:text-lg xl:text-xl text-emerald-700">
+        <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-3 md:p-4 xl:p-5 text-sm md:text-base xl:text-lg text-emerald-700">
           <p>
             JJSecure mantiene activa tu conexión incluso cuando no tenés saldo. Nuestros servidores rotan solos y los
             updates se comunican por el muro de estado y el canal de Telegram en tiempo real.

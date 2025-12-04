@@ -10,6 +10,7 @@ import { TiendaRevendedoresService } from "./services/tienda-revendedores.servic
 import { RenovacionService } from "./services/renovacion.service";
 import { WebSocketService } from "./services/websocket.service";
 import { PromoTimerService } from "./services/promo-timer.service";
+import { PagosPendientesService } from "./services/pagos-pendientes.service";
 import { crearRutasTienda } from "./routes/tienda.routes";
 import { crearRutasRevendedores } from "./routes/tienda-revendedores.routes";
 import { crearRutasRenovacion } from "./routes/renovacion.routes";
@@ -48,6 +49,7 @@ class Server {
   private servexService!: ServexService;
   private servexPollingService!: ServexPollingService;
   private realtimeService!: RealtimeService;
+  private pagosPendientesService!: PagosPendientesService;
   private lastServexSnapshotLog = 0;
 
   constructor() {
@@ -155,6 +157,17 @@ class Server {
     this.renovacionService = new RenovacionService(this.db, servex, mercadopago);
     console.log("[Server] ✅ Servicio de renovaciones inicializado");
       this.renovacionService.iniciarAutoRevisionesPendientes(config.renovaciones);
+
+    // Inicializar servicio de verificación automática de pagos pendientes
+    // Este servicio actúa como RESPALDO cuando webhooks o redirecciones fallan
+    this.pagosPendientesService = new PagosPendientesService(
+      this.db,
+      mercadopago,
+      this.tiendaService,
+      this.tiendaRevendedoresService
+    );
+    this.pagosPendientesService.start();
+    console.log("[Server] ✅ Servicio de pagos pendientes inicializado (respaldo automático)");
 
     // Inicializar planes por defecto
     this.tiendaService.inicializarPlanes().catch((error) => {

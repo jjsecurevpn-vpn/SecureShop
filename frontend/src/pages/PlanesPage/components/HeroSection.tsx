@@ -1,7 +1,8 @@
-import { MessageCircle, Signal } from "lucide-react";
+import { MessageCircle, Signal, Zap } from "lucide-react";
 import { PlanStatsConfig } from "../types";
 import Lottie from "lottie-react";
 import heroAnimation from "../../../assets/lottie/planes-hero.json";
+import { protonColors } from "../../../styles/colors";
 
 interface HeroSectionProps {
   config?: PlanStatsConfig | null;
@@ -17,48 +18,61 @@ export function HeroSection({ config, modoSeleccion, onActivarModoCompra, onActi
   ];
 
   return (
-    <section className="bg-gradient-to-b from-purple-200/50 via-purple-50/30 to-white py-8 sm:py-12 lg:py-16 xl:py-20">
-      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 text-center">
-        {config?.promocion?.habilitada && config.promocion.texto && (
-          <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-indigo-700 font-semibold mb-6">
-            {config.promocion.texto}
-          </p>
-        )}
-
-        <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-[11px] uppercase tracking-[0.3em] text-indigo-700 mb-6">
-          <span>Planes VPN</span>
+    <section className="relative py-12 md:py-16 xl:py-20">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 xl:px-16 text-center">
+        {/* Badge de oferta */}
+        <div 
+          className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider mb-6"
+          style={{ 
+            backgroundColor: protonColors.green[300],
+            color: protonColors.purple[900],
+          }}
+        >
+          <Zap className="h-4 w-4" />
+          <span>Oferta Especial</span>
         </div>
 
         <div className="space-y-4">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900">
-            {config?.titulo || "Planes VPN"}
+          <h1 
+            className="text-3xl md:text-4xl xl:text-5xl font-bold"
+            style={{ color: protonColors.white }}
+          >
+            {config?.titulo || "Elige tu Plan VPN"}
           </h1>
-          <p className="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-600">
+          <p 
+            className="text-base md:text-lg xl:text-xl max-w-3xl mx-auto"
+            style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+          >
             {config?.descripcion ||
-              "Selecciona la duración y cantidad de dispositivos que necesitas. Sin sorpresas, sin compromisos ocultos."}
+              "Protege todos tus dispositivos con nuestra VPN premium. Sin límites, sin compromisos."}
           </p>
         </div>
 
         {/* Toggle Compra/Renovación */}
         <div className="flex justify-center mt-8 mb-12">
-          <div className="inline-flex items-center gap-2 bg-gray-100 rounded-full p-1">
+          <div 
+            className="inline-flex items-center gap-1 rounded-full p-1"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+          >
             <button
               onClick={onActivarModoCompra}
-              className={`px-6 py-2 rounded-full font-medium transition ${
+              className="px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-200"
+              style={
                 modoSeleccion === "compra"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+                  ? { backgroundColor: protonColors.green[300], color: protonColors.purple[900] }
+                  : { backgroundColor: 'transparent', color: 'rgba(255, 255, 255, 0.7)' }
+              }
             >
               Comprar
             </button>
             <button
               onClick={onActivarModoRenovacion}
-              className={`px-6 py-2 rounded-full font-medium transition ${
+              className="px-6 py-2.5 rounded-full font-semibold text-sm transition-all duration-200"
+              style={
                 modoSeleccion === "renovacion"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+                  ? { backgroundColor: protonColors.green[300], color: protonColors.purple[900] }
+                  : { backgroundColor: 'transparent', color: 'rgba(255, 255, 255, 0.7)' }
+              }
             >
               Renovar
             </button>
@@ -66,25 +80,42 @@ export function HeroSection({ config, modoSeleccion, onActivarModoCompra, onActi
         </div>
 
         {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 max-w-2xl mx-auto">
+        <div className="grid gap-4 md:grid-cols-2 max-w-2xl mx-auto">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
               <div
                 key={stat.label}
-                className="rounded-lg bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10"
+                className="rounded-xl p-5 md:p-6"
+                style={{ 
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                }}
               >
-                <Icon className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 xl:h-14 xl:w-14 text-indigo-600 mx-auto mb-4" />
-                <p className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">{stat.label}</p>
+                <Icon 
+                  className="h-8 w-8 md:h-10 md:w-10 mx-auto mb-3" 
+                  style={{ color: protonColors.green[300] }}
+                />
+                <p 
+                  className="text-2xl md:text-3xl font-bold"
+                  style={{ color: protonColors.white }}
+                >
+                  {stat.value}
+                </p>
+                <p 
+                  className="text-sm md:text-base"
+                  style={{ color: 'rgba(255, 255, 255, 0.6)' }}
+                >
+                  {stat.label}
+                </p>
               </div>
             );
           })}
         </div>
 
         {/* Lottie Animation */}
-        <div className="flex items-center justify-center mt-8 sm:mt-10 lg:mt-12 xl:mt-16 w-full">
-          <div className="w-full max-w-sm mx-auto">
+        <div className="flex items-center justify-center mt-8 md:mt-10 w-full">
+          <div className="w-full max-w-xs mx-auto opacity-90">
             <Lottie animationData={heroAnimation as unknown as object} loop autoplay />
           </div>
         </div>

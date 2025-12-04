@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { protonStyles, protonHover } from '../styles/colors';
 
 interface FAQItem {
   id: number;
@@ -51,12 +52,12 @@ export default function Footer() {
       {/* Gradiente de fondo */}
       <div className="absolute inset-0 bg-gradient-to-b from-white via-purple-50 to-purple-100" />
 
-      <div className="relative z-10 md:ml-14">
+      <div className="relative z-10">
         {/* FAQ Section - Full Width */}
         {!hideFAQ && (
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8 sm:py-12 lg:py-16 xl:py-20">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-8 sm:mb-12 lg:mb-16 xl:mb-20">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-8 sm:mb-12 lg:mb-16 xl:mb-20" style={protonStyles.textPrimary}>
               Preguntas frecuentes
             </h2>
 
@@ -70,7 +71,7 @@ export default function Footer() {
                     onClick={() => toggleFAQ(item.id)}
                     className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 flex items-center justify-between hover:bg-purple-50/60 transition-colors duration-200"
                   >
-                    <h3 className="text-left text-gray-800 font-semibold text-sm sm:text-base lg:text-lg xl:text-xl leading-relaxed">
+                    <h3 className="text-left font-semibold text-xs sm:text-sm lg:text-base leading-relaxed" style={protonStyles.textPrimary}>
                       {item.question}
                     </h3>
                     <ChevronDown
@@ -83,7 +84,7 @@ export default function Footer() {
 
                   {expandedFAQ === item.id && (
                     <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 bg-purple-50/50 border-t border-purple-200/40">
-                      <p className="text-gray-700 leading-relaxed text-sm sm:text-base lg:text-lg xl:text-xl">
+                      <p className="leading-relaxed text-xs sm:text-sm lg:text-base" style={protonStyles.textSecondary}>
                         {item.answer}
                       </p>
                     </div>
@@ -106,13 +107,18 @@ export default function Footer() {
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-10 xl:gap-12 mb-8 sm:mb-12 lg:mb-16 justify-items-center">
               {/* Funciones */}
               <div>
-                <h3 className="text-gray-900 font-bold text-sm sm:text-base lg:text-lg xl:text-xl mb-4 sm:mb-6 lg:mb-8">
+                <h3 className="font-bold text-xs sm:text-sm lg:text-base mb-4 sm:mb-6 lg:mb-8" style={protonStyles.textPrimary}>
                   Funciones
                 </h3>
                 <ul className="space-y-2 sm:space-y-3 lg:space-y-4">
                   {['VPN gratis', 'Servidores VPN'].map((item) => (
                     <li key={item}>
-                      <button className="text-gray-600 hover:text-purple-600 transition-colors duration-200 text-center text-xs sm:text-sm lg:text-base xl:text-lg">
+                      <button 
+                        className="transition-colors duration-200 text-center text-xs sm:text-sm lg:text-base hover:underline"
+                        style={protonStyles.textPrimary}
+                        onMouseEnter={protonHover.linkEnter}
+                        onMouseLeave={protonHover.linkLeave}
+                      >
                         {item}
                       </button>
                     </li>
@@ -122,7 +128,7 @@ export default function Footer() {
 
               {/* Plataformas */}
               <div>
-                <h3 className="text-gray-900 font-bold text-sm sm:text-base lg:text-lg xl:text-xl mb-4 sm:mb-6 lg:mb-8">
+                <h3 className="font-bold text-xs sm:text-sm lg:text-base mb-4 sm:mb-6 lg:mb-8" style={protonStyles.textPrimary}>
                   Plataformas
                 </h3>
                 <ul className="space-y-2 sm:space-y-3 lg:space-y-4">
@@ -131,7 +137,10 @@ export default function Footer() {
                       href="https://play.google.com/store/apps/details?id=com.jjsecure.lite&hl=es_AR"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-gray-600 hover:text-purple-600 transition-colors duration-200 text-center text-xs sm:text-sm lg:text-base xl:text-lg"
+                      className="transition-colors duration-200 text-center text-xs sm:text-sm lg:text-base hover:underline"
+                      style={protonStyles.textPrimary}
+                      onMouseEnter={protonHover.linkEnter}
+                      onMouseLeave={protonHover.linkLeave}
                     >
                       VPN para Android
                     </a>
@@ -141,12 +150,17 @@ export default function Footer() {
 
               {/* Empresa */}
               <div>
-                <h3 className="text-gray-900 font-bold text-sm sm:text-base lg:text-lg xl:text-xl mb-4 sm:mb-6 lg:mb-8">
+                <h3 className="font-bold text-xs sm:text-sm lg:text-base mb-4 sm:mb-6 lg:mb-8" style={protonStyles.textPrimary}>
                   Empresa
                 </h3>
                 <ul className="space-y-2 sm:space-y-3 lg:space-y-4">
                   <li>
-                    <button className="text-gray-600 hover:text-purple-600 transition-colors duration-200 text-center text-xs sm:text-sm lg:text-base xl:text-lg">
+                    <button 
+                      className="transition-colors duration-200 text-center text-xs sm:text-sm lg:text-base hover:underline"
+                      style={protonStyles.textPrimary}
+                      onMouseEnter={protonHover.linkEnter}
+                      onMouseLeave={protonHover.linkLeave}
+                    >
                       Sobre nosotros
                     </button>
                   </li>
@@ -155,13 +169,18 @@ export default function Footer() {
 
               {/* Contacto e información */}
               <div>
-                <h3 className="text-gray-900 font-bold text-sm sm:text-base lg:text-lg xl:text-xl mb-4 sm:mb-6 lg:mb-8">
+                <h3 className="font-bold text-xs sm:text-sm lg:text-base mb-4 sm:mb-6 lg:mb-8" style={protonStyles.textPrimary}>
                   Contacto
                 </h3>
                 <ul className="space-y-2 sm:space-y-3 lg:space-y-4">
                   {['Ayuda y soporte', 'Socios y afiliados'].map((item) => (
                     <li key={item}>
-                      <button className="text-gray-600 hover:text-purple-600 transition-colors duration-200 text-center text-xs sm:text-sm lg:text-base xl:text-lg">
+                      <button 
+                        className="transition-colors duration-200 text-center text-xs sm:text-sm lg:text-base hover:underline"
+                        style={protonStyles.textPrimary}
+                        onMouseEnter={protonHover.linkEnter}
+                        onMouseLeave={protonHover.linkLeave}
+                      >
                         {item}
                       </button>
                     </li>
@@ -176,16 +195,26 @@ export default function Footer() {
             {/* Footer Info and Social */}
             <div className="flex flex-col lg:flex-row justify-between items-center gap-6 sm:gap-8 lg:gap-10 xl:gap-12">
               {/* Copyright */}
-              <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">
+              <div className="text-xs sm:text-sm lg:text-base" style={protonStyles.textSecondary}>
                 <p>© 2025 SecureShop. Todos los derechos reservados.</p>
               </div>
 
               {/* Links */}
-              <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8 xl:gap-10 text-xs sm:text-sm lg:text-base xl:text-lg">
-                <button className="text-gray-600 hover:text-purple-600 transition-colors duration-200">
+              <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8 text-xs sm:text-sm lg:text-base">
+                <button 
+                  className="transition-colors duration-200 hover:underline"
+                  style={protonStyles.textPrimary}
+                  onMouseEnter={protonHover.linkEnter}
+                  onMouseLeave={protonHover.linkLeave}
+                >
                   Política de Privacidad
                 </button>
-                <button className="text-gray-600 hover:text-purple-600 transition-colors duration-200">
+                <button 
+                  className="transition-colors duration-200 hover:underline"
+                  style={protonStyles.textPrimary}
+                  onMouseEnter={protonHover.linkEnter}
+                  onMouseLeave={protonHover.linkLeave}
+                >
                   Términos y condiciones
                 </button>
               </div>
@@ -226,7 +255,8 @@ export default function Footer() {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 xl:w-16 xl:h-16 rounded-full bg-purple-200/50 hover:bg-purple-300/70 transition-all duration-200 flex items-center justify-center text-purple-700 font-bold hover:shadow-lg hover:scale-110"
+                    className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 xl:w-16 xl:h-16 rounded-full bg-purple-200/50 hover:bg-purple-300/70 transition-all duration-200 flex items-center justify-center font-bold hover:shadow-lg hover:scale-110"
+                    style={protonStyles.textPrimary}
                     title={social.name}
                   >
                     {social.icon}

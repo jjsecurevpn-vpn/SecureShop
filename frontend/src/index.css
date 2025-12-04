@@ -1,10 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
-/* Arizona Font de Proton VPN - Títulos */
+/* Arizona Font de Proton VPN - Títulos (ABC Arizona Flare) */
 @font-face {
   font-family: 'Arizona';
   src: url('/arizona.woff2') format('woff2');
   font-weight: 200 700;
+  font-style: normal;
   font-display: swap;
 }
 
@@ -13,6 +14,7 @@
   font-family: 'Syne';
   src: url('/syne.woff2') format('woff2');
   font-weight: 400 800;
+  font-style: normal;
   font-display: swap;
 }
 
@@ -20,46 +22,46 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Override de Tailwind - Aplicar Arizona a h1 con máxima especificidad */
-h1 {
-  font-family: 'Arizona', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.01em !important;
-  line-height: 1.25 !important;
-  color: #3730A3 !important;
+/* Clases utilitarias para fuentes - sin !important para no bloquear Tailwind */
+.font-serif {
+  font-family: 'Arizona', Georgia, serif;
 }
 
-/* Asegurar que Arizona se aplique a todos los títulos grandes */
-.text-6xl,
-.text-5xl,
-.text-4xl {
-  font-family: 'Arizona', 'Poppins', sans-serif !important;
-  font-weight: 500 !important;
+.font-display {
+  font-family: 'Syne', 'Poppins', sans-serif;
 }
 
-/* Syne para botones y elementos destacados */
-button,
-.btn,
-.badge {
-  font-family: 'Syne', 'Poppins', sans-serif !important;
-  font-weight: 500 !important;
+/* Body usa Inter por defecto */
+body {
+  font-family: 'Inter', 'Poppins', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Ocultar barra de scroll en todos los navegadores */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE y Edge */
 }
 
-h2, h3, h4, h5, h6 {
-  font-family: 'Arizona', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.01em !important;
-  line-height: 1.25 !important;
-  color: #3730A3 !important;
+/* Chrome, Safari y Opera */
+body::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE y Edge */
+}
+
+html::-webkit-scrollbar {
+  display: none;
 }
 
 /* Énfasis visual premium tipo Proton */
 .text-primary, .accent-text {
-  color: #6B4EFF;
+  color: #6D4AFF;
 }
 
 .title-dark {
-  color: #240053;
+  color: rgb(55, 37, 128);
 }
 
 #root {

@@ -10,6 +10,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import CuponInput from "../../../components/CuponInput";
+import { Button } from "../../../components/Button";
 import { ValidacionCupon } from "../../../services/api.service";
 import { PlanRevendedor } from "../../../types";
 import { DIAS_POR_CREDITOS } from "../constants";
@@ -89,39 +90,39 @@ export function RenovacionPanel({
   const hayDescuento = Boolean(descuentoAplicado && descuentoAplicado > 0);
 
   return (
-    <div className="space-y-6 sm:space-y-7 lg:space-y-8 xl:space-y-10">
+    <div className="space-y-4 md:space-y-6 xl:space-y-8">
       {/* Header */}
-      <div>
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-3 sm:mb-4 lg:mb-5 xl:mb-6">Renovar revendedor</h2>
-        <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
+      <div className="text-center">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">Renovar revendedor</h2>
+        <p className="text-xs sm:text-sm md:text-base text-gray-600">
           {pasoRenovacion === "buscar"
             ? "Busca tu cuenta existente para renovarla"
             : "Completa la información y elige tu plan"}
         </p>
       </div>
 
-      {/* Main Grid - Two Columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-7 lg:gap-8 xl:gap-10">
+      {/* Main Container - Centered */}
+      <div className="mx-auto w-full max-w-2xl">
         {/* Left Column: Form */}
-        <div className="lg:col-span-2 space-y-5 sm:space-y-6 lg:space-y-7 xl:space-y-8">
+        <div className="space-y-4 md:space-y-5 xl:space-y-6">
           {/* Error State */}
           {error && (
             <div className="bg-rose-50 border border-rose-300 rounded-2xl p-3 sm:p-4 lg:p-5 xl:p-6 flex items-start gap-3">
               <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-rose-600 flex-shrink-0 mt-0.5" />
-              <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-rose-700">{error}</p>
+              <p className="text-xs sm:text-sm text-rose-700">{error}</p>
             </div>
           )}
 
           {/* Step 1: Search */}
           {pasoRenovacion === "buscar" && (
-            <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
-              <h3 className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-700 uppercase tracking-wider mb-5 sm:mb-6 lg:mb-7 xl:mb-8">
+            <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-4 sm:p-5 lg:p-6">
+              <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4 sm:mb-5">
                 Buscar tu cuenta
               </h3>
 
-              <div className="space-y-4 sm:space-y-5 lg:space-y-6 xl:space-y-7">
+              <div className="space-y-3 sm:space-y-4 lg:space-y-5">
                 <div>
-                  <label className="block text-xs sm:text-sm lg:text-base xl:text-lg font-medium text-gray-900 mb-2 sm:mb-3 lg:mb-4 xl:mb-5">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-900 mb-2">
                     Nombre de usuario
                   </label>
                   <div className="relative">
@@ -145,23 +146,25 @@ export function RenovacionPanel({
                   </p>
                 </div>
 
-                <button
+                <Button
+                  variant="primary"
+                  size="md"
                   onClick={onBuscar}
                   disabled={buscando || !busqueda.trim()}
-                  className="w-full py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 text-xs sm:text-sm lg:text-base xl:text-lg text-white font-semibold rounded-full transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                  className="w-full flex items-center justify-center gap-2"
                 >
                   {buscando ? (
                     <>
-                      <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       Buscando...
                     </>
                   ) : (
                     <>
-                      <Search className="w-3 h-3 sm:w-4 sm:h-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
+                      <Search className="w-4 h-4" />
                       Buscar cuenta
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           )}          {/* Step 2: Configuration */}
@@ -171,7 +174,7 @@ export function RenovacionPanel({
               <div className="bg-indigo-50 border-2 border-indigo-300 rounded-2xl p-4 sm:p-5 lg:p-6 xl:p-7">
                 <div className="flex items-start gap-3">
                   <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-600 flex-shrink-0 mt-0.5" />
-                  <div className="space-y-1 text-xs sm:text-sm lg:text-base xl:text-lg">
+                  <div className="space-y-1 text-xs sm:text-sm">
                     <p className="font-semibold text-gray-900">✓ Cuenta encontrada</p>
                     <p className="text-gray-600">
                       {revendedor.datos.servex_username} • {tipoActual === "credit" ? "Créditos" : "Validez"}
@@ -187,7 +190,7 @@ export function RenovacionPanel({
 
               {/* Renewal Type Selection */}
               <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
-                <h3 className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
                   Sistema de renovación
                 </h3>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 xl:gap-5">
@@ -207,7 +210,7 @@ export function RenovacionPanel({
                         tipoSeleccionado === "validity" ? "text-indigo-600" : "text-gray-500 group-hover:text-indigo-600"
                       }`}
                     />
-                    <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900">Validez</p>
+                    <p className="text-xs sm:text-sm font-semibold text-gray-900">Validez</p>
                     <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 mt-0.5 sm:mt-1 lg:mt-1.5 xl:mt-2">Días de acceso</p>
                   </button>
                   <button
@@ -226,7 +229,7 @@ export function RenovacionPanel({
                         tipoSeleccionado === "credit" ? "text-indigo-600" : "text-gray-500 group-hover:text-indigo-600"
                       }`}
                     />
-                    <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900">Créditos</p>
+                    <p className="text-xs sm:text-sm font-semibold text-gray-900">Créditos</p>
                     <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 mt-0.5 sm:mt-1 lg:mt-1.5 xl:mt-2">Más créditos</p>
                   </button>
                 </div>
@@ -234,7 +237,7 @@ export function RenovacionPanel({
 
               {/* Plans Selection */}
               <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
-                <h3 className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
                   {tipoSeleccionado === "credit"
                     ? "Selecciona cantidad de créditos"
                     : "Selecciona cantidad de usuarios"}
@@ -266,7 +269,7 @@ export function RenovacionPanel({
                             </p>
                           )}
                           <div className="mt-2 sm:mt-3 lg:mt-4 xl:mt-5 pt-2 sm:pt-3 lg:pt-4 xl:pt-5 border-t border-gray-200/50">
-                            <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900">
+                            <p className="text-xs sm:text-sm font-semibold text-gray-900">
                               ${plan.precio.toLocaleString("es-AR")}
                             </p>
                           </div>
@@ -275,7 +278,7 @@ export function RenovacionPanel({
                     })}
                   </div>
                 ) : (
-                  <div className="bg-gray-50/50 border border-gray-200 rounded-lg p-3 sm:p-4 lg:p-5 xl:p-6 text-center text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">
+                  <div className="bg-gray-50/50 border border-gray-200 rounded-lg p-3 sm:p-4 lg:p-5 xl:p-6 text-center text-xs sm:text-sm text-gray-600">
                     No hay planes disponibles
                   </div>
                 )}
@@ -283,7 +286,7 @@ export function RenovacionPanel({
 
               {/* Contact Information */}
               <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
-                <h3 className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
                   Información de contacto
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-3 sm:gap-4 lg:gap-5 xl:gap-6">
@@ -312,7 +315,7 @@ export function RenovacionPanel({
 
               {/* Coupon Code */}
               <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
-                <h3 className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
                   Código de descuento
                 </h3>
                 <CuponInput
@@ -328,41 +331,45 @@ export function RenovacionPanel({
 
               {/* Action Buttons - Mobile */}
               <div className="lg:hidden flex flex-col gap-2 sm:gap-3 lg:gap-4 xl:gap-5">
-                <button
+                <Button
+                  variant="secondary"
+                  size="md"
                   onClick={onVolverBuscar}
-                  className="py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-gray-100 border border-gray-300 hover:bg-gray-200 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-900 font-medium rounded-full transition-colors"
+                  fullWidthMobile
                 >
                   Buscar otro
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="primary"
+                  size="md"
                   onClick={onProcesar}
                   disabled={!puedeProcesar || procesando || precioFinal <= 0}
-                  className="py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 text-xs sm:text-sm lg:text-base xl:text-lg text-white font-semibold rounded-full transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                  className="flex items-center justify-center gap-2"
+                  fullWidthMobile
                 >
                   {procesando ? (
                     <>
-                      <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                       Procesando...
                     </>
                   ) : (
                     <>
                       Continuar al pago
-                      <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
+                      <ChevronRight className="w-4 h-4" />
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </>
           )}
         </div>
 
-        {/* Right Column: Sticky Summary */}
+        {/* Renewal Summary - Below Form */}
         {pasoRenovacion === "configurar" && revendedor && (
-          <div className="lg:col-span-1">
-            <div className="sticky top-24 space-y-5 sm:space-y-6 lg:space-y-7 xl:space-y-8">
-              {/* Renewal Summary */}
-              <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
-                <h3 className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900 uppercase tracking-wider mb-5 sm:mb-6 lg:mb-7 xl:mb-8">
+          <>
+            {/* Renewal Summary */}
+            <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider mb-5 sm:mb-6 lg:mb-7 xl:mb-8">
                   Resumen de renovación
                 </h3>
 
@@ -370,19 +377,19 @@ export function RenovacionPanel({
                   {/* Plan Details */}
                   <div className="space-y-2 sm:space-y-3 lg:space-y-4 xl:space-y-5">
                     <div className="flex justify-between">
-                      <span className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">
+                      <span className="text-xs sm:text-sm text-gray-600">
                         {tipoSeleccionado === "credit" ? "Créditos" : "Usuarios"}
                       </span>
                       <span className="font-semibold text-gray-900">{cantidadSeleccionada}</span>
                     </div>
 
                     <div className="flex justify-between">
-                      <span className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">Duración</span>
+                      <span className="text-xs sm:text-sm text-gray-600">Duración</span>
                       <span className="font-semibold text-gray-900">{diasRenovacion} días</span>
                     </div>
 
                     <div className="flex justify-between">
-                      <span className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">Precio por unidad</span>
+                      <span className="text-xs sm:text-sm text-gray-600">Precio por unidad</span>
                       <span className="font-semibold text-gray-900">
                         ${Math.round(precioRenovacion / Math.max(cantidadSeleccionada || 1, 1))}
                       </span>
@@ -394,13 +401,13 @@ export function RenovacionPanel({
                   {/* Pricing */}
                   <div className="space-y-2 sm:space-y-3 lg:space-y-4 xl:space-y-5">
                     <div className="flex justify-between">
-                      <span className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">Subtotal</span>
+                      <span className="text-xs sm:text-sm text-gray-600">Subtotal</span>
                       <span className="text-gray-900">${precioRenovacion.toLocaleString("es-AR")}</span>
                     </div>
 
                     {hayDescuento && (
                       <div className="flex justify-between">
-                        <span className="text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-600">
+                        <span className="text-xs sm:text-sm text-emerald-600">
                           Descuento {cuponActual?.codigo ? `(${cuponActual.codigo})` : ""}
                         </span>
                         <span className="text-emerald-600 font-medium">
@@ -420,29 +427,32 @@ export function RenovacionPanel({
                   </div>
 
                   <div className="pt-3 sm:pt-4 lg:pt-5 xl:pt-6 flex flex-col gap-1 sm:gap-2 lg:gap-3 xl:gap-4">
-                    <button
+                    <Button
+                      variant="secondary"
+                      size="md"
                       onClick={onVolverBuscar}
-                      className="w-full py-2 sm:py-2.5 lg:py-3 xl:py-4 bg-gray-100 border border-gray-300 hover:bg-gray-200 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-900 font-medium rounded-full transition-colors"
                     >
                       Buscar otro
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="md"
                       onClick={onProcesar}
                       disabled={!puedeProcesar || procesando || precioFinal <= 0}
-                      className="w-full py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-200 disabled:text-gray-500 text-xs sm:text-sm lg:text-base xl:text-lg text-white font-semibold rounded-full transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                      className="flex items-center justify-center gap-2"
                     >
                       {procesando ? (
                         <>
-                          <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6 animate-spin" />
+                          <Loader2 className="w-4 h-4 animate-spin" />
                           Procesando...
                         </>
                       ) : (
                         <>
                           Ir al pago
-                          <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 lg:h-5 lg:w-5 xl:h-6 xl:w-6" />
+                          <ChevronRight className="w-4 h-4" />
                         </>
                       )}
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -453,9 +463,8 @@ export function RenovacionPanel({
                   </p>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            </>
+          )}
       </div>
     </div>
   );

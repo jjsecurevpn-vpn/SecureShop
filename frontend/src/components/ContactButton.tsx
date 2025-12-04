@@ -40,36 +40,30 @@ export default function ContactButton() {
       href: "https://wa.me/5493812531123",
       icon: <WhatsAppIcon />,
       description: "Chat directo",
-      color: "hover:border-green-500/30 hover:bg-green-500/5",
-      iconColor: "text-green-400",
     },
     {
       name: "Telegram",
       href: "https://t.me/JHServices",
       icon: <TelegramIcon />,
       description: "Respuesta rápida",
-      color: "hover:border-blue-500/30 hover:bg-blue-500/5",
-      iconColor: "text-blue-400",
     },
     {
       name: "Instagram",
       href: "https://www.instagram.com/jjsecure.vpn/",
       icon: <InstagramIcon />,
       description: "Síguenos",
-      color: "hover:border-pink-500/30 hover:bg-pink-500/5",
-      iconColor: "text-pink-400",
     },
   ];
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative overflow-visible" ref={dropdownRef}>
       {/* Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center justify-center w-9 h-9 rounded-xl transition-all ${
           isOpen
-            ? "bg-neutral-800 text-neutral-200"
-            : "bg-transparent text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800"
+            ? "bg-purple-200 text-purple-700"
+            : "bg-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-100"
         }`}
         aria-label="Contacto"
       >
@@ -78,22 +72,25 @@ export default function ContactButton() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full -right-20 md:right-0 mt-2 w-80 md:w-96 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 w-72 md:w-96 md:absolute md:top-full md:mt-2 rounded-xl py-2 shadow-lg bg-white ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200 mx-auto">
+          {/* Arrow pointing up - hidden on mobile */}
+          <div className="hidden md:block absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-6 border-r-6 border-b-6 border-transparent border-b-white"></div>
+
           {/* Header */}
-          <div className="px-4 py-3">
+          <div className="px-4 py-2">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 bg-violet-500/10 rounded-xl">
-                <ContactIcon className="w-4 h-4 text-violet-400" />
+              <div className="p-1.5 bg-purple-100 rounded-xl">
+                <ContactIcon className="w-4 h-4 text-purple-600" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-neutral-200">Contáctanos</h3>
-                <p className="text-xs text-neutral-500">Elige tu canal preferido</p>
+                <h3 className="text-sm font-semibold text-gray-900">Contáctanos</h3>
+                <p className="text-xs text-gray-500">Elige tu canal preferido</p>
               </div>
             </div>
           </div>
 
           {/* Options */}
-          <div className="p-2">
+          <div className="px-2 py-1">
             {contactOptions.map((option) => (
               <a
                 key={option.name}
@@ -101,33 +98,26 @@ export default function ContactButton() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsOpen(false)}
-                className={`group flex items-center gap-3 px-3 py-3 rounded-xl border border-transparent transition-all ${option.color}`}
+                className="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors hover:bg-gray-100"
               >
                 {option.name === "Instagram" || option.name === "WhatsApp" || option.name === "Telegram" ? (
                   <div className="group-hover:scale-110 transition-transform">
                     {option.icon}
                   </div>
                 ) : (
-                  <div className={`p-2 bg-neutral-800 border border-neutral-700 rounded-xl ${option.iconColor} group-hover:scale-110 transition-transform`}>
+                  <div className="p-1.5 bg-gray-100 rounded-lg group-hover:scale-110 transition-transform">
                     {option.icon}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-neutral-200">{option.name}</span>
-                    <ChevronRight className="w-4 h-4 text-neutral-500 group-hover:text-neutral-300 group-hover:translate-x-0.5 transition-all" />
+                    <span className="text-sm font-medium text-gray-900">{option.name}</span>
+                    <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-0.5 transition-all" />
                   </div>
-                  <p className="text-xs text-neutral-500 mt-0.5">{option.description}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{option.description}</p>
                 </div>
               </a>
             ))}
-          </div>
-
-          {/* Footer */}
-          <div className="px-4 py-3 bg-neutral-900/50">
-            <p className="text-xs text-neutral-500 text-center">
-              Disponible 24/7 para ayudarte
-            </p>
           </div>
         </div>
       )}

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import BottomSheet from "../../components/BottomSheet";
 import HeroSection from "./components/HeroSection.tsx";
+import { Title } from "../../components/Title";
 import { Sponsor } from "../../types";
 import { apiService } from "../../services/api.service";
 
@@ -173,14 +174,16 @@ export default function SponsorsPage({ isMobileMenuOpen, setIsMobileMenuOpen }: 
 
   const SectionHeader = ({ title, description }: { title: string; description?: string }) => (
     <div className="mb-6 sm:mb-8 lg:mb-10 xl:mb-12">
-      <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-semibold text-gray-900">{title}</h2>
+      <Title as="h2">
+        {title}
+      </Title>
       {description && <p className="mt-2 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">{description}</p>}
     </div>
   );
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      <main className="md:ml-14 flex min-h-screen flex-col">
+      <main className="flex min-h-screen flex-col">
         <HeroSection />
 
         <div className="flex-1">

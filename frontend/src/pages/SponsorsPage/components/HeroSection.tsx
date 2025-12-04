@@ -1,4 +1,5 @@
 import { Heart } from "lucide-react";
+import { Title } from "../../../components/Title";
 
 export default function HeroSection() {
   return (
@@ -12,10 +13,10 @@ export default function HeroSection() {
 
         {/* Title */}
         <div className="space-y-4">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900">
+          <Title as="h1">
             Apoya la Privacidad Abierta
-          </h1>
-          <p className="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-600 max-w-3xl mx-auto">
+          </Title>
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto">
             Únete a empresas y personas que sostienen el desarrollo de JJSecure VPN con transparencia y beneficios exclusivos.
           </p>
         </div>

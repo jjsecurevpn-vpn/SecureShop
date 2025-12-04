@@ -1,63 +1,345 @@
-import { Link } from "react-router-dom";
-import { Menu, X, HandHeart } from "lucide-react";
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, ChevronDown, Home, Users, CreditCard, Store, Heart, Star, Server, FileText, Shield } from 'lucide-react';
 import ContactButton from "./ContactButton";
 import NoticiasPopover from "./NoticiasPopover";
 import CuponesPopover from "./CuponesPopover";
+import { useState, useEffect } from "react";
+import { protonColors } from "../styles/colors";
 
-interface HeaderProps {
-  sidebarOpen: boolean;
-  onSidebarToggle: (open: boolean) => void;
-}
+const Header = () => {
+  const location = useLocation();
+  const [featuresOpen, setFeaturesOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Detectar si estamos en la página de Planes
+  const isPlanesPage = location.pathname === '/planes';
+  const textLogoSrc = isPlanesPage ? '/JJSecureLogoTXT1.svg' : '/JJSecureLogoTXT.svg';
+  
+  // Bloquear scroll cuando el menú está abierto
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [mobileMenuOpen]);
+  
+  const isActive = (path: string) => location.pathname === path;
 
-const Header = ({ sidebarOpen, onSidebarToggle }: HeaderProps) => {
+  const navLinks = [
+    { path: "/planes", label: "Planes" },
+    { path: "/", label: "Inicio" },
+  ];
 
   return (
     <>
-      {/* Fixed Header */}
-      <header className="sticky top-0 left-0 right-0 bg-neutral-900 text-white text-sm py-3 w-full z-[9999] flex items-center justify-between px-4">
-        {/* Left side: Menu button and logo */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => onSidebarToggle(!sidebarOpen)}
-            className="md:hidden text-neutral-400 hover:text-neutral-200 transition-colors duration-150"
-            aria-label={sidebarOpen ? "Cerrar menú" : "Abrir menú"}
-          >
-            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-          <Link
-            to="/"
-            className="flex items-center gap-3 group focus:outline-none"
-            aria-label="JJSecure VPN"
-          >
-            <img
-              src="/LogoJJSecure.png"
-              alt="JJSecure VPN"
-              className="h-8 w-auto"
-            />
-            <img
-              src="/JJSecureLogoTXT.svg"
-              alt="JJSecure VPN"
-              className="hidden md:inline h-6 w-auto"
-            />
-          </Link>
+      {/* Overlay cuando el menú está abierto */}
+      {mobileMenuOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[8888]"
+          onClick={() => setMobileMenuOpen(false)}
+          style={{ top: '0' }}
+        />
+      )}
+
+      {/* Header - Oscuro y estático en Planes, cremita y sticky en otras páginas */}
+      <header 
+        className={`${isPlanesPage ? 'relative' : 'sticky top-0'} left-0 right-0 w-full z-[9999] overflow-visible`}
+        style={{ 
+          backgroundColor: isPlanesPage ? 'rgb(17, 7, 35)' : '#f4eaff'
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-12 flex items-center justify-between overflow-visible">
+          {/* Left side: Logo */}
+          <div className="flex items-center gap-6">
+            <Link
+              to="/"
+              reloadDocument
+              className="flex items-center gap-3 group focus:outline-none"
+              aria-label="JJSecure VPN"
+            >
+              <img
+                src="/LogoJJSecure.png"
+                alt="JJSecure VPN"
+                className="h-7 w-auto"
+              />
+              <img
+                src={textLogoSrc}
+                alt="JJSecure VPN"
+                className="hidden md:inline h-4 w-auto"
+              />
+            </Link>
+
+            {/* Navigation - Desktop */}
+            <nav className="hidden lg:flex items-center gap-0">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  reloadDocument
+                  className="px-3 py-2 rounded-lg text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ 
+                    color: isPlanesPage 
+                      ? (isActive(link.path) ? '#d4ff00' : 'white')
+                      : (isActive(link.path) ? protonColors.purple[500] : protonColors.purple[800])
+                  }}
+                >
+                  {link.label}
+                </Link>
+              ))}
+
+              {/* Dropdown Características */}
+              <div className="relative">
+                <button
+                  onClick={() => setFeaturesOpen(!featuresOpen)}
+                  onBlur={() => setTimeout(() => setFeaturesOpen(false), 150)}
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ color: isPlanesPage ? 'white' : protonColors.purple[800] }}
+                >
+                  Características
+                  <ChevronDown className={`h-4 w-4 transition-transform ${featuresOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {featuresOpen && (
+                  <div 
+                    className="absolute top-full left-0 mt-2 w-64 rounded-xl py-2 shadow-lg bg-white ring-1 ring-black/5"
+                  >
+                    {/* Secciones principales */}
+                    <Link
+                      to="/"
+                      reloadDocument
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
+                      style={{ color: protonColors.purple[800], backgroundColor: 'transparent' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <Home className="h-4 w-4" />
+                      Inicio
+                    </Link>
+                    <Link
+                      to="/sobre-nosotros"
+                      reloadDocument
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
+                      style={{ color: protonColors.purple[800], backgroundColor: 'transparent' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <Users className="h-4 w-4" />
+                      Sobre Nosotros
+                    </Link>
+                    <Link
+                      to="/planes"
+                      reloadDocument
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
+                      style={{ color: protonColors.purple[800], backgroundColor: 'transparent' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <CreditCard className="h-4 w-4" />
+                      Planes VPN
+                    </Link>
+                    <Link
+                      to="/revendedores"
+                      reloadDocument
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
+                      style={{ color: protonColors.purple[800], backgroundColor: 'transparent' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <Store className="h-4 w-4" />
+                      Revendedores
+                    </Link>
+                    <Link
+                      to="/donaciones"
+                      reloadDocument
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
+                      style={{ color: protonColors.purple[800], backgroundColor: 'transparent' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <Heart className="h-4 w-4" />
+                      Donaciones
+                    </Link>
+                    <Link
+                      to="/sponsors"
+                      reloadDocument
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
+                      style={{ color: protonColors.purple[800], backgroundColor: 'transparent' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <Star className="h-4 w-4" />
+                      Sponsors
+                    </Link>
+                    <Link
+                      to="/servidores"
+                      reloadDocument
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
+                      style={{ color: protonColors.purple[800], backgroundColor: 'transparent' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <Server className="h-4 w-4" />
+                      Servidores
+                    </Link>
+
+                    {/* Separador */}
+                    <div className="my-2 border-t border-gray-200" />
+
+                    {/* Secciones legales */}
+                    <Link
+                      to="/terminos"
+                      reloadDocument
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
+                      style={{ color: protonColors.gray[600], backgroundColor: 'transparent' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <FileText className="h-4 w-4" />
+                      Términos
+                    </Link>
+                    <Link
+                      to="/privacidad"
+                      reloadDocument
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
+                      style={{ color: protonColors.gray[600], backgroundColor: 'transparent' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <Shield className="h-4 w-4" />
+                      Privacidad
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </nav>
+          </div>
+
+          {/* Right side: Actions */}
+          <div className="flex items-center gap-2">
+            {/* Desktop actions */}
+            <div className="hidden md:flex items-center gap-2">
+              <CuponesPopover />
+              <NoticiasPopover />
+              <ContactButton />
+            </div>
+
+            {/* Mobile icons */}
+            <div className="md:hidden flex items-center gap-2">
+              <CuponesPopover />
+              <NoticiasPopover />
+              <ContactButton />
+            </div>
+
+            {/* CTA Button - escondido en /planes */}
+            {!isPlanesPage && (
+              <Link
+                to="/planes"
+                reloadDocument
+                className="hidden sm:inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold transition-all hover:opacity-90"
+                style={{ 
+                  backgroundColor: protonColors.purple[500],
+                  color: 'white'
+                }}
+              >
+                Obtener VPN
+              </Link>
+            )}
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg transition-opacity hover:opacity-70"
+              style={{ color: isPlanesPage ? 'white' : protonColors.purple[800] }}
+              aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            >
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
 
-        {/* Right side: Download button, Notifications and user info */}
-        <div className="flex items-center gap-3">
-          <Link
-            to="/donaciones"
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-indigo-500/10 text-indigo-200 text-sm font-medium hover:bg-indigo-500/20 transition-colors"
+        {/* Mobile Menu - Estilo ProtonVPN con fondo blanco */}
+        {mobileMenuOpen && (
+          <div 
+            className="lg:hidden w-full border-t border-gray-100 bg-white"
+            style={{ 
+              maxHeight: '80vh',
+              overflowY: 'auto',
+            }}
           >
-            <HandHeart className="w-4 h-4" />
-            <span className="hidden sm:inline">Donar</span>
-          </Link>
-          {/* Contact Button */}
-          <ContactButton />
-          {/* Cupones Popover */}
-          <CuponesPopover />
-          {/* News Popover */}
-          <NoticiasPopover />
-        </div>
+            <nav className="p-4 space-y-1">
+              {[
+                { path: '/', label: 'Inicio', icon: Home },
+                { path: '/sobre-nosotros', label: 'Sobre Nosotros', icon: Users },
+                { path: '/planes', label: 'Planes VPN', icon: CreditCard },
+                { path: '/revendedores', label: 'Revendedores', icon: Store },
+                { path: '/donaciones', label: 'Donaciones', icon: Heart },
+                { path: '/sponsors', label: 'Sponsors', icon: Star },
+                { path: '/servidores', label: 'Servidores', icon: Server },
+              ].map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  reloadDocument
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-base transition-colors"
+                  style={{ 
+                    color: isActive(item.path) ? protonColors.purple[500] : protonColors.purple[800],
+                    backgroundColor: isActive(item.path) ? protonColors.purple[50] : 'transparent'
+                  }}
+                >
+                  <item.icon className="h-5 w-5" />
+                  {item.label}
+                </Link>
+              ))}
+
+              {/* Separador */}
+              <div className="my-3 border-t border-gray-200" />
+
+              {/* Secciones legales */}
+              {[
+                { path: '/terminos', label: 'Términos', icon: FileText },
+                { path: '/privacidad', label: 'Privacidad', icon: Shield },
+              ].map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  reloadDocument
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-colors"
+                  style={{ 
+                    color: isActive(item.path) ? protonColors.purple[500] : protonColors.gray[600],
+                    backgroundColor: isActive(item.path) ? protonColors.purple[50] : 'transparent'
+                  }}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              ))}
+
+              {/* Separador */}
+              <div className="my-3 border-t border-gray-200" />
+
+              {/* CTA - escondido en /planes */}
+              {!isPlanesPage && (
+                <div className="p-4">
+                  <Link
+                    to="/planes"
+                    reloadDocument
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center justify-center gap-2 w-full px-5 py-3 rounded-full text-base font-semibold transition-all text-white hover:opacity-90"
+                    style={{ backgroundColor: protonColors.purple[500] }}
+                  >
+                    Obtener VPN
+                  </Link>
+                </div>
+              )}
+            </nav>
+          </div>
+        )}
       </header>
     </>
   );

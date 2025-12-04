@@ -25,26 +25,26 @@ export default function DropdownPopover({
   if (!isOpen) return null;
 
   return (
-    <div className={`absolute top-full ${position} mt-2 ${width} bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl z-50 animate-in fade-in slide-in-from-top-2 duration-200`}>
+    <div className={`${position} mt-2 ${width} rounded-xl py-2 shadow-lg bg-white ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-top-2 duration-200`}>
       {/* Arrow pointing up */}
-      <div className={`absolute -top-2 ${arrowPosition} w-0 h-0 border-l-6 border-r-6 border-b-6 border-transparent border-b-neutral-900`}></div>
-      {/* Arrow border for better visibility */}
-      <div className={`absolute -top-3 ${arrowPosition} w-0 h-0 border-l-6 border-r-6 border-b-6 border-transparent border-b-neutral-800`}></div>
+      <div className={`absolute -top-2 ${arrowPosition} w-0 h-0 border-l-6 border-r-6 border-b-6 border-transparent border-b-white`}></div>
 
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            {icon}
+      <div className="px-3">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+            <span className="text-gray-700">{icon}</span>
             {title}
           </h3>
           <button
             onClick={onClose}
-            className="text-neutral-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X size={16} />
           </button>
         </div>
+      </div>
 
+      <div className="px-3 pb-2">
         {children}
       </div>
     </div>

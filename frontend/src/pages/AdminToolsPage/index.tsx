@@ -479,7 +479,7 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
 
   return (
     <div className="min-h-screen text-white">
-      <main className="pt-16 md:pt-0 md:ml-14">
+      <main>
         <div className="w-full max-w-6xl mx-auto px-4 py-12">
           {/* Overview Section */}
           <section className="py-16 border-b border-neutral-800">

@@ -344,5 +344,91 @@ export function crearRutasRevendedores(
     }
   });
 
+  /**
+   * GET /api/admin/pago-revendedor/:pagoId/status
+   * Endpoint administrativo para verificar estado de un pago
+   */
+  router.get(
+    "/admin/pago-revendedor/:pagoId/status",
+    async (req: Request, res: Response) => {
+      try {
+        const pagoId = req.params.pagoId;
+        console.log(`[Admin] Verificando pago: ${pagoId}`);
+
+        const pago = tiendaRevendedores.obtenerPago(pagoId);
+        if (!pago) {
+          return res.status(404).json({
+            success: false,
+            error: "Pago no encontrado",
+            pagoId,
+          });
+        }
+
+        return res.json({
+          success: true,
+          pago: {
+            id: pago.id,
+            plan_id: pago.plan_revendedor_id,
+            monto: pago.monto,
+            estado: pago.estado,
+            cliente_email: pago.cliente_email,
+            cliente_nombre: pago.cliente_nombre,
+            fecha_creacion: pago.fecha_creacion,
+            mp_payment_id: pago.mp_payment_id,
+            servex_revendedor_id: pago.servex_revendedor_id,
+          },
+        });
+      } catch (error: any) {
+        console.error("[Admin] Error:", error);
+        return res.status(500).json({
+          success: false,
+          error: error.message,
+        });
+      }
+    }
+  );
+
+  /**
+   * POST /api/admin/pago-revendedor/:pagoId/procesar
+   * Endpoint administrativo para procesar un pago pendiente manualmente
+   */
+  router.post(
+    "/admin/pago-revendedor/:pagoId/procesar",
+    async (req: Request, res: Response) => {
+      try {
+        const pagoId = req.params.pagoId;
+        console.log(`[Admin] Procesando pago: ${pagoId}`);
+
+        const pagoActualizado = await tiendaRevendedores.verificarYProcesarPago(
+          pagoId
+        );
+        if (!pagoActualizado) {
+          return res.status(404).json({
+            success: false,
+            error: "Pago no encontrado",
+            pagoId,
+          });
+        }
+
+        return res.json({
+          success: true,
+          message: `Pago procesado. Estado actual: ${pagoActualizado.estado}`,
+          pago: {
+            id: pagoActualizado.id,
+            estado: pagoActualizado.estado,
+            servex_revendedor_id: pagoActualizado.servex_revendedor_id,
+          },
+        });
+      } catch (error: any) {
+        console.error("[Admin] Error:", error);
+        return res.status(500).json({
+          success: false,
+          error: error.message,
+        });
+      }
+    }
+  );
+
   return router;
 }
+

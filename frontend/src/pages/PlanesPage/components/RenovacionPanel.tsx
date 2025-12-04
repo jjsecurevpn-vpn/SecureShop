@@ -92,9 +92,9 @@ export function RenovacionPanel({
     <div className="space-y-8">
       {/* Error State */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-5 sm:p-6 lg:p-8 xl:p-10 flex items-start gap-3">
-          <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-red-400 flex-shrink-0 mt-0.5" />
-          <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-red-200">{error}</p>
+        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 md:p-5 flex items-start gap-3">
+          <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <p className="text-xs md:text-sm text-red-200">{error}</p>
         </div>
       )}
 
@@ -103,17 +103,17 @@ export function RenovacionPanel({
         <div className="space-y-6">
           <div>
             <div className="mb-6">
-              <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-500">Paso 1</p>
-              <h3 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-semibold text-gray-900">Busca tu cuenta</h3>
-              <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600 mt-2">Ingresa tu nombre de usuario para continuar</p>
+              <p className="text-xs md:text-sm font-semibold uppercase tracking-[0.3em] text-gray-500">Paso 1</p>
+              <h3 className="text-lg md:text-xl xl:text-2xl font-semibold text-gray-900">Busca tu cuenta</h3>
+              <p className="text-xs md:text-sm text-gray-600 mt-2">Ingresa tu nombre de usuario para continuar</p>
             </div>
 
-            <div className="rounded-3xl border border-gray-200 bg-white/80 p-5 sm:p-6 lg:p-8 xl:p-10 shadow-sm shadow-gray-100 md:p-8">
-              <label className="block text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900 mb-4">
+            <div className="rounded-3xl border border-gray-200 bg-white/80 p-4 md:p-5 xl:p-6 shadow-sm shadow-gray-100">
+              <label className="block text-xs md:text-sm font-semibold text-gray-900 mb-4">
                 Usuario registrado
               </label>
               <div className="relative mb-6">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-gray-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   value={busqueda}
@@ -132,7 +132,7 @@ export function RenovacionPanel({
               <button
                 onClick={handleBuscar}
                 disabled={buscando || !busqueda.trim()}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 text-sm sm:text-base lg:text-lg xl:text-xl font-semibold transition-colors disabled:bg-gray-300 disabled:text-gray-500"
+                className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white py-3 text-sm md:text-base font-semibold transition-colors disabled:bg-gray-300 disabled:text-gray-500"
               >
                 {buscando ? (
                   <>
@@ -154,19 +154,19 @@ export function RenovacionPanel({
       {/* Step 2: Configuration */}
       {pasoRenovacion === "configurar" && cuenta && (
         <div className="space-y-12">
-          <div className="grid gap-8 sm:gap-10 lg:gap-12 xl:gap-14 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-            <div className="space-y-8">
+          <div className="grid gap-6 md:gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+            <div className="space-y-6">
               {/* Account Info Card */}
-              <div className="rounded-3xl border-2 border-emerald-200 bg-emerald-50 p-5 sm:p-6 lg:p-8 xl:p-10">
+              <div className="rounded-3xl border-2 border-emerald-200 bg-emerald-50 p-4 md:p-5 xl:p-6">
                 <div className="flex items-start gap-4">
-                  <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 xl:h-8 xl:w-8 text-emerald-600 flex-shrink-0 mt-1" />
+                  <CheckCircle className="h-5 w-5 md:h-6 md:w-6 text-emerald-600 flex-shrink-0 mt-1" />
                   <div className="space-y-1">
                     <p className="font-semibold text-emerald-900">Cuenta encontrada</p>
-                    <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-700">
+                    <p className="text-xs md:text-sm text-emerald-700">
                       {cuenta.tipo === "cliente" ? "Cliente VPN" : "Revendedor"} • <span className="font-medium">{cuenta.datos.servex_username}</span>
                     </p>
                     {cuenta.datos.plan_nombre && (
-                      <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-emerald-600 mt-2">
+                      <p className="text-[10px] md:text-xs text-emerald-600 mt-2">
                         Plan actual: <span className="font-medium">{cuenta.datos.plan_nombre}</span>
                       </p>
                     )}
@@ -175,18 +175,18 @@ export function RenovacionPanel({
               </div>
 
               {/* Duration Selection */}
-              <div className="rounded-3xl border border-gray-200 bg-white/80 p-5 sm:p-6 lg:p-8 xl:p-10 shadow-sm shadow-gray-100 md:p-8">
+              <div className="rounded-3xl border border-gray-200 bg-white/80 p-4 md:p-5 xl:p-6 shadow-sm shadow-gray-100">
                 <div className="mb-6">
-                  <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-500">Paso 2</p>
-                  <h3 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-900">Duración a agregar</h3>
-                  <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-500 mt-1">Elige cuántos días deseas renovar tu suscripción</p>
+                  <p className="text-xs md:text-sm font-semibold uppercase tracking-[0.3em] text-gray-500">Paso 2</p>
+                  <h3 className="text-base md:text-lg xl:text-xl font-semibold text-gray-900">Duración a agregar</h3>
+                  <p className="text-xs md:text-sm text-gray-500 mt-1">Elige cuántos días deseas renovar tu suscripción</p>
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {DIAS_RENOVACION.map((opcionDias) => (
                     <button
                       key={opcionDias}
                       onClick={() => onDiasChange(opcionDias)}
-                      className={`rounded-2xl border-2 px-4 py-3 text-xs sm:text-sm lg:text-base xl:text-lg font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${
+                      className={`rounded-2xl border-2 px-4 py-3 text-xs md:text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 ${
                         dias === opcionDias
                           ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm"
                           : "border-gray-200 bg-white text-gray-900 hover:border-gray-300"
@@ -200,11 +200,11 @@ export function RenovacionPanel({
 
               {/* Devices Selection - Only for clients */}
               {cuenta.tipo === "cliente" && (
-                <div className="rounded-3xl border border-gray-200 bg-white/80 p-5 sm:p-6 lg:p-8 xl:p-10 shadow-sm shadow-gray-100 md:p-8">
+                <div className="rounded-3xl border border-gray-200 bg-white/80 p-4 md:p-5 xl:p-6 shadow-sm shadow-gray-100">
                   <div className="mb-6">
-                    <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-500">Paso 3</p>
-                    <h3 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-900">Dispositivos simultáneos</h3>
-                    <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-500 mt-1">Cambia la cantidad si necesitas más protección</p>
+                    <p className="text-xs md:text-sm font-semibold uppercase tracking-[0.3em] text-gray-500">Paso 3</p>
+                    <h3 className="text-base md:text-lg xl:text-xl font-semibold text-gray-900">Dispositivos simultáneos</h3>
+                    <p className="text-xs md:text-sm text-gray-500 mt-1">Cambia la cantidad si necesitas más protección</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {DISPOSITIVOS_RENOVACION.map((dispositivos) => {
@@ -222,17 +222,17 @@ export function RenovacionPanel({
                               : "border-gray-200 bg-white hover:border-gray-300"
                           }`}
                         >
-                          <p className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-gray-900">{dispositivos}</p>
-                          <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-500 mt-1">
+                          <p className="text-base md:text-lg font-bold text-gray-900">{dispositivos}</p>
+                          <p className="text-[10px] md:text-xs text-gray-500 mt-1">
                             ${PRECIOS_POR_DIA[dispositivos] ?? PRECIOS_POR_DIA[1]}/día
                           </p>
                           {esActual && !esSeleccionado && (
-                            <span className="absolute -top-2 -right-2 bg-gray-400 text-white text-[8px] sm:text-[10px] lg:text-xs xl:text-sm px-2 py-1 rounded-full font-medium">
+                            <span className="absolute -top-2 -right-2 bg-gray-400 text-white text-[8px] md:text-[10px] px-2 py-1 rounded-full font-medium">
                               Actual
                             </span>
                           )}
                           {esSeleccionado && (
-                            <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[8px] sm:text-[10px] lg:text-xs xl:text-sm px-2 py-1 rounded-full font-medium">
+                            <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[8px] md:text-[10px] px-2 py-1 rounded-full font-medium">
                               Nuevo
                             </span>
                           )}
@@ -244,14 +244,14 @@ export function RenovacionPanel({
               )}
 
               {/* Contact Info */}
-              <div className="rounded-3xl border border-gray-200 bg-white/80 p-5 sm:p-6 lg:p-8 xl:p-10 shadow-sm shadow-gray-100 md:p-8">
+              <div className="rounded-3xl border border-gray-200 bg-white/80 p-4 md:p-5 xl:p-6 shadow-sm shadow-gray-100">
                 <div className="mb-6">
-                  <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-500">Paso 4</p>
-                  <h3 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-900">Información de contacto</h3>
+                  <p className="text-xs md:text-sm font-semibold uppercase tracking-[0.3em] text-gray-500">Paso 4</p>
+                  <h3 className="text-base md:text-lg xl:text-xl font-semibold text-gray-900">Información de contacto</h3>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900 mb-2">
+                    <label className="block text-xs md:text-sm font-semibold text-gray-900 mb-2">
                       Nombre completo
                     </label>
                     <input
@@ -263,7 +263,7 @@ export function RenovacionPanel({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs sm:text-sm lg:text-base xl:text-lg font-semibold text-gray-900 mb-2">
+                    <label className="block text-xs md:text-sm font-semibold text-gray-900 mb-2">
                       Email de contacto
                     </label>
                     <input
@@ -291,7 +291,7 @@ export function RenovacionPanel({
             </div>
 
             {/* Summary Card - Sticky Sidebar */}
-            <aside className="rounded-3xl bg-gray-900 p-5 sm:p-6 lg:p-8 xl:p-10 text-white shadow-xl md:p-8 md:sticky md:top-24 md:h-fit">
+            <aside className="rounded-3xl bg-gray-900 p-4 md:p-5 xl:p-6 text-white shadow-xl md:sticky md:top-24 md:h-fit">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-200 mb-6">
                 <Sparkles className="h-4 w-4" />
                 <span>Resumen de renovación</span>
@@ -299,11 +299,11 @@ export function RenovacionPanel({
 
               <div className="space-y-6">
                 <div>
-                  <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400 mb-2">Tu renovación</p>
-                  <p className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-semibold text-white">
+                  <p className="text-xs md:text-sm text-gray-400 mb-2">Tu renovación</p>
+                  <p className="text-xl md:text-2xl xl:text-3xl font-semibold text-white">
                     {dias} días {cuenta.tipo === "cliente" ? `• ${connectionDestino} dispositivos` : ""}
                   </p>
-                  <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400 mt-2">
+                  <p className="text-xs md:text-sm text-gray-400 mt-2">
                     {cuenta.tipo === "cliente"
                       ? connectionDestino !== connectionActual
                         ? `Cambio de ${connectionActual} a ${connectionDestino} dispositivos`
@@ -317,7 +317,7 @@ export function RenovacionPanel({
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <p className="text-gray-300">Precio base</p>
-                    <p className="text-base sm:text-lg lg:text-xl xl:text-2xl font-semibold">
+                    <p className="text-base md:text-lg font-semibold">
                       ${precioBase.toLocaleString("es-AR")}
                     </p>
                   </div>
@@ -338,12 +338,12 @@ export function RenovacionPanel({
 
                   <div className="flex justify-between items-center pt-2">
                     <p className="text-gray-300">Total a pagar</p>
-                    <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white">
+                    <p className="text-2xl md:text-3xl xl:text-4xl font-bold text-white">
                       ${precioTotal.toLocaleString("es-AR")}
                     </p>
                   </div>
 
-                  <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-500">
+                  <p className="text-[10px] md:text-xs text-gray-500">
                     ${precioPorDia.toLocaleString("es-AR")}/día
                   </p>
                 </div>
@@ -353,14 +353,14 @@ export function RenovacionPanel({
                 <div className="space-y-3">
                   <button
                     onClick={onVolverBuscar}
-                    className="w-full rounded-2xl border border-white/20 px-6 py-4 text-sm sm:text-base lg:text-lg xl:text-xl font-semibold text-white transition hover:border-white/40 hover:bg-white/5"
+                    className="w-full rounded-2xl border border-white/20 px-6 py-3 text-sm md:text-base font-semibold text-white transition hover:border-white/40 hover:bg-white/5"
                   >
                     Buscar otra cuenta
                   </button>
                   <button
                     onClick={onProcesar}
                     disabled={procesando || !puedeProcesar}
-                    className="w-full rounded-2xl bg-emerald-500 px-6 py-4 text-sm sm:text-base lg:text-lg xl:text-xl font-semibold text-white transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300 disabled:bg-gray-700 disabled:text-gray-500 flex items-center justify-center gap-2"
+                    className="w-full rounded-2xl bg-emerald-500 px-6 py-3 text-sm md:text-base font-semibold text-white transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-300 disabled:bg-gray-700 disabled:text-gray-500 flex items-center justify-center gap-2"
                   >
                     {procesando ? (
                       <>
@@ -376,7 +376,7 @@ export function RenovacionPanel({
                   </button>
                 </div>
 
-                <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-500 text-center">
+                <p className="text-[10px] md:text-xs text-gray-500 text-center">
                   Pago seguro con Mercado Pago, tarjetas internacionales o criptomonedas.
                 </p>
               </div>

@@ -548,6 +548,14 @@ class EmailService {
               <li>💬 Contacta soporte si tienes dudas</li>
               <li>📊 Revisa el panel regularmente para gestionar tus clientes</li>
             </ul>
+
+            <div class="highlight" style="background: #e8f4f8; border-left-color: #0288d1;">
+              <h3>📱 Descarga la App de Reventa</h3>
+              <p>Gestiona tu negocio de reventa desde tu teléfono con nuestra aplicación móvil:</p>
+              <p style="text-align: center;">
+                <a href="https://www.dropbox.com/scl/fi/4pckvdls3e5zy4qw5u37a/SecureVPNReventaBase.apk?rlkey=z1co1z2k8cn5h66d6opyu7qnn&st=l656zqmn&dl=1" class="button" style="background: #0288d1;">📲 Descargar APK</a>
+              </p>
+            </div>
           </div>
           <div class="footer">
             <p>© 2025 JJSecure VPN - Panel de Revendedores</p>

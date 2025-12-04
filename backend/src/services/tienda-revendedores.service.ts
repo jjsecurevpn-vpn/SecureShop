@@ -214,35 +214,46 @@ export class TiendaRevendedoresService {
    * Procesa un webhook de MercadoPago para revendedores
    */
   async procesarWebhook(body: any): Promise<void> {
-    console.log("[TiendaRevendedores] Procesando webhook...");
+    console.log("[TiendaRevendedores] 📨 Procesando webhook...", JSON.stringify(body).substring(0, 200));
 
     const resultado = await this.mercadopago.procesarWebhook(body);
 
     if (!resultado.procesado || !resultado.pagoId) {
       console.log(
-        "[TiendaRevendedores] Webhook no procesado o sin referencia de pago"
+        "[TiendaRevendedores] ⚠️ Webhook no procesado o sin referencia de pago",
+        { procesado: resultado.procesado, pagoId: resultado.pagoId }
       );
       return;
     }
 
     const { pagoId, mpPaymentId, estado } = resultado;
+    console.log(
+      `[TiendaRevendedores] ✅ Webhook procesado: pagoId=${pagoId}, estado=${estado}, mpPaymentId=${mpPaymentId}`
+    );
 
     // Obtener el pago de nuestra base de datos
     const pago = this.db.obtenerPagoRevendedorPorId(pagoId);
     if (!pago) {
-      console.error("[TiendaRevendedores] Pago no encontrado:", pagoId);
+      console.error("[TiendaRevendedores] ❌ Pago no encontrado en BD:", pagoId);
       return;
     }
 
-    console.log("[TiendaRevendedores] Estado del pago en MercadoPago:", estado);
+    console.log(
+      `[TiendaRevendedores] 📊 Estado actual en BD: ${pago.estado}, estado MercadoPago: ${estado}`
+    );
 
     // Actualizar estado según la respuesta de MercadoPago
     if (estado === "approved") {
       // Procesar si el pago está pendiente o rechazado (ya que puede llegar primero el webhook de rejected)
       if (pago.estado === "pendiente" || pago.estado === "rechazado") {
+        console.log(
+          `[TiendaRevendedores] 🔄 Pago aprobado en MP, creando revendedor...`
+        );
         await this.confirmarPagoYCrearRevendedor(pagoId, mpPaymentId!);
       } else {
-        console.log("[TiendaRevendedores] Pago ya procesado anteriormente");
+        console.log(
+          `[TiendaRevendedores] ⚠️ Pago ya procesado anteriormente (estado: ${pago.estado})`
+        );
       }
     } else if (estado === "rejected" || estado === "cancelled") {
       // Solo marcar como rechazado si aún está pendiente
@@ -252,8 +263,14 @@ export class TiendaRevendedoresService {
           "rechazado",
           mpPaymentId
         );
-        console.log("[TiendaRevendedores] Pago marcado como rechazado");
+        console.log(
+          `[TiendaRevendedores] ❌ Pago marcado como rechazado (estado MercadoPago: ${estado})`
+        );
       }
+    } else {
+      console.log(
+        `[TiendaRevendedores] ℹ️ Estado de pago no reconocido: ${estado}`
+      );
     }
   }
 
@@ -438,7 +455,7 @@ export class TiendaRevendedoresService {
                   "es-AR"
                 )
               : undefined,
-          panelUrl: "https://front.servex.ws/login",
+          panelUrl: "https://servex.ws",
         });
         console.log(
           "[TiendaRevendedores] ✅ Email enviado a:",

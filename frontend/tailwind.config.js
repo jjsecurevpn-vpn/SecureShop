@@ -7,16 +7,59 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Poppins', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        display: ['Poppins', 'sans-serif'],
+        sans: ['Inter', 'Poppins', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        serif: ['Arizona', 'Georgia', 'serif'],
+        display: ['Syne', 'Poppins', 'sans-serif'],
+      },
+      fontSize: {
+        // Tamaños exactos de ProtonVPN
+        'proton-base': ['1rem', { lineHeight: '1.625' }],
+        'proton-lg': ['1.125rem', { lineHeight: '1.55' }],
+        'proton-xl': ['1.25rem', { lineHeight: '1.5' }],
+        'proton-2xl': ['1.5rem', { lineHeight: '1.34' }],
+        'proton-3xl': ['1.875rem', { lineHeight: '1.13' }],
+        'proton-4xl': ['2.25rem', { lineHeight: '1.11' }],
+        'proton-5xl': ['3rem', { lineHeight: '1.125' }],
+        'proton-7xl': ['4.5rem', { lineHeight: '1.08' }],
+      },
+      lineHeight: {
+        'proton-title': '1.08',
+        'proton-subtitle': '1.125',
+        'proton-body': '1.625',
       },
       colors: {
         neutral: {
           850: '#1a202c',
         },
+        // Colores exactos de ProtonVPN
+        purple: {
+          50: '#F8F7FF',
+          100: '#EFEAFF',
+          200: '#DED5FF',
+          300: '#C4B5FF',
+          400: '#A78BFF',
+          500: '#6D4AFF',
+          600: '#5B3FD6',
+          700: '#4A32AD',
+          800: 'rgb(55, 37, 128)',  // Exacto de ProtonVPN
+          900: '#240053',
+        },
+        // Grises exactos de ProtonVPN
+        gray: {
+          50: '#f9fafb',
+          100: '#f3f4f6',
+          200: '#e5e7eb',
+          300: '#d1d5db',
+          400: '#9ca3af',
+          500: '#6b7280',
+          600: '#4b5563',  // rgb(75, 85, 99) - Proton gray-600
+          700: '#374151',
+          800: '#1f2937',  // Proton text oscuro
+          900: '#111827',
+        },
         proton: {
-          purple: '#6B4EFF',
-          darkPurple: '#240053',
+          purple: '#6D4AFF',
+          darkPurple: '#372580',
           light: '#F8F7FF',
         },
         primary: {

@@ -13,7 +13,12 @@ export const PlanSummary = ({ plan, descuentoVisual }: PlanSummaryProps) => {
   const precioPorDia = calcularPrecioPorDia(precioFinal, plan.dias);
 
   return (
-    <div className="bg-gradient-to-br from-slate-900/90 via-gray-900/90 to-slate-800/90 rounded-lg p-5 sm:p-6 lg:p-8 xl:p-10 space-y-6 text-white">
+    <div style={{
+      background: `linear-gradient(135deg, rgb(25, 18, 50) 0%, rgb(15, 10, 35) 100%)`,
+      borderRadius: '0.5rem',
+      padding: 'clamp(20px, 5vw, 40px)',
+      color: 'white'
+    }} className="space-y-6 text-white rounded-lg">
       {/* Plan Info */}
       <div>
         <div className="text-sm text-gray-400 mb-2">{CHECKOUT_SECTIONS.PLAN_SELECTED}</div>

@@ -612,10 +612,10 @@ export class RenovacionService {
   /**
    * Confirma una renovación y ejecuta la renovación en Servex
    */
-  async confirmarRenovacion(renovacionId: number, mpPaymentId: string): Promise<void> {
+  async confirmarRenovacion(renovacionId: number, mpPaymentId: string | null): Promise<void> {
     console.log('[Renovacion] Confirmando renovación:', renovacionId);
 
-    if (!mpPaymentId || mpPaymentId.trim() === '') {
+    if (!mpPaymentId || (typeof mpPaymentId === 'string' && mpPaymentId.trim() === '')) {
       throw new Error('No se puede confirmar renovación sin ID de pago válido');
     }
 
@@ -830,17 +830,27 @@ export class RenovacionService {
       return;
     }
 
-    console.log('[Renovacion] Estado del pago en MercadoPago:', estado);
+    console.log(`[Renovacion] 🔔 Webhook: renovación ${renovacionId}, estado: ${estado}, mpPaymentId: ${mpPaymentId}`);
 
     if (estado === 'approved') {
       if (renovacion.estado === 'pendiente' || renovacion.estado === 'rechazado') {
-        await this.confirmarRenovacion(renovacionId, mpPaymentId!);
+        // Validar que tenemos un ID de pago válido
+        if (!mpPaymentId || (typeof mpPaymentId === 'string' && mpPaymentId.trim() === '')) {
+          console.warn(`[Renovacion] ⚠️ Webhook indica pago aprobado pero sin mpPaymentId válido. ID: ${pagoId}`);
+          // No procesar sin ID de pago válido
+          return;
+        }
+        
+        console.log(`[Renovacion] ✅ Confirmando renovación desde webhook: ${renovacionId}`);
+        await this.confirmarRenovacion(renovacionId, mpPaymentId);
       }
     } else if (estado === 'rejected' || estado === 'cancelled') {
       if (renovacion.estado === 'pendiente') {
         this.db.actualizarEstadoRenovacion(renovacionId, 'rechazado', mpPaymentId);
-        console.log('[Renovacion] Renovación marcada como rechazada');
+        console.log('[Renovacion] ❌ Renovación marcada como rechazada por webhook');
       }
+    } else if (estado === 'pending') {
+      console.log('[Renovacion] ⏳ Webhook: pago aún pendiente');
     }
   }
 
@@ -872,10 +882,21 @@ export class RenovacionService {
       const pagoMP = await this.mercadopago.verificarPagoPorReferencia(renovacionId.toString());
 
       if (pagoMP && pagoMP.status === 'approved') {
-        // Confirmar la renovación
+        console.log(`[Renovacion] ✅ Pago encontrado en MercadoPago: ${pagoMP.id}, status: ${pagoMP.status}`);
+        
+        // Confirmar la renovación con el ID de pago de MercadoPago
+        if (!pagoMP.id) {
+          console.error(`[Renovacion] ⚠️ Pago aprobado pero sin ID de pago`);
+          throw new Error('Pago aprobado pero sin ID de pago válido');
+        }
+        
         await this.confirmarRenovacion(renovacionId, pagoMP.id);
         // Devolver la renovación actualizada
         return this.db.obtenerRenovacionPorId(renovacionId);
+      } else if (pagoMP && pagoMP.status !== 'approved') {
+        console.log(`[Renovacion] ⏳ Pago encontrado pero aún no aprobado. Estado: ${pagoMP.status}`);
+      } else {
+        console.warn(`[Renovacion] ⚠️ No se encontró pago en MercadoPago para renovación ${renovacionId}`);
       }
     }
 

@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Users, Gift } from "lucide-react";
 import DemoModal from "../components/DemoModal";
+import { Button } from "../components/Button";
+import { Title } from "../components/Title";
+import { Subtitle } from "../components/Subtitle";
+import { protonColors } from "../styles/colors";
 
 export default function HeroSection() {
   const navigate = useNavigate();
@@ -15,57 +19,65 @@ export default function HeroSection() {
       <DemoModal isOpen={isDemoOpen} onClose={() => setIsDemoOpen(false)} />
 
       <section id="hero-section" className="bg-gradient-to-b from-purple-200/50 via-purple-50/30 to-white relative overflow-hidden">
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 pb-8 sm:pb-10 lg:pb-12 xl:pb-16 pt-8 sm:pt-10 lg:pt-12 xl:pt-16">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 xl:px-16 pt-8 md:pt-12 xl:pt-16 pb-8 md:pb-12 xl:pb-16">
           {/* Contenido centrado */}
-          <div className="flex flex-col items-center text-center space-y-6 sm:space-y-8 lg:space-y-10 xl:space-y-12 min-h-auto justify-center">
+          <div className="flex flex-col items-center text-center gap-6 md:gap-8 min-h-auto justify-center">
             {/* Badge */}
-            <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-indigo-700 font-semibold">
-              De los creadores de <span>JJSecure VPN</span>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-purple-500 font-semibold">
+              De los creadores de JJSecure VPN
             </p>
 
             {/* Título */}
-            <div className="w-full space-y-3 sm:space-y-4">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl tracking-tight w-full text-purple-200">
+            <div className="w-full max-w-3xl space-y-4">
+              <Title as="h1">
                 VPN Premium. Protege tu Privacidad.
-              </h1>
-              <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700 w-full font-medium">
-                <strong className="font-semibold text-gray-900">Experimenta la verdadera libertad online.</strong> <span className="text-gray-500">Obtenga acceso sin restricciones a contenido global, bloquee anuncios molestos y proteja su privacidad con una VPN rápida y segura.</span>
-              </p>
+              </Title>
+              <Subtitle className="max-w-2xl mx-auto">
+                <strong className="font-semibold" style={{ color: protonColors.gray[800] }}>Experimenta la verdadera libertad online.</strong>{" "}
+                Obtenga acceso sin restricciones a contenido global, bloquee anuncios molestos y proteja su privacidad con una VPN rápida y segura.
+              </Subtitle>
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 lg:gap-6 justify-center flex-wrap">
-              <button
+            <div className="flex flex-col sm:flex-row items-center gap-2 justify-center flex-wrap">
+              <Button
                 onClick={goToPlans}
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-indigo-600 px-6 sm:px-8 lg:px-10 py-2.5 sm:py-3 lg:py-3.5 xl:py-4 text-sm sm:text-base lg:text-lg font-semibold text-white transition hover:bg-indigo-700 whitespace-nowrap"
+                variant="primary"
+                size="md"
+                fullWidthMobile
+                className="group"
               >
                 Ver planes
-                <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 transition group-hover:translate-x-1" />
-              </button>
-              <button
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+              </Button>
+              <Button
                 onClick={() => setIsDemoOpen(true)}
-                className="group inline-flex items-center justify-center gap-2 rounded-full bg-green-600 px-6 sm:px-8 lg:px-10 py-2.5 sm:py-3 lg:py-3.5 xl:py-4 text-sm sm:text-base lg:text-lg font-semibold text-white transition hover:bg-green-700 whitespace-nowrap"
+                variant="success"
+                size="md"
+                fullWidthMobile
               >
-                <Gift className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Gift className="h-4 w-4" />
                 Prueba Gratuita
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={goToResellers}
-                className="group inline-flex items-center justify-center gap-2 rounded-full border-2 border-indigo-600 bg-white px-6 sm:px-8 lg:px-10 py-2.5 sm:py-3 lg:py-3.5 xl:py-4 text-sm sm:text-base lg:text-lg font-semibold text-indigo-600 transition hover:bg-indigo-600 hover:text-white whitespace-nowrap"
+                variant="secondary"
+                size="md"
+                fullWidthMobile
               >
-                <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Users className="h-4 w-4" />
                 Ser revendedor
-              </button>
+              </Button>
             </div>
-            <p className="text-[10px] sm:text-xs lg:text-sm text-gray-600">Garantía de reembolso si no te sirve</p>
+            <p className="text-xs text-gray-500">Garantía de reembolso si no te sirve</p>
           </div>
 
           {/* Imagen - Mano con teléfono - Abajo */}
-          <div className="flex items-center justify-center mt-8 sm:mt-10 lg:mt-12 xl:mt-16 w-full">
+          <div className="flex items-center justify-center pt-8 md:pt-12 w-full">
             <img
-              src="/ManoCyberseguridad.svg"
+              src="/ManoCyberseguridad.avif"
               alt="JJSecure VPN App"
-              className="w-full h-auto drop-shadow-2xl px-4 md:px-0"
+              className="w-full max-w-4xl h-auto drop-shadow-2xl"
             />
           </div>
         </div>

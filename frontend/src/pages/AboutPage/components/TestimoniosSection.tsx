@@ -1,5 +1,6 @@
 import { Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Button } from "../../../components/Button";
 import { SectionTitle } from "./SectionTitle";
 
 const TESTIMONIALS = [
@@ -78,8 +79,8 @@ export function TestimoniosSection() {
   const visibleTestimonials = TESTIMONIALS.slice(currentIndex, currentIndex + visibleCount);
 
   return (
-    <section id="testimonios" className="mb-20 scroll-mt-24">
-      <div className="max-w-7xl mx-auto">
+    <section id="testimonios" className="w-full px-4 md:px-8 xl:px-16 py-8 md:py-12 xl:py-16 scroll-mt-24">
+      <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
         <SectionTitle
           icon={<Star className="h-5 w-5" />}
           title="Testimonios"
@@ -87,15 +88,16 @@ export function TestimoniosSection() {
         />
 
         {/* Navegación arriba */}
-        <div className="flex justify-center items-center gap-4 mb-8">
-          <button
+        <div className="flex justify-center items-center gap-4">
+          <Button
+            variant="primary"
+            size="sm"
             onClick={prevTestimonial}
-            className="p-2 rounded-full bg-indigo-600 hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Testimonio anterior"
             disabled={currentIndex === 0 && visibleCount >= TESTIMONIALS.length}
+            className="!p-2 !w-auto !h-auto"
           >
-            <ChevronLeft className="h-5 w-5 text-white" />
-          </button>
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
 
           {/* Indicadores */}
           <div className="flex gap-2">
@@ -111,33 +113,34 @@ export function TestimoniosSection() {
             ))}
           </div>
 
-          <button
+          <Button
+            variant="primary"
+            size="sm"
             onClick={nextTestimonial}
-            className="p-2 rounded-full bg-indigo-600 hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Testimonio siguiente"
             disabled={currentIndex >= TESTIMONIALS.length - visibleCount}
+            className="!p-2 !w-auto !h-auto"
           >
-            <ChevronRight className="h-5 w-5 text-white" />
-          </button>
+            <ChevronRight className="h-5 w-5" />
+          </Button>
         </div>
 
         {/* Testimonios visibles */}
         <div className={`grid gap-4 ${visibleCount === 1 ? 'max-w-2xl mx-auto' : visibleCount === 2 ? 'md:grid-cols-2 max-w-4xl mx-auto' : 'lg:grid-cols-2 xl:grid-cols-3 max-w-7xl mx-auto'}`}>
           {visibleTestimonials.map((testimonial) => (
-            <article key={`${testimonial.name}-${currentIndex}`} className="rounded-lg bg-gradient-to-br from-white/60 to-white/40 backdrop-blur-sm p-5 sm:p-6 lg:p-8 shadow-lg">
+            <article key={`${testimonial.name}-${currentIndex}`} className="rounded-lg bg-gradient-to-br from-white/60 to-white/40 backdrop-blur-sm p-3 md:p-4 xl:p-5 shadow-lg">
               <div className="mb-3 flex gap-1">
                 {Array.from({ length: 5 }).map((_, index) => (
                   <Star
                     key={index}
-                    className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 ${
+                    className={`h-3 w-3 sm:h-4 sm:w-4 ${
                       index < testimonial.rating ? "text-emerald-600" : "text-gray-300"
                     }`}
                     fill={index < testimonial.rating ? "currentColor" : "none"}
                   />
                 ))}
               </div>
-              <p className="text-sm sm:text-base lg:text-lg text-gray-800">"{testimonial.message}"</p>
-              <div className="mt-4 flex items-center justify-between text-xs sm:text-sm lg:text-base text-gray-700">
+              <p className="text-xs sm:text-sm md:text-base text-gray-800">"{testimonial.message}"</p>
+              <div className="mt-3 flex items-center justify-between text-xs text-gray-700">
                 <span className="font-medium text-gray-900">{testimonial.name}</span>
                 <span>{testimonial.date}</span>
               </div>

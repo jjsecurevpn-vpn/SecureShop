@@ -9,6 +9,7 @@ import {
   Phone,
 } from "lucide-react";
 import BottomSheet from "../components/BottomSheet";
+import { Title } from "../components/Title";
 
 interface PrivacyPageProps {
   isMobileMenuOpen: boolean;
@@ -152,7 +153,7 @@ const PrivacyPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: PrivacyPageProps
   return (
     <div className="min-h-screen bg-white">
       {/* Main Content */}
-      <main className="md:ml-14">
+      <main>
         {/* Header */}
         <section className="relative pt-12 sm:pt-16 lg:pt-20 xl:pt-24 pb-12 sm:pb-16 lg:pb-20 xl:pb-24 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-200/50 via-purple-50/30 to-white" />
@@ -164,9 +165,9 @@ const PrivacyPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: PrivacyPageProps
                   Política de Privacidad
                 </span>
               </div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6">
+              <Title as="h1" className="mb-6">
                 Tu privacidad es nuestra prioridad
-              </h1>
+              </Title>
               <p className="text-lg sm:text-xl lg:text-2xl xl:text-3xl text-gray-600 leading-relaxed">
                 Entendemos la importancia de tu privacidad. Aquí te explicamos
                 cómo recopilamos, usamos y protegemos tu información al utilizar

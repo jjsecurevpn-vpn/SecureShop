@@ -1,6 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { useHeroConfig } from "../hooks/useHeroConfig";
+import { useState, useEffect, useRef } from "react";
+import { X } from "lucide-react";
+
+interface PromoConfig {
+  activa: boolean;
+  activada_en: string | null;
+  duracion_horas: number;
+}
 
 interface PromoHeaderProps {
   showButton?: boolean;
@@ -16,15 +22,68 @@ export function PromoHeader({
   const navigate = useNavigate();
   const [promoVisible, setPromoVisible] = useState(true);
   const [isClosing, setIsClosing] = useState(false);
-  const { config: heroConfig } = useHeroConfig();
+  const [promo_config, setPromoConfig] = useState<PromoConfig | null>(null);
+  const [tiempo_restante_segundos, setTiempoRestante] = useState(0);
+  const configRef = useRef<PromoConfig | null>(null);
+
+  // Calcular horas, minutos y segundos
+  const segundosTotales = tiempo_restante_segundos || 0;
+  const horas = Math.floor(segundosTotales / 3600);
+  const minutos = Math.floor((segundosTotales % 3600) / 60);
+  const segundos = segundosTotales % 60;
+
+  // Función para calcular tiempo restante
+  const calcularTiempoRestante = (config: PromoConfig) => {
+    if (!config.activa || !config.activada_en) {
+      return 0;
+    }
+
+    const ahora = new Date();
+    const activadaEn = new Date(config.activada_en);
+    const duracionMs = config.duracion_horas * 60 * 60 * 1000;
+    const expiracion = activadaEn.getTime() + duracionMs;
+    const tiempoRestanteMs = expiracion - ahora.getTime();
+
+    if (tiempoRestanteMs <= 0) {
+      return 0;
+    }
+
+    return Math.floor(tiempoRestanteMs / 1000);
+  };
+
+  // Cargar promo config desde el endpoint correcto
+  useEffect(() => {
+    const fetchPromo = async () => {
+      try {
+        const res = await fetch("/api/config/promo-status");
+        const data = await res.json();
+        configRef.current = data.promo_config;
+        setPromoConfig(data.promo_config);
+        setTiempoRestante(calcularTiempoRestante(data.promo_config));
+      } catch (err) {
+        console.error("Error fetching promo config:", err);
+      }
+    };
+
+    fetchPromo();
+    const interval = setInterval(fetchPromo, 1000); // Actualizar cada segundo
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
-    // Restaurar visibilidad si hay nueva promo
-    if (heroConfig?.promocion?.habilitada) {
-      setPromoVisible(true);
-      setIsClosing(false);
+    // Solo restaurar visibilidad si la promo está habilitada
+    // y no fue cerrada por el usuario
+    if (promo_config?.activa) {
+      const wasClosed = localStorage.getItem('promoHeaderClosed');
+      if (!wasClosed) {
+        setPromoVisible(true);
+        setIsClosing(false);
+      }
+    } else {
+      // Si la promo está desactivada, ocultar siempre
+      setPromoVisible(false);
     }
-  }, [heroConfig?.promocion?.habilitada]);
+  }, [promo_config]);
 
   const handleButtonClick = () => {
     if (onButtonClick) {
@@ -36,22 +95,14 @@ export function PromoHeader({
 
   const handleClose = () => {
     setIsClosing(true);
+    // Guardar que el usuario cerró la promo
+    localStorage.setItem('promoHeaderClosed', 'true');
     // Esperar a que termine la animación antes de ocultar
     setTimeout(() => {
       setPromoVisible(false);
       setIsClosing(false);
     }, 300);
   };
-
-  // Extraer el descuento (ej: "20%" de "DESCUENTO 20%")
-  const textoPromo = heroConfig?.promocion?.texto || "";
-  const descuentoMatch = textoPromo.match(/(\d+)%/);
-  const descuento = descuentoMatch ? descuentoMatch[1] : null;
-
-  // Si no hay promo activa y no está cerrando, no renderizar nada
-  if (!heroConfig?.promocion?.habilitada && !isClosing && !promoVisible) {
-    return null;
-  }
 
   // Estilos de animación
   const animationStyles = `
@@ -75,62 +126,71 @@ export function PromoHeader({
     }
   `;
 
+  // No renderizar si la promo está desactivada o ya fue cerrada
+  if (!promoVisible || !promo_config?.activa) {
+    return null;
+  }
+
   return (
     <>
       <style>{animationStyles}</style>
       <div 
         className={isClosing && !promoVisible ? 'promo-banner-hidden' : isClosing ? 'promo-banner-closing' : ''}
         style={{
-          background: 'linear-gradient(to bottom, #1a1a1a 0%, #f3f4f6 100%)',
-          color: 'white',
-          padding: '16px',
-          display: (!heroConfig?.promocion?.habilitada && !isClosing) ? 'none' : 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '16px',
-          width: '100%',
-          flexWrap: 'wrap',
-          overflow: 'hidden'
-        }}>
-        <div style={{
-          flex: 1,
-          minWidth: 0,
+          backgroundColor: '#110723',
+          color: '#ffffff',
+          padding: '8px 12px',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
           gap: '12px',
+          width: '100%',
+          overflow: 'auto',
+          overflowY: 'hidden',
           flexWrap: 'wrap'
         }}>
-          {/* Texto principal */}
+        {/* Texto y timer a la izquierda */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          flex: 1,
+          minWidth: '0'
+        }}>
+          {/* Texto principal - oculto en móvil extra pequeño */}
           <span style={{
-            fontSize: '14px',
+            fontSize: 'clamp(10px, 2vw, 13px)',
             fontWeight: '600',
             textTransform: 'uppercase',
-            letterSpacing: '0.5px',
+            letterSpacing: '0.08em',
+            whiteSpace: 'nowrap',
+            color: '#ffffff',
+            display: window.innerWidth < 420 ? 'none' : 'inline-block'
+          }}>
+            OFERTA
+          </span>
+
+          {/* Timer en formato HH : MM : SS */}
+          <div style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
-            flexWrap: 'wrap'
+            gap: '2px',
+            fontFamily: '"SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
+            fontSize: 'clamp(12px, 2.5vw, 14px)',
+            fontWeight: '700',
+            letterSpacing: '0.06em',
+            color: '#d4ff00',
+            whiteSpace: 'nowrap'
           }}>
-            {/* Parte del texto sin el descuento */}
-            {textoPromo.split(/\d+%/)[0].trim()}
-            
-            {/* Badge con el descuento */}
-            {descuento && (
-              <span style={{
-                backgroundColor: '#10b981',
-                color: 'white',
-                padding: '4px 10px',
-                borderRadius: '4px',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                whiteSpace: 'nowrap'
-              }}>
-                {descuento}%
-              </span>
-            )}
-          </span>
+            <span>{String(horas).padStart(2, '0')}</span>
+            <span style={{ opacity: 0.6, color: '#ffffff', margin: '0 1px' }}>:</span>
+            <span>{String(minutos).padStart(2, '0')}</span>
+            <span style={{ opacity: 0.6, color: '#ffffff', margin: '0 1px' }}>:</span>
+            <span>{String(segundos).padStart(2, '0')}</span>
+          </div>
         </div>
 
+        {/* Botón a la derecha */}
         <div style={{
           display: 'flex',
           gap: '8px',
@@ -143,20 +203,27 @@ export function PromoHeader({
               onClick={handleButtonClick}
               style={{
                 flexShrink: 0,
-                backgroundColor: '#6366f1',
+                backgroundColor: '#d4ff00',
                 border: 'none',
-                color: 'white',
+                color: '#110723',
                 cursor: 'pointer',
-                padding: '8px 16px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: 'bold',
-                transition: 'background-color 0.2s'
+                padding: 'clamp(6px, 1.5vw, 8px) clamp(12px, 2vw, 16px)',
+                borderRadius: '16px',
+                fontSize: 'clamp(10px, 1.8vw, 12px)',
+                fontWeight: '600',
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4f46e5'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6366f1'}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#e8ff33';
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#d4ff00';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
             >
-              {buttonText}
+              {buttonText || 'Obtener'}
             </button>
           )}
 
@@ -167,20 +234,20 @@ export function PromoHeader({
               flexShrink: 0,
               backgroundColor: 'transparent',
               border: 'none',
-              color: '#d1d5db',
+              color: '#ffffff',
               cursor: 'pointer',
-              padding: '4px',
+              padding: '6px',
               display: 'flex',
               alignItems: 'center',
-              transition: 'color 0.2s'
+              justifyContent: 'center',
+              transition: 'opacity 0.2s',
+              opacity: 0.7
             }}
-            onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#d1d5db'}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
             aria-label="Cerrar promoción"
           >
-            <svg style={{width: '20px', height: '20px'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X style={{width: 'clamp(16px, 4vw, 18px)', height: 'clamp(16px, 4vw, 18px)'}} />
           </button>
         </div>
       </div>

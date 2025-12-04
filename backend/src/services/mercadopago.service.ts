@@ -75,7 +75,7 @@ export class MercadoPagoService {
 
       // Construir URLs según el tipo de operación
       const successUrl = esRenovacion
-        ? `${baseUrl}/api/renovacion/success/${pagoId}?t=${timestamp}`
+        ? `${baseUrl}/api/renovacion/success/${pagoId}?type=success&t=${timestamp}`
         : esDonacion
         ? `${baseUrl}/donaciones/success?donacion_id=${pagoId}&t=${timestamp}`
         : tipo === "revendedor"

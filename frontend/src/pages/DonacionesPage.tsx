@@ -185,7 +185,7 @@ const DonacionesPage = ({
       </BottomSheet>
 
       {/* Main Content */}
-      <main className="md:ml-14">
+      <main>
         {/* Header Section with Full Gradient */}
         <div className="w-full bg-gradient-to-b from-purple-200/50 via-purple-50/30 to-white">
           <div className="w-full px-5 sm:px-6 lg:px-8 xl:px-10 py-12 sm:py-16 lg:py-20 xl:py-24">

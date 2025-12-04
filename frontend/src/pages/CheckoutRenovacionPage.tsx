@@ -248,7 +248,7 @@ const CheckoutRenovacionPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white pt-16 md:pt-14">
-      <main className="md:ml-14">
+      <main>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-8 md:py-12">
           <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
             {/* Left Column - Formulario */}

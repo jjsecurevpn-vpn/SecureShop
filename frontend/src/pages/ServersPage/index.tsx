@@ -61,7 +61,7 @@ const ServersPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: ServersPageProps
       </BottomSheet>
 
       {/* Main Content */}
-      <main className="md:ml-14">
+      <main>
         <ServersHero />
         <ServerGlobalSummary />
         {/* Server Stats */}

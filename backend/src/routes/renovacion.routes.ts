@@ -199,13 +199,15 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
   /**
    * GET /api/renovacion/success/:renovacionId
    * Página de éxito después de pagar una renovación
+   * Incluye reintentos automáticos si el webhook aún no ha procesado
    */
   router.get('/success/:renovacionId', async (req: Request, res: Response) => {
     try {
       const renovacionId = parseInt(req.params.renovacionId, 10);
       const forzarReproceso = req.query.reprocesar === 'true';
+      const intento = parseInt(req.query.intento as string, 10) || 1;
       
-      console.log(`[Renovacion API] GET /success/${renovacionId}?reprocesar=${forzarReproceso}`);
+      console.log(`[Renovacion API] GET /success/${renovacionId}?reprocesar=${forzarReproceso}&intento=${intento}`);
       
       if (isNaN(renovacionId)) {
         return res.status(400).json({
@@ -215,10 +217,22 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
       }
 
       console.log(`[Renovacion API] Llamando verificarYProcesarRenovacion(${renovacionId}, ${forzarReproceso})`);
-      const renovacion = await renovacionService.verificarYProcesarRenovacion(renovacionId, forzarReproceso);
+      let renovacion = await renovacionService.verificarYProcesarRenovacion(renovacionId, forzarReproceso);
       
       if (!renovacion) {
         return res.redirect(`/?error=renovacion-no-encontrada`);
+      }
+
+      // Si aún está pendiente y no hemos reintentado mucho, esperar y reintentar
+      if (renovacion.estado === 'pendiente' && intento < 3) {
+        console.log(`[Renovacion API] Renovación aún pendiente (intento ${intento}), reintentando en 2 segundos...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return res.redirect(`/api/renovacion/success/${renovacionId}?reprocesar=${forzarReproceso}&intento=${intento + 1}`);
+      }
+
+      // Si sigue pendiente después de reintentos, avisar al usuario pero permitir continuar
+      if (renovacion.estado === 'pendiente') {
+        console.warn(`[Renovacion API] ⚠️ Renovación ${renovacionId} aún pendiente después de ${intento} intentos. El pago se procesará en background.`);
       }
 
       // Obtener información actualizada desde Servex para mostrar expiración/limites
@@ -262,12 +276,65 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
         connection_limit: datosNuevos?.connection_limit || usuariosActuales,
         creditos: datosNuevos?.cantidad && datosNuevos?.tipo_renovacion === 'credit' ? String(datosNuevos.cantidad) : creditosActuales,
         email: renovacion.cliente_email || '',
-        fecha_expiracion: fechaExpiracion
+        fecha_expiracion: fechaExpiracion,
+        estado: renovacion.estado
       });
       
       return res.redirect(`/success?${params.toString()}`);
     } catch (error: any) {
       console.error('[Renovacion API] Error obteniendo renovación:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  /**
+   * GET /api/renovacion/status/:renovacionId
+   * Verifica el estado actual de una renovación (JSON)
+   * Útil para consultas desde el cliente con reintentos automáticos
+   * Query param: reprocesar=true para forzar reprocesamiento si está aprobada
+   */
+  router.get('/status/:renovacionId', async (req: Request, res: Response) => {
+    try {
+      const renovacionId = parseInt(req.params.renovacionId, 10);
+      const forzarReproceso = req.query.reprocesar === 'true';
+      
+      if (isNaN(renovacionId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'ID de renovación inválido'
+        });
+      }
+
+      // Usar verificarYProcesarRenovacion que maneja todo (incluyendo verificar en MP si es necesario)
+      const renovacion = await renovacionService.verificarYProcesarRenovacion(renovacionId, forzarReproceso);
+      
+      if (!renovacion) {
+        return res.status(404).json({
+          success: false,
+          error: 'Renovación no encontrada',
+          renovacionId
+        });
+      }
+
+      return res.json({
+        success: true,
+        renovacion: {
+          id: renovacion.id,
+          estado: renovacion.estado,
+          mp_payment_id: renovacion.mp_payment_id || null,
+          monto: renovacion.monto,
+          dias: renovacion.dias_agregados,
+          cliente_email: renovacion.cliente_email,
+          fecha_creacion: renovacion.fecha_creacion,
+          tipo: renovacion.tipo,
+          username: renovacion.servex_username
+        }
+      });
+    } catch (error: any) {
+      console.error('[Renovacion API] Error obteniendo estado:', error);
       return res.status(500).json({
         success: false,
         error: error.message

@@ -17,20 +17,16 @@ export default function AboutPage({ }: AboutPageProps) {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* Main Content */}
-      <main className="pb-20 md:ml-14">
+      <main className="pb-8 md:pb-12 xl:pb-16">
         <HeroSection />
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
-          <div className="max-w-7xl mx-auto">
-            <QuickStatsSection />
-            <MisionSection />
-            <ComoFuncionaSection />
-            <CasosUsoSection />
-            <TecnologiaSection />
-            <ValoresSection />
-            <TestimoniosSection />
-            <CTAFinalSection />
-          </div>
-        </div>
+        <QuickStatsSection />
+        <MisionSection />
+        <ComoFuncionaSection />
+        <CasosUsoSection />
+        <TecnologiaSection />
+        <ValoresSection />
+        <TestimoniosSection />
+        <CTAFinalSection />
       </main>
     </div>
   );

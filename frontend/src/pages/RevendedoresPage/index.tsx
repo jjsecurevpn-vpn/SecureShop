@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BarChart3, RefreshCw, Zap } from "lucide-react";
-import HeroReventa from "../../components/HeroReventa";
+import HeroReventa from "./components/HeroReventa";
+import { Title } from "../../components/Title";
 import { PlanRevendedor } from "../../types";
 import { apiService, ValidacionCupon } from "../../services/api.service";
 import { ModeSelector } from "./components/ModeSelector";
@@ -503,15 +504,17 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
 
   return (
     <div className="bg-white text-gray-900">
-      <main className="flex flex-col md:ml-14">
+      <main className="flex flex-col">
         <HeroReventa />
 
-        <section id="planes-section" className="bg-white py-12 sm:py-16 lg:py-20 xl:py-24">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 xl:px-12 space-y-8 sm:space-y-10 lg:space-y-12 xl:space-y-16">
+        <section id="planes-section" className="bg-white py-8 md:py-12 xl:py-16">
+          <div className="mx-auto max-w-7xl px-4 md:px-8 xl:px-16 space-y-6 md:space-y-8 xl:space-y-12">
             <div className="space-y-3 text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 sm:text-sm lg:text-base xl:text-lg">Sistemas de venta</p>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900">Planes de Revendedor</h1>
-              <p className="text-sm text-gray-600 sm:text-base lg:text-lg xl:text-xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 sm:text-xs">Sistemas de venta</p>
+              <Title as="h1">
+                Planes de Revendedor
+              </Title>
+              <p className="text-xs sm:text-sm md:text-base text-gray-600">
                 Elegí entre Créditos o Validez, ambos diseñados para iterar precios, duraciones y márgenes sin fricciones.
               </p>
             </div>

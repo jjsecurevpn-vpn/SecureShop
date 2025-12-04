@@ -1,5 +1,6 @@
 import Lottie from "lottie-react";
 import serversAnimation from "../../../assets/lottie/servers-hero.json";
+import { Title } from "../../../components/Title";
 
 export function ServersHero() {
   return (
@@ -11,9 +12,9 @@ export function ServersHero() {
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-300 px-4 py-2 text-emerald-700 text-sm sm:text-base lg:text-lg xl:text-xl font-medium">
                 Red global segura
               </div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
+              <Title as="h1">
                 Monitoreo en tiempo real de todos los servidores
-              </h1>
+              </Title>
               <p className="text-gray-600 text-sm sm:text-base lg:text-lg xl:text-xl max-w-2xl mx-auto lg:mx-0">
                 Visualiza el estado, consumo de recursos y disponibilidad de la red JJSecure con datos actualizados cada pocos segundos.
               </p>

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import DemoModal from "../../components/DemoModal";
-import { PromoHeader } from "../../components/PromoHeader";
 import { Plan } from "../../types";
 import { apiService } from "../../services/api.service";
 import type { ValidacionCupon } from "../../services/api.service";
@@ -11,6 +10,8 @@ import { RenovacionPanel } from "./components/RenovacionPanel";
 import { SupportSection } from "./components/SupportSection";
 import { BenefitsSection } from "./components/BenefitsSection";
 import { HeroSection } from "./components/HeroSection";
+import { PlanCard } from "./components/PlanCard";
+import { protonColors } from "../../styles/colors";
 import {
   calcularPrecioDiario,
   calcularPrecioRenovacion,
@@ -109,14 +110,11 @@ export default function PlanesPage({ }: PlanesPageProps) {
 
   const planesDestacados = useMemo(() => {
     if (!planes.length) return [];
-    const durations = Array.from(new Set(planes.map((plan) => plan.dias))).sort((a, b) => a - b);
-    return durations.slice(0, 3)
-      .map((dias) => {
-        const opciones = planes
-          .filter((plan) => plan.dias === dias)
-          .sort((a, b) => a.precio - b.precio);
-        return opciones[0];
-      })
+    
+    // Mostrar específicamente: 7D/1 dispositivo, 30D/1 dispositivo, 30D/4 dispositivos
+    const planIds = [21, 29, 32]; // IDs específicos
+    return planIds
+      .map(id => planes.find(p => p.id === id))
       .filter(Boolean) as Plan[];
   }, [planes]);
 
@@ -253,45 +251,111 @@ export default function PlanesPage({ }: PlanesPageProps) {
     <div className="bg-white text-gray-900">
       <DemoModal isOpen={isDemoOpen} onClose={() => setIsDemoOpen(false)} />
 
-      <main className={`md:pt-0 md:ml-14`}>
-        {/* Promo Banner Header */}
-        <PromoHeader />
+      <main>
+        {/* Contenedor con gradiente unificado estilo ProtonVPN */}
+        <div 
+          className="relative"
+          style={{ 
+            background: `linear-gradient(180deg, 
+              rgb(17, 7, 35) 0%, 
+              rgb(30, 15, 60) 15%,
+              rgb(45, 20, 80) 30%,
+              rgb(30, 15, 60) 50%,
+              rgb(17, 7, 35) 70%,
+              rgb(10, 5, 25) 100%
+            )`,
+          }}
+        >
+          {/* Efecto de luz central (radial gradient overlay) */}
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: `
+                radial-gradient(ellipse 80% 50% at 50% 20%, rgba(109, 74, 255, 0.3) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 50% 35%, rgba(139, 92, 246, 0.15) 0%, transparent 60%)
+              `,
+            }}
+          />
 
-        {/* Hero Section */}
-        <HeroSection 
-          config={null} 
-          modoSeleccion={modoSeleccion} 
-          onActivarModoCompra={activarModoCompra} 
-          onActivarModoRenovacion={activarModoRenovacion} 
-        />
+          {/* Hero Section */}
+          <HeroSection 
+            config={null} 
+            modoSeleccion={modoSeleccion} 
+            onActivarModoCompra={activarModoCompra} 
+            onActivarModoRenovacion={activarModoRenovacion} 
+          />
 
-        {/* Plans Section */}
-        <section className="py-12 sm:py-16 lg:py-20 xl:py-24 bg-white">
-          <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
-            <div className="max-w-7xl mx-auto">
+          {/* Plans Section */}
+          <section className="relative py-8 md:py-12 xl:py-16">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 xl:px-16">
+            <div className="w-full">
             {modoSeleccion === "compra" && (
               <div className="space-y-12">
                 <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
                   <div className="space-y-8">
-                    <div className="rounded-lg bg-purple-50 p-6 sm:p-8 lg:p-10 xl:p-12">
+                    <div 
+                      className="rounded-xl p-5 md:p-6 xl:p-8"
+                      style={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)'
+                      }}
+                    >
                       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                         <div>
-                          <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-600">Paso 1</p>
-                          <h3 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-semibold text-gray-900">Duración del plan</h3>
-                          <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">Define cuántos días necesitas conexión segura.</p>
+                          <p 
+                            className="text-xs md:text-sm font-semibold uppercase tracking-[0.3em]"
+                            style={{ color: protonColors.green[300] }}
+                          >
+                            Paso 1
+                          </p>
+                          <h3 
+                            className="text-lg md:text-xl xl:text-2xl font-semibold"
+                            style={{ color: protonColors.white }}
+                          >
+                            Duración del plan
+                          </h3>
+                          <p 
+                            className="text-sm md:text-base"
+                            style={{ color: 'rgba(255, 255, 255, 0.6)' }}
+                          >
+                            Define cuántos días necesitas conexión segura.
+                          </p>
                         </div>
-                        <span className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">Puedes ajustarlo cuando quieras</span>
+                        <span 
+                          className="text-sm md:text-base"
+                          style={{ color: 'rgba(255, 255, 255, 0.5)' }}
+                        >
+                          Puedes ajustarlo cuando quieras
+                        </span>
                       </div>
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         {diasDisponibles.map((dias) => (
                           <button
                             key={dias}
                             onClick={() => setDiasSeleccionados(dias)}
-                            className={`rounded-lg border-2 px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400 ${
+                            className="rounded-lg border-2 px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                            style={
                               diasSeleccionados === dias
-                                ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                                : "border-gray-300 bg-white text-gray-900 hover:border-gray-400"
-                            }`}
+                                ? {
+                                    borderColor: protonColors.green[300],
+                                    backgroundColor: 'rgba(212, 255, 0, 0.1)',
+                                    color: protonColors.green[300],
+                                  }
+                                : {
+                                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                    color: protonColors.white,
+                                  }
+                            }
+                            onMouseEnter={(e) => {
+                              if (diasSeleccionados !== dias) {
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (diasSeleccionados !== dias) {
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                              }
+                            }}
                           >
                             {dias} días
                           </button>
@@ -299,47 +363,108 @@ export default function PlanesPage({ }: PlanesPageProps) {
                       </div>
                     </div>
 
-                    <div className="rounded-lg bg-purple-50 p-6 sm:p-8 lg:p-10 xl:p-12">
+                    <div 
+                      className="rounded-xl p-5 md:p-6 xl:p-8"
+                      style={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.03)'
+                      }}
+                    >
                       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                         <div>
-                          <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-600">Paso 2</p>
-                          <h3 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-semibold text-gray-900">Dispositivos simultáneos</h3>
-                          <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">Cambia la cantidad cuando quieras añadir más conexiones.</p>
+                          <p 
+                            className="text-xs md:text-sm font-semibold uppercase tracking-[0.3em]"
+                            style={{ color: protonColors.green[300] }}
+                          >
+                            Paso 2
+                          </p>
+                          <h3 
+                            className="text-lg md:text-xl xl:text-2xl font-semibold"
+                            style={{ color: protonColors.white }}
+                          >
+                            Dispositivos simultáneos
+                          </h3>
+                          <p 
+                            className="text-sm md:text-base"
+                            style={{ color: 'rgba(255, 255, 255, 0.6)' }}
+                          >
+                            Cambia la cantidad cuando quieras añadir más conexiones.
+                          </p>
                         </div>
-                        <span className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">Ideal para compartir</span>
+                        <span 
+                          className="text-sm md:text-base"
+                          style={{ color: 'rgba(255, 255, 255, 0.5)' }}
+                        >
+                          Ideal para compartir
+                        </span>
                       </div>
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                         {dispositivosDisponibles.map((dispositivos) => (
                           <button
                             key={dispositivos}
                             onClick={() => setDispositivosSeleccionados(dispositivos)}
-                            className={`rounded-lg border-2 px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400 ${
+                            className="rounded-lg border-2 px-4 py-3 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                            style={
                               dispositivosSeleccionados === dispositivos
-                                ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                                : "border-gray-300 bg-white text-gray-900 hover:border-gray-400"
-                            }`}
+                                ? {
+                                    borderColor: protonColors.green[300],
+                                    backgroundColor: 'rgba(212, 255, 0, 0.1)',
+                                    color: protonColors.green[300],
+                                  }
+                                : {
+                                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                                    color: protonColors.white,
+                                  }
+                            }
+                            onMouseEnter={(e) => {
+                              if (dispositivosSeleccionados !== dispositivos) {
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (dispositivosSeleccionados !== dispositivos) {
+                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                              }
+                            }}
                           >
                             {dispositivos} {dispositivos === 1 ? "dispositivo" : "dispositivos"}
                           </button>
                         ))}
                       </div>
-                      <p className="mt-4 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
+                      <p 
+                        className="mt-4 text-sm md:text-base"
+                        style={{ color: 'rgba(255, 255, 255, 0.5)' }}
+                      >
                         ¿Necesitas más conexiones? Podemos armar planes especiales para equipos o revendedores.
                       </p>
                     </div>
                   </div>
 
-                  <aside className="rounded-lg bg-gradient-to-br from-slate-900/90 via-gray-900/90 to-slate-800/90 p-6 sm:p-8 lg:p-10 xl:p-12 text-white md:p-8 md:sticky md:top-24 md:h-fit">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-indigo-300">
+                  <aside 
+                    className="rounded-2xl p-5 md:p-6 xl:p-8 text-white md:sticky md:top-24 md:h-fit"
+                    style={{ 
+                      background: 'linear-gradient(135deg, rgb(30, 20, 60) 0%, rgb(20, 12, 45) 100%)'
+                    }}
+                  >
+                    <div 
+                      className="inline-flex items-center gap-2 rounded-full px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.3em]"
+                      style={{ 
+                        backgroundColor: protonColors.green[300],
+                        color: protonColors.purple[900],
+                      }}
+                    >
                       <Sparkles className="h-4 w-4" />
                       <span>Resumen</span>
                     </div>
 
                     <div className="mt-6 space-y-2">
-                      <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-semibold">
+                      <h3 className="text-xl md:text-2xl xl:text-3xl font-semibold">
                         {planSeleccionado ? `${planSeleccionado.dias} días` : "Elige tu combinación"}
                       </h3>
-                      <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-300">
+                      <p 
+                        className="text-sm md:text-base"
+                        style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                      >
                         {planSeleccionado
                           ? `Protección para ${planSeleccionado.connection_limit} ${
                               planSeleccionado.connection_limit === 1 ? "dispositivo" : "dispositivos"
@@ -350,28 +475,53 @@ export default function PlanesPage({ }: PlanesPageProps) {
 
                     {planSeleccionado ? (
                       <div className="mt-8 space-y-6">
-                        <div className="rounded-lg bg-white/10 p-4 sm:p-6 lg:p-8 xl:p-10 flex flex-wrap items-center justify-between gap-4">
+                        <div 
+                          className="rounded-xl p-4 md:p-5 xl:p-6 flex flex-wrap items-center justify-between gap-4"
+                          style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                        >
                           <div>
-                            <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-300">Pago único</p>
-                            <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-none">${planSeleccionado.precio}</p>
+                            <p 
+                              className="text-sm md:text-base"
+                              style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                            >
+                              Pago único
+                            </p>
+                            <p className="text-2xl md:text-3xl xl:text-4xl font-bold leading-none">${planSeleccionado.precio}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xs sm:text-sm lg:text-base xl:text-lg uppercase text-gray-400">Equivale a</p>
-                            <p className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold">${precioPorDiaPlan}/día</p>
+                            <p 
+                              className="text-xs md:text-sm uppercase"
+                              style={{ color: 'rgba(255, 255, 255, 0.5)' }}
+                            >
+                              Equivale a
+                            </p>
+                            <p className="text-base md:text-lg xl:text-xl font-semibold">${precioPorDiaPlan}/día</p>
                           </div>
                         </div>
 
-                        <ul className="space-y-3 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-200">
+                        <ul 
+                          className="space-y-3 text-sm md:text-base"
+                          style={{ color: 'rgba(255, 255, 255, 0.85)' }}
+                        >
                           <li className="flex items-center gap-2">
-                            <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 lg:h-2.5 lg:w-2.5 xl:h-3 xl:w-3 rounded-full bg-indigo-400" />
+                            <span 
+                              className="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full"
+                              style={{ backgroundColor: protonColors.green[300] }}
+                            />
                             Servidores premium en más de 15 países
                           </li>
                           <li className="flex items-center gap-2">
-                            <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 lg:h-2.5 lg:w-2.5 xl:h-3 xl:w-3 rounded-full bg-indigo-400" />
+                            <span 
+                              className="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full"
+                              style={{ backgroundColor: protonColors.green[300] }}
+                            />
                             Cambio ilimitado de ubicaciones
                           </li>
                           <li className="flex items-center gap-2">
-                            <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 lg:h-2.5 lg:w-2.5 xl:h-3 xl:w-3 rounded-full bg-indigo-400" />
+                            <span 
+                              className="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full"
+                              style={{ backgroundColor: protonColors.green[300] }}
+                            />
                             Soporte humano 24/7 en español
                           </li>
                         </ul>
@@ -379,22 +529,52 @@ export default function PlanesPage({ }: PlanesPageProps) {
                         <div className="space-y-3">
                           <button
                             onClick={() => planSeleccionado && navigate(`/checkout?planId=${planSeleccionado.id}`)}
-                            className="w-full rounded-lg bg-indigo-600 px-6 py-4 text-base sm:text-lg lg:text-xl xl:text-2xl font-semibold text-white transition hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
+                            className="w-full rounded-full px-6 py-3 text-sm md:text-base font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                            style={{ 
+                              backgroundColor: protonColors.green[300],
+                              color: protonColors.purple[900],
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = protonColors.green[400];
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = protonColors.green[300];
+                            }}
                           >
                             Continuar al pago
                           </button>
                           <button
                             onClick={() => setIsDemoOpen(true)}
-                            className="w-full rounded-lg border border-white/20 px-6 py-4 text-base sm:text-lg lg:text-xl xl:text-2xl font-semibold text-white transition hover:border-white/40"
+                            className="w-full rounded-full border-2 px-6 py-3 text-sm md:text-base font-semibold text-white transition"
+                            style={{ borderColor: 'rgba(255, 255, 255, 0.25)' }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = protonColors.green[300];
+                              e.currentTarget.style.color = protonColors.green[300];
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+                              e.currentTarget.style.color = protonColors.white;
+                            }}
                           >
                             Ver demo en vivo
                           </button>
                         </div>
 
-                        <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400">Pago seguro con Mercado Pago, tarjetas internacionales o criptomonedas.</p>
+                        <p 
+                          className="text-xs md:text-sm"
+                          style={{ color: 'rgba(255, 255, 255, 0.5)' }}
+                        >
+                          Pago seguro con Mercado Pago, tarjetas internacionales o criptomonedas.
+                        </p>
                       </div>
                     ) : (
-                      <div className="mt-8 rounded-lg border border-dashed border-white/30 p-6 sm:p-8 lg:p-10 xl:p-12 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-300">
+                      <div 
+                        className="mt-8 rounded-xl border border-dashed p-5 md:p-6 text-sm md:text-base"
+                        style={{ 
+                          borderColor: 'rgba(255, 255, 255, 0.3)',
+                          color: 'rgba(255, 255, 255, 0.7)',
+                        }}
+                      >
                         Te mostraremos aquí el resumen con precio y beneficios cuando elijas una combinación.
                       </div>
                     )}
@@ -402,53 +582,62 @@ export default function PlanesPage({ }: PlanesPageProps) {
                 </div>
 
                 {planesDestacados.length > 0 && (
-                  <div className="space-y-6">
+                  <div 
+                    className="rounded-3xl p-8 md:p-12 space-y-8"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${protonColors.purple[900]} 0%, rgb(23, 15, 50) 50%, rgb(10, 5, 25) 100%)`,
+                    }}
+                  >
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                       <div>
-                        <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold uppercase tracking-[0.3em] text-gray-600">¿No sabes qué elegir?</p>
-                        <h3 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-semibold text-gray-900">Nuestros más pedidos</h3>
+                        <p 
+                          className="text-xs md:text-sm font-semibold uppercase tracking-[0.3em]"
+                          style={{ color: protonColors.green[300] }}
+                        >
+                          ¿No sabes qué elegir?
+                        </p>
+                        <h3 
+                          className="text-xl md:text-2xl xl:text-3xl font-semibold"
+                          style={{ color: protonColors.white }}
+                        >
+                          Nuestros más pedidos
+                        </h3>
                       </div>
-                      <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
+                      <p 
+                        className="text-sm md:text-base max-w-md"
+                        style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                      >
                         Estos planes equilibran precio, duración y cantidad de dispositivos. Ideal para comenzar rápido.
                       </p>
                     </div>
 
-                    <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-3">
-                      {planesDestacados.map((planDestacado) => {
+                    <div className="grid gap-6 md:grid-cols-3">
+                      {planesDestacados.map((planDestacado, index) => {
                         const precioPorDiaDestacado = calcularPrecioDiario(planDestacado);
+                        const isMiddle = index === 1; // El del medio es "más popular"
                         return (
-                          <div
+                          <PlanCard
                             key={`${planDestacado.id}-${planDestacado.dias}-${planDestacado.connection_limit}`}
-                            className="flex h-full flex-col rounded-lg bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-6 sm:p-8 lg:p-10 xl:p-12 transition"
-                          >
-                            <div className="mb-4 flex items-center justify-between">
-                              <div className="inline-flex items-center gap-2 text-sm sm:text-base lg:text-lg xl:text-xl font-semibold text-indigo-600">
-                                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 xl:h-7 xl:w-7" />
-                                {planDestacado.dias} días
-                              </div>
-                              <span className="text-[13px] sm:text-sm lg:text-base xl:text-lg text-gray-600">
-                                Hasta {planDestacado.connection_limit} {planDestacado.connection_limit === 1 ? "dispositivo" : "dispositivos"}
-                              </span>
-                            </div>
-                            <p className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900">${planDestacado.precio}</p>
-                            <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">${precioPorDiaDestacado}/día</p>
-                            <div className="mt-4 flex-1 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700">
-                              {planDestacado.connection_limit > 1
-                                ? "Perfecto para compartir con familia o amigos."
-                                : "Ideal para uso personal y viajes frecuentes."}
-                            </div>
-                            <button
-                              onClick={() => {
-                                setDiasSeleccionados(planDestacado.dias);
-                                setDispositivosSeleccionados(planDestacado.connection_limit || 1);
-                              }}
-                              className="mt-6 rounded-lg border border-indigo-300 px-4 py-3 text-sm sm:text-base lg:text-lg xl:text-xl font-semibold text-indigo-700 transition hover:bg-indigo-100 hover:border-indigo-500"
-                            >
-                              Usar este plan
-                            </button>
-                          </div>
+                            plan={planDestacado}
+                            precioPorDia={precioPorDiaDestacado}
+                            isPopular={isMiddle}
+                            onSelect={() => {
+                              navigate(`/checkout?planId=${planDestacado.id}`);
+                            }}
+                          />
                         );
                       })}
+                    </div>
+
+                    {/* Garantía */}
+                    <div className="flex justify-center pt-4">
+                      <p 
+                        className="text-sm flex items-center gap-2"
+                        style={{ color: 'rgba(255, 255, 255, 0.6)' }}
+                      >
+                        <span className="text-lg">🛡️</span>
+                        Garantía de reembolso durante 30 días
+                      </p>
                     </div>
                   </div>
                 )}
@@ -493,13 +682,10 @@ export default function PlanesPage({ }: PlanesPageProps) {
           </div>
         </div>
         </section>
+        </div>{/* Fin del contenedor con gradiente unificado */}
 
-        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
-          <div className="max-w-7xl mx-auto">
-            <BenefitsSection />
-            <SupportSection />
-          </div>
-        </div>
+        <BenefitsSection />
+        <SupportSection />
       </main>
     </div>
   );

@@ -12,7 +12,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutRevendedorPage from "./pages/CheckoutRevendedorPage";
 import CheckoutRenovacionPage from "./pages/CheckoutRenovacionPage";
 import Header from "./components/Header";
-import Sidebar from "./components/Sidebar";
+import { PromoHeader } from "./components/PromoHeader";
 import ScrollToTop from "./components/ScrollToTop";
 import Footer from "./components/Footer";
 import PageLoading from "./components/PageLoading";
@@ -27,15 +27,9 @@ const TRANSITION_DURATION = 600;
 
 const AppContent = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const [displayLocation, setDisplayLocation] = useState(location);
   const { isLoading, setIsLoading } = useLoading();
-
-  // Cerrar sidebar al cambiar de ruta
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [location.pathname]);
 
   useEffect(() => {
     if (location.pathname === displayLocation.pathname) {
@@ -55,13 +49,12 @@ const AppContent = () => {
   return (
     <div className="flex flex-col min-h-screen bg-neutral-900">
       <ScrollToTop />
-      <Header sidebarOpen={sidebarOpen} onSidebarToggle={setSidebarOpen} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {isLoading && <PageLoading />}
+      <PromoHeader />
+      <Header />
       <div className="flex-1 overflow-y-auto relative">
-        {isLoading && <PageLoading />}
-        {!isLoading && (
-          <main>
-            <Routes location={displayLocation}>
+        <main>
+          <Routes location={displayLocation} key={displayLocation.pathname}>
           <Route path="/" element={<HomePage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/checkout-renovacion" element={<CheckoutRenovacionPage />} />
@@ -79,8 +72,7 @@ const AppContent = () => {
           <Route path="/privacidad" element={<PrivacyPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/155908348" element={<AdminToolsPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
         </Routes>
-          </main>
-        )}
+        </main>
       </div>
       {!isLoading && !location.pathname.startsWith("/checkout") && location.pathname !== "/155908348" && location.pathname !== "/success" && location.pathname !== "/donaciones/success" && <Footer />}
     </div>
