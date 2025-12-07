@@ -13,7 +13,6 @@ const Header = () => {
   
   // Detectar si estamos en la página de Planes
   const isPlanesPage = location.pathname === '/planes';
-  const textLogoSrc = isPlanesPage ? '/JJSecureLogoTXT1.svg' : '/JJSecureLogoTXT.svg';
   
   // Bloquear scroll cuando el menú está abierto
   useEffect(() => {
@@ -62,14 +61,9 @@ const Header = () => {
               aria-label="JJSecure VPN"
             >
               <img
-                src="/LogoJJSecure.png"
+                src="/INTERNET ILIMITADO.avif"
                 alt="JJSecure VPN"
                 className="h-7 w-auto"
-              />
-              <img
-                src={textLogoSrc}
-                alt="JJSecure VPN"
-                className="hidden md:inline h-4 w-auto"
               />
             </Link>
 

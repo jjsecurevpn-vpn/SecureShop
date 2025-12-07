@@ -26,6 +26,7 @@ import {
 import { CuentaRenovacion, ModoSeleccion, PasoRenovacion, PlanesPageProps } from "./types";
 export type { PlanesPageProps } from "./types";
 
+// eslint-disable-next-line no-empty-pattern
 export default function PlanesPage({ }: PlanesPageProps) {
   const navigate = useNavigate();
   const [planes, setPlanes] = useState<Plan[]>([]);

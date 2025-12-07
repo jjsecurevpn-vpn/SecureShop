@@ -71,15 +71,22 @@ export default function HeroSection() {
             </div>
             <p className="text-xs text-gray-500">Garantía de reembolso si no te sirve</p>
           </div>
+        </div>
 
-          {/* Imagen - Mano con teléfono - Abajo */}
-          <div className="flex items-center justify-center pt-8 md:pt-12 w-full">
-            <img
-              src="/ManoCyberseguridad.avif"
-              alt="JJSecure VPN App"
-              className="w-full max-w-4xl h-auto drop-shadow-2xl"
-            />
-          </div>
+        {/* Imagen - Desktop y Móvil - Fuera del contenedor max-w-7xl */}
+        <div className="w-full px-4 md:px-8 pb-8 md:pb-12 xl:pb-16">
+          {/* Imagen para móvil */}
+          <img
+            src="/SecureVPNMovil.avif"
+            alt="JJSecure VPN App"
+            className="md:hidden w-full h-auto drop-shadow-2xl"
+          />
+          {/* Imagen para desktop */}
+          <img
+            src="/SecureVPN.avif"
+            alt="JJSecure VPN App"
+            className="hidden md:block w-full h-auto drop-shadow-2xl"
+          />
         </div>
       </section>
     </>
