@@ -69,7 +69,7 @@ export class TiendaRevendedoresService {
   /**
    * Obtiene todos los planes de revendedores activos con overrides aplicados
    */
-  obtenerPlanesRevendedores(): PlanRevendedor[] {
+  obtenerPlanesRevendedores(options?: { forNewCustomers?: boolean }): PlanRevendedor[] {
     const planesBase = this.db.obtenerPlanesRevendedores();
     console.log(
       "[TiendaRevendedores] 📊 Planes base obtenidos:",
@@ -84,8 +84,13 @@ export class TiendaRevendedoresService {
     }
     
     // Aplicar overrides de configuración si existen
+    const overrideOptions = options ?? { forNewCustomers: true };
+
     const planesConOverrides = (
-      configService.aceptarOverridesAListaPlanesRevendedor(planesBase) as PlanRevendedor[]
+      configService.aceptarOverridesAListaPlanesRevendedor(
+        planesBase,
+        overrideOptions
+      ) as PlanRevendedor[]
     ).map((plan) => {
           const duracionInferida = this.inferirDuracionPlan(plan);
           if (!plan.dias && duracionInferida) {
@@ -124,7 +129,9 @@ export class TiendaRevendedoresService {
     }
 
     // 2. Aplicar overrides de configuración
-    plan = configService.aceptarOverridesAlPlanRevendedor(plan) as PlanRevendedor;
+    plan = configService.aceptarOverridesAlPlanRevendedor(plan, {
+      forNewCustomers: true,
+    }) as PlanRevendedor;
 
     const duracionInferida = this.inferirDuracionPlan(plan);
     if (!plan.dias && duracionInferida) {

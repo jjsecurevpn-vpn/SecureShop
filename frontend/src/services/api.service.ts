@@ -105,9 +105,24 @@ class ApiService {
 
   /**
    * Obtiene la lista de planes disponibles
+   * @param forceReload Si es true, fuerza el cache bust
+   * @param context Determina si la lista se usa para compra o renovaciones
    */
-  async obtenerPlanes(): Promise<Plan[]> {
-    const response = await this.client.get<ApiResponse<Plan[]>>("/planes");
+  async obtenerPlanes(
+    forceReload: boolean = false,
+    context: "compra" | "renovacion" = "compra"
+  ): Promise<Plan[]> {
+    const params: Record<string, any> = {};
+    if (forceReload) {
+      params._t = Date.now();
+    }
+    if (context === "renovacion") {
+      params.context = "renovacion";
+    }
+
+    const response = await this.client.get<ApiResponse<Plan[]>>("/planes", {
+      params,
+    });
     if (!response.data.success) {
       throw new Error(response.data.error || "Error obteniendo planes");
     }
@@ -169,15 +184,20 @@ class ApiService {
 
   /**
    * Obtiene la lista de planes de revendedores disponibles
-   */
-  /**
-   * Obtiene la lista de planes de revendedores disponibles
    * @param forceReload Si es true, se añade un query param `_t` con timestamp para evitar caches intermedios/304
+   * @param context Determina si la lista se usará para compra (default) o renovación
    */
   async obtenerPlanesRevendedores(
-    forceReload: boolean = false
+    forceReload: boolean = false,
+    context: "compra" | "renovacion" = "compra"
   ): Promise<PlanRevendedor[]> {
-    const params = forceReload ? { _t: Date.now() } : {};
+    const params: Record<string, any> = {};
+    if (forceReload) {
+      params._t = Date.now();
+    }
+    if (context === "renovacion") {
+      params.context = "renovacion";
+    }
     const response = await this.client.get<ApiResponse<PlanRevendedor[]>>(
       "/planes-revendedores",
       { params }
@@ -585,11 +605,12 @@ class ApiService {
   async activarPromo(
     duracion_horas: number,
     tipo: "planes" | "revendedores" = "planes",
-    descuento_porcentaje: number = 20
+    descuento_porcentaje: number = 20,
+    solo_nuevos: boolean = false
   ): Promise<any> {
     const response = await this.client.post<ApiResponse<any>>(
       "/config/activar-promo",
-      { duracion_horas, tipo, descuento_porcentaje }
+      { duracion_horas, tipo, descuento_porcentaje, solo_nuevos }
     );
     if (!response.data.success) {
       throw new Error(response.data.error || "Error activando promoción");

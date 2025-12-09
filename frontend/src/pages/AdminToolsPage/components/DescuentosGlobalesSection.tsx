@@ -18,6 +18,10 @@ interface DescuentosGlobalesSectionProps {
   onSetDurationInputRevendedores: (value: string) => void;
   onSetDiscountPercentagePlanes: (value: string) => void;
   onSetDiscountPercentageRevendedores: (value: string) => void;
+  applyRenewalsPlanes: boolean;
+  applyRenewalsRevendedores: boolean;
+  onToggleApplyRenewalsPlanes: (value: boolean) => void;
+  onToggleApplyRenewalsRevendedores: (value: boolean) => void;
   onActivatePromo: (tipo: "planes" | "revendedores") => void;
   onDeactivatePromo: (tipo: "planes" | "revendedores") => void;
   onSetHeroPromoPlanes: (config: HeroPromoConfig | null) => void;
@@ -42,6 +46,10 @@ export function DescuentosGlobalesSection({
   onSetDurationInputRevendedores,
   onSetDiscountPercentagePlanes,
   onSetDiscountPercentageRevendedores,
+  applyRenewalsPlanes,
+  applyRenewalsRevendedores,
+  onToggleApplyRenewalsPlanes,
+  onToggleApplyRenewalsRevendedores,
   onActivatePromo,
   onDeactivatePromo,
   onSetHeroPromoPlanes,
@@ -85,6 +93,8 @@ export function DescuentosGlobalesSection({
               isSaving={isSavingPromo}
               onDurationChange={onSetDurationInputPlanes}
               onDiscountPercentageChange={onSetDiscountPercentagePlanes}
+              applyToRenewals={applyRenewalsPlanes}
+              onToggleApplyToRenewals={onToggleApplyRenewalsPlanes}
               onActivate={() => onActivatePromo("planes")}
               onDeactivate={() => onDeactivatePromo("planes")}
               onTextoChange={(e) => onSetHeroPromoPlanes({ 
@@ -111,6 +121,8 @@ export function DescuentosGlobalesSection({
               isSaving={isSavingPromo}
               onDurationChange={onSetDurationInputRevendedores}
               onDiscountPercentageChange={onSetDiscountPercentageRevendedores}
+              applyToRenewals={applyRenewalsRevendedores}
+              onToggleApplyToRenewals={onToggleApplyRenewalsRevendedores}
               onActivate={() => onActivatePromo("revendedores")}
               onDeactivate={() => onDeactivatePromo("revendedores")}
               onTextoChange={(e) => onSetHeroPromoRevendedores({ 
@@ -133,7 +145,7 @@ export function DescuentosGlobalesSection({
             <p><span className="font-semibold">📋 Información:</span></p>
             <ul className="list-disc list-inside space-y-1 ml-1">
               <li>Controla <strong>planes normales</strong> y <strong>planes de revendedores</strong> de forma independiente</li>
-              <li>Cada categoría tiene su propio descuento del 20%</li>
+              <li>Cada categoría define si la promo también aplica a renovaciones</li>
               <li>Los precios con descuento están precargados en las configuraciones</li>
               <li>El banner de promoción se muestra automáticamente en el sitio</li>
               <li>Se desactiva automáticamente después de la duración especificada si está configurado</li>

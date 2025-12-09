@@ -33,9 +33,34 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
    * GET /api/planes
    * Obtiene la lista de planes disponibles
    */
-  router.get("/planes", async (_req: Request, res: Response) => {
+  router.get("/planes", async (req: Request, res: Response) => {
     try {
-      const planes = tiendaService.obtenerPlanes();
+      const contextRaw = Array.isArray(req.query.context)
+        ? req.query.context[0]
+        : req.query.context;
+      const explicitFlag = Array.isArray(req.query.forNewCustomers)
+        ? req.query.forNewCustomers[0]
+        : req.query.forNewCustomers;
+
+      const context = typeof contextRaw === "string" ? contextRaw.toLowerCase() : "";
+      const isRenewalContext =
+        context === "renovacion" ||
+        context === "renovaciones" ||
+        context === "renewal";
+
+      let forNewCustomers: boolean | undefined = undefined;
+      if (typeof explicitFlag === "string") {
+        if (explicitFlag.toLowerCase() === "true") {
+          forNewCustomers = true;
+        } else if (explicitFlag.toLowerCase() === "false") {
+          forNewCustomers = false;
+        }
+      }
+
+      const planes = tiendaService.obtenerPlanes({
+        forNewCustomers:
+          forNewCustomers !== undefined ? forNewCustomers : !isRenewalContext,
+      });
 
       const response: ApiResponse = {
         success: true,

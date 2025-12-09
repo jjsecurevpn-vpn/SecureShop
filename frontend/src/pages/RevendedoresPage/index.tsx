@@ -31,6 +31,7 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
   const navigate = useNavigate();
 
   const [planes, setPlanes] = useState<PlanRevendedor[]>([]);
+  const [planesRenovacion, setPlanesRenovacion] = useState<PlanRevendedor[]>([]);
   const [activeSection, setActiveSection] = useState("creditos");
   const [expandedMenuSections, setExpandedMenuSections] = useState<string[]>([]);
   const [modoSeleccion, setModoSeleccion] = useState<ModoSeleccion>("compra");
@@ -64,15 +65,40 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
     [planes]
   );
 
+  const planesCreditRenovacion = useMemo(
+    () =>
+      planesRenovacion
+        .filter((plan) => plan.account_type === "credit")
+        .sort((a, b) => a.max_users - b.max_users),
+    [planesRenovacion]
+  );
+
+  const planesValidityRenovacion = useMemo(
+    () =>
+      planesRenovacion
+        .filter((plan) => plan.account_type === "validity")
+        .sort((a, b) => a.max_users - b.max_users),
+    [planesRenovacion]
+  );
+
   const planSeleccionado = useMemo(() => {
     if (!revendedorRenovacion) {
       return null;
     }
 
-    const planesFuente = tipoRenovacionSeleccionado === "credit" ? planesCredit : planesValidity;
+    const planesFuente =
+      tipoRenovacionSeleccionado === "credit"
+        ? planesCreditRenovacion
+        : planesValidityRenovacion;
     const planCoincidente = planesFuente.find((plan) => plan.max_users === cantidadSeleccionada);
     return planCoincidente ?? null;
-  }, [planesCredit, planesValidity, tipoRenovacionSeleccionado, cantidadSeleccionada, revendedorRenovacion]);
+  }, [
+    planesCreditRenovacion,
+    planesValidityRenovacion,
+    tipoRenovacionSeleccionado,
+    cantidadSeleccionada,
+    revendedorRenovacion,
+  ]);
 
   const precioRenovacion = planSeleccionado ? Math.round(planSeleccionado.precio) : 0;
 
@@ -100,11 +126,16 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
   useEffect(() => {
     const cargarPlanes = async () => {
       try {
-        const planos = await apiService.obtenerPlanesRevendedores(true);
-        setPlanes(planos);
+        const [planosCompra, planosRenovacion] = await Promise.all([
+          apiService.obtenerPlanesRevendedores(true, "compra"),
+          apiService.obtenerPlanesRevendedores(true, "renovacion"),
+        ]);
+        setPlanes(planosCompra);
+        setPlanesRenovacion(planosRenovacion);
       } catch (error) {
         console.error("Error cargando planes de revendedor:", error);
         setPlanes([]);
+        setPlanesRenovacion([]);
       }
     };
 
@@ -116,18 +147,29 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
       return;
     }
 
-    const planesFuente = tipoRenovacionSeleccionado === "credit" ? planesCredit : planesValidity;
+    const planesFuente =
+      tipoRenovacionSeleccionado === "credit"
+        ? planesCreditRenovacion
+        : planesValidityRenovacion;
     if (planesFuente.length === 0) {
       return;
     }
 
     const existeSeleccion = planesFuente.some((plan) => plan.max_users === cantidadSeleccionada);
     if (!existeSeleccion) {
-      const planCoincidente = planesFuente.find((plan) => plan.max_users === revendedorRenovacion.datos.max_users);
+      const planCoincidente = planesFuente.find(
+        (plan) => plan.max_users === revendedorRenovacion.datos.max_users
+      );
       const seleccion = planCoincidente ?? planesFuente[0];
       setCantidadSeleccionada(seleccion.max_users);
     }
-  }, [planesCredit, planesValidity, tipoRenovacionSeleccionado, revendedorRenovacion, cantidadSeleccionada]);
+  }, [
+    planesCreditRenovacion,
+    planesValidityRenovacion,
+    tipoRenovacionSeleccionado,
+    revendedorRenovacion,
+    cantidadSeleccionada,
+  ]);
 
   useEffect(() => {
     setCuponRenovacion(null);
@@ -204,7 +246,10 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
       setCuponRenovacion(null);
       setDescuentoRenovacion(0);
 
-      const planesFuente = info.datos.servex_account_type === "credit" ? planesCredit : planesValidity;
+      const planesFuente =
+        info.datos.servex_account_type === "credit"
+          ? planesCreditRenovacion
+          : planesValidityRenovacion;
       if (planesFuente.length > 0) {
         const planCoincidente = planesFuente.find((plan) => plan.max_users === info.datos.max_users);
         setCantidadSeleccionada((planCoincidente ?? planesFuente[0]).max_users);
@@ -547,8 +592,8 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
                 diasRenovacion={diasRenovacion}
                 precioRenovacion={precioRenovacion}
                 precioFinal={precioFinalRenovacion}
-                planesCredit={planesCredit}
-                planesValidity={planesValidity}
+                planesCredit={planesCreditRenovacion}
+                planesValidity={planesValidityRenovacion}
                 onVerPlanes={activarModoCompra}
                 onVolverBuscar={volverABuscarRevendedor}
                 onProcesar={procesarRenovacion}

@@ -19,6 +19,7 @@ export interface PromoConfig {
   activada_en?: string | null;
   duracion_horas: number;
   auto_desactivar: boolean;
+  solo_nuevos?: boolean;
 }
 
 export interface HeroPromoConfig {

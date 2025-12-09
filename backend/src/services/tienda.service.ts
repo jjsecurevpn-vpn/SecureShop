@@ -96,10 +96,14 @@ export class TiendaService {
   /**
    * Obtiene todos los planes activos (con overrides de configuración)
    */
-  obtenerPlanes(): Plan[] {
+  obtenerPlanes(options?: { forNewCustomers?: boolean }): Plan[] {
     const planesBase = this.db.obtenerPlanes();
+    const overrideOptions = options ?? { forNewCustomers: true };
     // Aplicar overrides de configuración si existen
-    return configService.aceptarOverridesAListaPlanes(planesBase);
+    return configService.aceptarOverridesAListaPlanes(
+      planesBase,
+      overrideOptions
+    );
   }
 
   /**
@@ -122,7 +126,7 @@ export class TiendaService {
     }
 
     // 2. Aplicar overrides de configuración
-    plan = configService.aceptarOverridesAlPlan(plan);
+    plan = configService.aceptarOverridesAlPlan(plan, { forNewCustomers: true });
     let precioFinal = plan.precio;
     let descuentoAplicado = 0;
     let cuponAplicado = null;

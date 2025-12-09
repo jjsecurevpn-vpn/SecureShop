@@ -794,6 +794,22 @@ export class DatabaseService {
     );
   }
 
+  /**
+   * Actualiza el servex_revendedor_id de un revendedor por su username
+   * Usado para reparar registros con ID = 0 o null
+   */
+  actualizarServexIdRevendedor(username: string, nuevoServexId: number): void {
+    const stmt = this.db.prepare(`
+      UPDATE pagos_revendedores
+      SET servex_revendedor_id = ?,
+          fecha_actualizacion = datetime('now')
+      WHERE servex_username = ?
+    `);
+
+    const result = stmt.run(nuevoServexId, username);
+    console.log(`[Database] ✅ ID de revendedor actualizado: ${username} -> ${nuevoServexId} (${result.changes} filas afectadas)`);
+  }
+
   // ============================================
   // MAPPERS PARA REVENDEDORES
   // ============================================

@@ -142,14 +142,34 @@ export class RenovacionService {
     if (!soloClientes) {
       const revendedorDB = this.db.buscarRevendedorPorUsername(busqueda);
       if (revendedorDB) {
+        let servexId = revendedorDB.servex_revendedor_id;
         const maxUsersDb =
           revendedorDB.servex_max_users ?? revendedorDB.max_users ?? 0;
-        console.log(`[Renovacion] ✅ Revendedor encontrado en DB local: ${revendedorDB.servex_username} (ID: ${revendedorDB.servex_revendedor_id}, max_users: ${maxUsersDb})`);
+        
+        // 🔧 AUTO-REPARACIÓN: Si el ID es 0 o null, intentar obtenerlo de Servex
+        if (!servexId || servexId === 0) {
+          console.warn(`[Renovacion] ⚠️ Revendedor ${revendedorDB.servex_username} tiene ID inválido (${servexId}), intentando reparar...`);
+          try {
+            const revendedorServex = await this.servex.buscarRevendedorPorUsername(revendedorDB.servex_username);
+            if (revendedorServex && revendedorServex.id) {
+              servexId = revendedorServex.id;
+              // Actualizar la DB con el ID correcto
+              this.db.actualizarServexIdRevendedor(revendedorDB.servex_username, servexId);
+              console.log(`[Renovacion] ✅ ID reparado automáticamente: ${revendedorDB.servex_username} -> ID: ${servexId}`);
+            } else {
+              console.error(`[Renovacion] ❌ No se pudo encontrar el revendedor ${revendedorDB.servex_username} en Servex para reparar`);
+            }
+          } catch (repairError: any) {
+            console.error(`[Renovacion] ❌ Error reparando ID del revendedor:`, repairError.message);
+          }
+        }
+        
+        console.log(`[Renovacion] ✅ Revendedor encontrado en DB local: ${revendedorDB.servex_username} (ID: ${servexId}, max_users: ${maxUsersDb})`);
         return {
           encontrado: true,
           tipo: 'revendedor',
           datos: {
-            servex_revendedor_id: revendedorDB.servex_revendedor_id,
+            servex_revendedor_id: servexId,
             servex_username: revendedorDB.servex_username,
             servex_account_type: revendedorDB.servex_account_type,
             max_users: Number(maxUsersDb) || 0,
@@ -370,7 +390,10 @@ export class RenovacionService {
     }
 
     const planesBase = this.db.obtenerPlanes();
-    const planesConOverrides = configService.aceptarOverridesAListaPlanes(planesBase);
+    const planesConOverrides = configService.aceptarOverridesAListaPlanes(
+      planesBase,
+      { forNewCustomers: false }
+    );
 
     const planCoincidente = planesConOverrides.find(
       (plan: any) => plan.dias === dias && plan.connection_limit === connectionLimit
@@ -441,7 +464,10 @@ export class RenovacionService {
     // 2. Obtener planes de revendedores con overrides de configuración aplicados
     const planesBase = this.db.obtenerPlanesRevendedores();
     console.log(`[Renovacion] 📊 Planes base obtenidos: ${planesBase.length} planes`);
-    const planesConOverrides = configService.aceptarOverridesAListaPlanesRevendedor(planesBase);
+    const planesConOverrides =
+      configService.aceptarOverridesAListaPlanesRevendedor(planesBase, {
+        forNewCustomers: false,
+      });
     console.log(`[Renovacion] 📊 Planes con overrides: ${planesConOverrides.length} planes`);
     
     // 3. Calcular precio según el plan seleccionado

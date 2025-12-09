@@ -67,6 +67,7 @@
     "activada_en": "2025-10-31T20:13:00Z",
     "duracion_horas": 12,
     "auto_desactivar": true,
+    "solo_nuevos": false,
     "_instrucciones": "POST /api/config/activar-promo { duracion_horas: number }"
   }
 }

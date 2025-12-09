@@ -30,6 +30,7 @@ export type { PlanesPageProps } from "./types";
 export default function PlanesPage({ }: PlanesPageProps) {
   const navigate = useNavigate();
   const [planes, setPlanes] = useState<Plan[]>([]);
+  const [planesRenovacion, setPlanesRenovacion] = useState<Plan[]>([]);
   const [modoSeleccion, setModoSeleccion] = useState<ModoSeleccion>("compra");
   const [isDemoOpen, setIsDemoOpen] = useState(false);
   const [diasSeleccionados, setDiasSeleccionados] = useState(30);
@@ -53,11 +54,16 @@ export default function PlanesPage({ }: PlanesPageProps) {
   useEffect(() => {
     const cargarPlanes = async () => {
       try {
-        const planesObtenidos = await apiService.obtenerPlanes();
+        const [planesObtenidos, planesRenovacionObtenidos] = await Promise.all([
+          apiService.obtenerPlanes(true, "compra"),
+          apiService.obtenerPlanes(true, "renovacion"),
+        ]);
         setPlanes(planesObtenidos);
+        setPlanesRenovacion(planesRenovacionObtenidos);
       } catch (error) {
         console.error("Error cargando planes:", error);
         setPlanes([]);
+        setPlanesRenovacion([]);
       }
     };
 
@@ -77,19 +83,36 @@ export default function PlanesPage({ }: PlanesPageProps) {
   const connectionActual = obtenerConnectionActual(cuentaRenovacion);
   const connectionDestino = dispositivosRenovacion ?? connectionActual;
 
+  const planesParaRenovacion = useMemo(
+    () => (planesRenovacion.length ? planesRenovacion : planes),
+    [planesRenovacion, planes]
+  );
+
   const planRenovacionSeleccionado = useMemo(
-    () => encontrarPlan(planes, diasRenovacion, connectionDestino),
-    [planes, diasRenovacion, connectionDestino]
+    () => encontrarPlan(planesParaRenovacion, diasRenovacion, connectionDestino),
+    [planesParaRenovacion, diasRenovacion, connectionDestino]
   );
 
   const precioRenovacionBase = useMemo(
-    () => calcularPrecioRenovacion(planes, cuentaRenovacion, diasRenovacion, connectionDestino),
-    [planes, cuentaRenovacion, diasRenovacion, connectionDestino]
+    () =>
+      calcularPrecioRenovacion(
+        planesParaRenovacion,
+        cuentaRenovacion,
+        diasRenovacion,
+        connectionDestino
+      ),
+    [planesParaRenovacion, cuentaRenovacion, diasRenovacion, connectionDestino]
   );
 
   const precioRenovacionPorDiaBase = useMemo(
-    () => calcularPrecioRenovacionPorDia(planes, cuentaRenovacion, diasRenovacion, connectionDestino),
-    [planes, cuentaRenovacion, diasRenovacion, connectionDestino]
+    () =>
+      calcularPrecioRenovacionPorDia(
+        planesParaRenovacion,
+        cuentaRenovacion,
+        diasRenovacion,
+        connectionDestino
+      ),
+    [planesParaRenovacion, cuentaRenovacion, diasRenovacion, connectionDestino]
   );
 
   const precioRenovacionFinal = useMemo(

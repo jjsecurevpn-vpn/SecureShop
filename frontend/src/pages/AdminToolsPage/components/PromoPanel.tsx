@@ -11,6 +11,8 @@ interface PromoPanelProps {
   isSaving: boolean;
   onDurationChange: (value: string) => void;
   onDiscountPercentageChange: (value: string) => void;
+  applyToRenewals: boolean;
+  onToggleApplyToRenewals: (value: boolean) => void;
   onActivate: () => void;
   onDeactivate: () => void;
   onTextoChange: (value: string) => void;
@@ -28,6 +30,8 @@ export function PromoPanel({
   isSaving,
   onDurationChange,
   onDiscountPercentageChange,
+  applyToRenewals,
+  onToggleApplyToRenewals,
   onActivate,
   onDeactivate,
   onTextoChange,
@@ -72,6 +76,62 @@ export function PromoPanel({
       </div>
 
       {/* Controles de activación */}
+      {/* Alcance de la promo */}
+      <div className="space-y-3 rounded-lg border border-neutral-800 bg-neutral-800/20 px-3 py-3">
+        <div className="flex items-center justify-between text-xs text-neutral-300">
+          <div>
+            <div className="font-semibold text-neutral-100">Nuevas cuentas</div>
+            <p className="text-[11px] text-neutral-500">Siempre incluidas en la promoción.</p>
+          </div>
+          <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[11px] text-emerald-300">Incluidas</span>
+        </div>
+        <div className="flex items-center justify-between gap-4 text-xs text-neutral-300">
+          <div>
+            <div className="font-semibold text-neutral-100">Renovaciones</div>
+            <p className="text-[11px] text-neutral-500">
+              Define si el descuento global alcanza a cuentas existentes o solo a cuentas nuevas.
+            </p>
+            {promoConfig?.activa && (
+              <p className="mt-1 text-[11px] text-emerald-400">
+                Promo actual: {promoConfig.solo_nuevos ? "solo nuevas cuentas" : "incluye renovaciones"}
+              </p>
+            )}
+            <p className="mt-1 text-[11px] text-neutral-400">
+              Próximas activaciones: {applyToRenewals ? "incluyen renovaciones" : "solo nuevas cuentas"}
+            </p>
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            <span
+              className={`text-[11px] font-semibold ${
+                applyToRenewals ? "text-emerald-300" : "text-amber-300"
+              }`}
+            >
+              {applyToRenewals ? "Incluye renovaciones" : "Solo nuevas cuentas"}
+            </span>
+            <button
+              type="button"
+              disabled={isSaving || promoConfig?.activa}
+              onClick={() => onToggleApplyToRenewals(!applyToRenewals)}
+              className={`relative h-6 w-11 rounded-full transition ${
+                applyToRenewals ? "bg-violet-500" : "bg-neutral-700"
+              } ${promoConfig?.activa ? "opacity-60 cursor-not-allowed" : "hover:opacity-90"}`}
+              aria-pressed={applyToRenewals}
+              aria-label={
+                applyToRenewals
+                  ? "Desactivar descuento para renovaciones"
+                  : "Activar descuento para renovaciones"
+              }
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${
+                  applyToRenewals ? "translate-x-5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+
       {promoConfig?.activa ? (
         <button
           onClick={onDeactivate}

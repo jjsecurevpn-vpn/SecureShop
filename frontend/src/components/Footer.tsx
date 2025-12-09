@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { protonStyles, protonHover } from '../styles/colors';
 
 interface FAQItem {
@@ -201,22 +201,26 @@ export default function Footer() {
 
               {/* Links */}
               <div className="flex flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8 text-xs sm:text-sm lg:text-base">
-                <button 
+                <Link 
+                  to="/privacidad"
+                  reloadDocument
                   className="transition-colors duration-200 hover:underline"
                   style={protonStyles.textPrimary}
                   onMouseEnter={protonHover.linkEnter}
                   onMouseLeave={protonHover.linkLeave}
                 >
                   Política de Privacidad
-                </button>
-                <button 
+                </Link>
+                <Link 
+                  to="/terminos"
+                  reloadDocument
                   className="transition-colors duration-200 hover:underline"
                   style={protonStyles.textPrimary}
                   onMouseEnter={protonHover.linkEnter}
                   onMouseLeave={protonHover.linkLeave}
                 >
                   Términos y condiciones
-                </button>
+                </Link>
               </div>
 
               {/* Social Icons */}

@@ -18,6 +18,7 @@ const PromoConfigSchema = z.object({
   duracion_horas: z.number(),
   auto_desactivar: z.boolean(),
   descuento_porcentaje: z.number().optional().default(20),
+  solo_nuevos: z.boolean().optional().default(false),
 });
 
 const HeroConfigSchema = z.object({
@@ -66,6 +67,11 @@ interface PromoConfig {
   duracion_horas: number;
   auto_desactivar: boolean;
   descuento_porcentaje?: number;
+  solo_nuevos?: boolean;
+}
+
+interface OverrideOptions {
+  forNewCustomers?: boolean;
 }
 
 interface ConfigPlanes {
@@ -305,15 +311,17 @@ export class ConfigService {
    * Aplica overrides de configuración a un plan
    * Los overrides solo se aplican si la promoción está activa
    */
-  aceptarOverridesAlPlan(plan: Plan): Plan {
+  aceptarOverridesAlPlan(plan: Plan, options?: OverrideOptions): Plan {
     const config = this.leerConfig();
 
     if (!config.enabled) {
       return plan;
     }
 
+    const promoDisponible = this.shouldApplyPromo(config.promo_config, options);
+
     // Verificar si la promoción está activa y válida
-    if (!config.promo_config?.activa) {
+    if (!promoDisponible) {
       // Si la promo no está activa, usar precios normales
       if (config.precios_normales) {
         const precioNormal = config.precios_normales[plan.id.toString()];
@@ -377,7 +385,10 @@ export class ConfigService {
   /**
    * Aplica overrides a una lista de planes
    */
-  aceptarOverridesAListaPlanes(planes: Plan[]): Plan[] {
+  aceptarOverridesAListaPlanes(
+    planes: Plan[],
+    options?: OverrideOptions
+  ): Plan[] {
     // Limpiar caché para forzar lectura del archivo actualizado
     this.cache = null;
     this.cacheTime = 0;
@@ -389,10 +400,26 @@ export class ConfigService {
       return planes;
     }
 
+    const promoDisponible = this.shouldApplyPromo(
+      config.promo_config,
+      options
+    );
+
     // Verificar si la promoción está activa
-    if (!config.promo_config?.activa) {
-      console.log("[DEBUG] Promo not active, using DB prices");
+    if (!promoDisponible) {
+      console.log(
+        "[DEBUG] Promo not active for this contexto, using DB prices"
+      );
       // Si la promo no está activa, NO modificar precios, usar los de DB
+      if (config.precios_normales) {
+        return planes.map((plan) => {
+          const precioNormal = config.precios_normales?.[plan.id.toString()];
+          if (precioNormal !== undefined) {
+            return { ...plan, precio: precioNormal };
+          }
+          return plan;
+        });
+      }
       return planes;
     }
 
@@ -407,7 +434,7 @@ export class ConfigService {
       // Fallback a precios normales
       if (config.precios_normales) {
         return planes.map((plan) => {
-          const precioNormal = config.precios_normales![plan.id.toString()];
+          const precioNormal = config.precios_normales?.[plan.id.toString()];
           if (precioNormal !== undefined) {
             return { ...plan, precio: precioNormal };
           }
@@ -417,33 +444,10 @@ export class ConfigService {
       return planes;
     }
 
-    // La promo está activa y válida, aplicar overrides
-    return planes.map((plan) => {
-      const override = config.overrides?.[plan.id.toString()];
-      if (!override || typeof override === "string") {
-        return plan; // No hay override o es un comentario
-      }
-
-      // Aplicar overrides
-      const planActualizado = { ...plan };
-      if (override.precio !== undefined) {
-        planActualizado.precio = override.precio;
-      }
-      if (override.descripcion !== undefined) {
-        planActualizado.descripcion = override.descripcion;
-      }
-      if (override.activo !== undefined) {
-        planActualizado.activo = override.activo;
-      }
-      if (override.dias !== undefined) {
-        planActualizado.dias = override.dias;
-      }
-      if (override.connection_limit !== undefined) {
-        planActualizado.connection_limit = override.connection_limit;
-      }
-
-      return planActualizado;
-    });
+    // La promo está activa y válida, reutilizar la lógica por plan
+    return planes.map((plan) =>
+      this.aceptarOverridesAlPlan(plan, options)
+    );
   }
 
   /**
@@ -520,6 +524,7 @@ export class ConfigService {
       console.error("[ConfigService] ❌ Error creando config:", error.message);
     }
   }
+
   /**
    * Obtiene la configuración del hero (promociones, título, etc)
    */
@@ -562,9 +567,6 @@ export class ConfigService {
     };
   }
 
-  /**
-   * Lee la configuración de revendedores del archivo JSON (con caché)
-   */
   /**
    * Lee la configuración de revendedores (con caché)
    * Ahora es público para permitir acceso desde rutas
@@ -647,15 +649,23 @@ export class ConfigService {
    * Aplica overrides de configuración a un plan de revendedor
    * Los overrides solo se aplican si la promoción está activa
    */
-  aceptarOverridesAlPlanRevendedor(plan: any): any {
+  aceptarOverridesAlPlanRevendedor(
+    plan: any,
+    options?: OverrideOptions
+  ): any {
     const config = this.leerConfigRevendedores();
 
     if (!config.enabled) {
       return plan;
     }
 
+    const promoDisponible = this.shouldApplyPromo(
+      config.promo_config,
+      options
+    );
+
     // Verificar si la promoción está activa
-    if (!config.promo_config?.activa) {
+    if (!promoDisponible) {
       // Si la promo NO está activa, usar precios_normales del config
       if (config.precios_normales) {
         const precioNormal = config.precios_normales[plan.id.toString()];
@@ -690,14 +700,19 @@ export class ConfigService {
   /**
    * Aplica overrides a una lista de planes de revendedor
    */
-  aceptarOverridesAListaPlanesRevendedor(planes: any[]): any[] {
+  aceptarOverridesAListaPlanesRevendedor(
+    planes: any[],
+    options?: OverrideOptions
+  ): any[] {
     const config = this.leerConfigRevendedores();
 
     if (!config.enabled) {
       return planes;
     }
 
-    return planes.map((plan) => this.aceptarOverridesAlPlanRevendedor(plan));
+    return planes.map((plan) =>
+      this.aceptarOverridesAlPlanRevendedor(plan, options)
+    );
   }
 
   /**
@@ -1029,6 +1044,21 @@ export class ConfigService {
         error.message
       );
     }
+  }
+
+  private shouldApplyPromo(
+    promoConfig?: { activa?: boolean; solo_nuevos?: boolean | null },
+    options?: OverrideOptions
+  ): boolean {
+    if (!promoConfig?.activa) {
+      return false;
+    }
+
+    if (promoConfig.solo_nuevos && !options?.forNewCustomers) {
+      return false;
+    }
+
+    return true;
   }
 }
 

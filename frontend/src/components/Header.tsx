@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, Home, Users, CreditCard, Store, Heart, Star, Server, FileText, Shield } from 'lucide-react';
+import { Menu, X, ChevronDown, Home, Users, CreditCard, Store, Heart, Star, Server } from 'lucide-react';
 import ContactButton from "./ContactButton";
 import NoticiasPopover from "./NoticiasPopover";
 import CuponesPopover from "./CuponesPopover";
@@ -179,33 +179,6 @@ const Header = () => {
                       <Server className="h-4 w-4" />
                       Servidores
                     </Link>
-
-                    {/* Separador */}
-                    <div className="my-2 border-t border-gray-200" />
-
-                    {/* Secciones legales */}
-                    <Link
-                      to="/terminos"
-                      reloadDocument
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
-                      style={{ color: protonColors.gray[600], backgroundColor: 'transparent' }}
-                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
-                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <FileText className="h-4 w-4" />
-                      Términos
-                    </Link>
-                    <Link
-                      to="/privacidad"
-                      reloadDocument
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
-                      style={{ color: protonColors.gray[600], backgroundColor: 'transparent' }}
-                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
-                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      <Shield className="h-4 w-4" />
-                      Privacidad
-                    </Link>
                   </div>
                 )}
               </div>
@@ -286,30 +259,6 @@ const Header = () => {
                   }}
                 >
                   <item.icon className="h-5 w-5" />
-                  {item.label}
-                </Link>
-              ))}
-
-              {/* Separador */}
-              <div className="my-3 border-t border-gray-200" />
-
-              {/* Secciones legales */}
-              {[
-                { path: '/terminos', label: 'Términos', icon: FileText },
-                { path: '/privacidad', label: 'Privacidad', icon: Shield },
-              ].map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  reloadDocument
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-colors"
-                  style={{ 
-                    color: isActive(item.path) ? protonColors.purple[500] : protonColors.gray[600],
-                    backgroundColor: isActive(item.path) ? protonColors.purple[50] : 'transparent'
-                  }}
-                >
-                  <item.icon className="h-4 w-4" />
                   {item.label}
                 </Link>
               ))}

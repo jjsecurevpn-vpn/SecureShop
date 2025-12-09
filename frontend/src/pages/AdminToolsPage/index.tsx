@@ -35,6 +35,7 @@ const INITIAL_CUPON_FORM: CuponFormState = {
 
 const FEEDBACK_TIMEOUT = 3000;
 
+// eslint-disable-next-line no-empty-pattern
 export default function AdminToolsPage({ }: AdminToolsPageProps) {
   // Estado de sponsors
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
@@ -64,12 +65,14 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
   const [heroPromoPlanes, setHeroPromoPlanes] = useState<HeroPromoConfig | null>(null);
   const [durationInputPlanes, setDurationInputPlanes] = useState("");
   const [discountPercentagePlanes, setDiscountPercentagePlanes] = useState("20");
+  const [applyRenewalsPlanes, setApplyRenewalsPlanes] = useState(true);
 
   // Estado de promociones - Revendedores
   const [promoConfigRevendedores, setPromoConfigRevendedores] = useState<PromoConfig | null>(null);
   const [heroPromoRevendedores, setHeroPromoRevendedores] = useState<HeroPromoConfig | null>(null);
   const [durationInputRevendedores, setDurationInputRevendedores] = useState("");
   const [discountPercentageRevendedores, setDiscountPercentageRevendedores] = useState("20");
+  const [applyRenewalsRevendedores, setApplyRenewalsRevendedores] = useState(true);
 
   // Estado compartido de promociones
   const [promoSuccess, setPromoSuccess] = useState<string | null>(null);
@@ -118,6 +121,8 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
 
       setPromoConfigPlanes(planesConfig);
       setPromoConfigRevendedores(revendedoresConfig);
+      setApplyRenewalsPlanes(!planesConfig?.solo_nuevos);
+      setApplyRenewalsRevendedores(!revendedoresConfig?.solo_nuevos);
 
       // Cargar la configuración del hero
       if (heroPlanes?.promocion) {
@@ -372,8 +377,12 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
       setIsSavingPromo(true);
       const duracion = tipo === "planes" ? parseInt(durationInputPlanes) : parseInt(durationInputRevendedores);
       const descuento = tipo === "planes" ? parseInt(discountPercentagePlanes) : parseInt(discountPercentageRevendedores);
+      const soloNuevos =
+        tipo === "planes"
+          ? !applyRenewalsPlanes
+          : !applyRenewalsRevendedores;
 
-      await apiService.activarPromo(duracion || 24, tipo, descuento);
+      await apiService.activarPromo(duracion || 24, tipo, descuento, soloNuevos);
 
       setPromoSuccess(`Descuento global de ${descuento}% en ${tipo} activado`);
       await loadPromoConfigs();
@@ -610,6 +619,10 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
                   onSetDurationInputRevendedores={setDurationInputRevendedores}
                   onSetDiscountPercentagePlanes={setDiscountPercentagePlanes}
                   onSetDiscountPercentageRevendedores={setDiscountPercentageRevendedores}
+                  applyRenewalsPlanes={applyRenewalsPlanes}
+                  applyRenewalsRevendedores={applyRenewalsRevendedores}
+                  onToggleApplyRenewalsPlanes={setApplyRenewalsPlanes}
+                  onToggleApplyRenewalsRevendedores={setApplyRenewalsRevendedores}
                   onActivatePromo={handleActivatePromo}
                   onDeactivatePromo={handleDeactivatePromo}
                   onSetHeroPromoPlanes={setHeroPromoPlanes}

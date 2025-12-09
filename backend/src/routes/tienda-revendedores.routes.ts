@@ -31,11 +31,28 @@ export function crearRutasRevendedores(
    * GET /api/planes-revendedores
    * Obtiene todos los planes de revendedores activos con descuentos del 15% aplicados
    */
-  router.get("/planes-revendedores", async (_req: Request, res: Response) => {
+  router.get("/planes-revendedores", async (req: Request, res: Response) => {
     console.log("[PLANES-REVENDEDORES ROUTE] 🎯 Route handler BEING EXECUTED!");
     try {
       console.log("[PLANES-REVENDEDORES ROUTE] Getting revendedor plans...");
-      const planes = tiendaRevendedores.obtenerPlanesRevendedores();
+      const context = (req.query.context as string)?.toLowerCase();
+      const explicitFlag = req.query.forNewCustomers as string | undefined;
+      const forceForNewCustomers =
+        typeof explicitFlag === "string"
+          ? explicitFlag === "true"
+          : undefined;
+
+      const forRenewalsContext =
+        context === "renovacion" ||
+        context === "renovaciones" ||
+        context === "renewal";
+
+      const planes = tiendaRevendedores.obtenerPlanesRevendedores({
+        forNewCustomers:
+          forceForNewCustomers !== undefined
+            ? forceForNewCustomers
+            : !forRenewalsContext,
+      });
       console.log(
         "[PLANES-REVENDEDORES ROUTE] Got",
         planes.length,
