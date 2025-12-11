@@ -93,7 +93,7 @@ export function RenovacionPanel({
     <div className="space-y-4 md:space-y-6 xl:space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2 sm:mb-3">Renovar revendedor</h2>
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-normal text-gray-900 mb-2 sm:mb-3">Renovar revendedor</h2>
         <p className="text-xs sm:text-sm md:text-base text-gray-600">
           {pasoRenovacion === "buscar"
             ? "Busca tu cuenta existente para renovarla"

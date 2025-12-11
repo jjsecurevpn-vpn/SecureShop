@@ -1,6 +1,5 @@
 import React from "react";
 import { ArrowRight, MessageCircle, Shield, Signal, Sparkles, Users } from "lucide-react";
-import { PromoTimerRevendedores } from "../../../components/PromoTimerRevendedores";
 import { useHeroConfigRevendedores } from "../../../hooks/useHeroConfigRevendedores";
 import { useRevendedoresCount } from "../../../hooks/useRevendedoresCount";
 import { Title } from "../../../components/Title";
@@ -34,10 +33,9 @@ export default function HeroReventa() {
   ];
 
   return (
-    <section className="bg-white py-8 md:py-12 xl:py-16">
+    <section className="relative bg-gradient-to-b from-purple-200/50 via-purple-50/30 to-white py-8 md:py-12 xl:py-16">
       <div className="max-w-7xl mx-auto px-4 md:px-8 xl:px-16">
-        <div className="flex justify-center">
-          <div className="w-full space-y-4 md:space-y-6 xl:space-y-8 text-center">
+        <div className="w-full space-y-4 md:space-y-6 xl:space-y-8 text-center">
             {heroConfig?.promocion?.habilitada && (
               <div className="flex justify-center">
                 <div className="inline-flex items-center gap-3 rounded-full border border-emerald-300 bg-emerald-50 px-4 sm:px-5 lg:px-6 xl:px-7 py-2 text-emerald-700">
@@ -61,10 +59,6 @@ export default function HeroReventa() {
               <Subtitle className="max-w-2xl mx-auto">
                 {heroConfig?.descripcion || "Gana dinero vendiendo acceso VPN premium a tus clientes"}
               </Subtitle>
-            </div>
-
-            <div className="rounded-3xl border border-gray-200 bg-gray-50 p-4 sm:p-5 lg:p-6 xl:p-7 shadow-sm shadow-gray-100">
-              <PromoTimerRevendedores />
             </div>
 
             <div className="grid gap-2 sm:gap-3 lg:gap-4 xl:gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))" }}>
@@ -100,7 +94,6 @@ export default function HeroReventa() {
                 <MessageCircle className="h-4 w-4" />
                 Contactar soporte
               </Button>
-            </div>
           </div>
         </div>
       </div>

@@ -37,7 +37,7 @@ export function LatestUsers() {
               </span>
             </div>
 
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-light text-gray-900 mb-4 tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-gray-900 mb-4 tracking-tight">
               Comunidad Activa
             </h2>
 

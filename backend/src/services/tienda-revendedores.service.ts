@@ -69,7 +69,7 @@ export class TiendaRevendedoresService {
   /**
    * Obtiene todos los planes de revendedores activos con overrides aplicados
    */
-  obtenerPlanesRevendedores(options?: { forNewCustomers?: boolean }): PlanRevendedor[] {
+  obtenerPlanesRevendedores(options?: { forNewCustomers?: boolean; forRenewal?: boolean }): PlanRevendedor[] {
     const planesBase = this.db.obtenerPlanesRevendedores();
     console.log(
       "[TiendaRevendedores] 📊 Planes base obtenidos:",
@@ -545,14 +545,22 @@ export class TiendaRevendedoresService {
         return pago;
       }
 
-      // Si está pendiente, verificar en MercadoPago
-      if (pago.estado === "pendiente") {
-        console.log(`[TiendaRevendedores] 🌐 Pago pendiente, verificando en MercadoPago...`);
+      // Si está pendiente O rechazado, verificar en MercadoPago
+      // (rechazado también porque el usuario puede haber hecho un segundo intento exitoso)
+      if (pago.estado === "pendiente" || pago.estado === "rechazado") {
+        console.log(`[TiendaRevendedores] 🌐 Pago ${pago.estado}, verificando en MercadoPago...`);
         const pagoMP = await this.mercadopago.verificarPagoPorReferencia(pagoId);
-        console.log(`[TiendaRevendedores] 📊 Respuesta MercadoPago:`, pagoMP ? "ENCONTRADO" : "NO ENCONTRADO");
+        console.log(`[TiendaRevendedores] 📊 Respuesta MercadoPago:`, pagoMP ? `ENCONTRADO (status: ${pagoMP.status}, id: ${pagoMP.id})` : "NO ENCONTRADO");
 
         if (pagoMP && pagoMP.status === "approved") {
-          console.log(`[TiendaRevendedores] ✅ MercadoPago aprobado, creando revendedor...`);
+          console.log(`[TiendaRevendedores] ✅ MercadoPago aprobado (payment_id: ${pagoMP.id}), creando revendedor...`);
+          
+          // Si el pago estaba rechazado, primero lo volvemos a pendiente para que confirmarPagoYCrearRevendedor funcione
+          if (pago.estado === "rechazado") {
+            console.log(`[TiendaRevendedores] 🔄 Pago rechazado tiene nuevo pago aprobado, reseteando a pendiente...`);
+            this.db.actualizarEstadoPagoRevendedor(pagoId, "pendiente");
+          }
+          
           // Confirmar el pago y crear el revendedor
           await this.confirmarPagoYCrearRevendedor(pagoId, pagoMP.id);
           // Devolver el pago actualizado
@@ -560,7 +568,7 @@ export class TiendaRevendedoresService {
           console.log(`[TiendaRevendedores] ✅ Revendedor creado, devolviendo pago actualizado`);
           return pagoActualizado;
         } else {
-          console.log(`[TiendaRevendedores] ⚠️ MercadoPago no aprobado`);
+          console.log(`[TiendaRevendedores] ⚠️ MercadoPago no aprobado (status: ${pagoMP?.status || 'N/A'})`);
         }
       }
 

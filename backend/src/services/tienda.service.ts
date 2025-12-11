@@ -96,7 +96,7 @@ export class TiendaService {
   /**
    * Obtiene todos los planes activos (con overrides de configuración)
    */
-  obtenerPlanes(options?: { forNewCustomers?: boolean }): Plan[] {
+  obtenerPlanes(options?: { forNewCustomers?: boolean; forRenewal?: boolean }): Plan[] {
     const planesBase = this.db.obtenerPlanes();
     const overrideOptions = options ?? { forNewCustomers: true };
     // Aplicar overrides de configuración si existen
@@ -419,6 +419,7 @@ export class TiendaService {
   /**
    * Verifica y procesa un pago manualmente (para cuando el cliente vuelve de MP)
    * 🔴 MEJORADO: Logging detallado para debugging
+   * 🔴 MEJORADO: También verifica pagos "rechazados" por si el usuario hizo un reintento exitoso
    */
   async verificarYProcesarPago(pagoId: string): Promise<Pago | null> {
     const timestamp = new Date().toISOString();
@@ -438,10 +439,11 @@ export class TiendaService {
       return pago;
     }
 
-    // Si está pendiente, verificar en MercadoPago
-    if (pago.estado === "pendiente") {
+    // Si está pendiente O rechazado, verificar en MercadoPago
+    // (rechazado también porque el usuario puede haber hecho un segundo intento exitoso)
+    if (pago.estado === "pendiente" || pago.estado === "rechazado") {
       console.log(
-        `[${timestamp}] 🌐 Estado PENDIENTE: consultando MercadoPago...`
+        `[${timestamp}] 🌐 Estado ${pago.estado.toUpperCase()}: consultando MercadoPago...`
       );
       const pagoMP = await this.mercadopago.verificarPagoPorReferencia(pagoId);
 
@@ -454,6 +456,13 @@ export class TiendaService {
           console.log(
             `[${timestamp}] ✅ ¡APROBADO EN MERCADOPAGO! Procesando cuenta...`
           );
+          
+          // Si el pago estaba rechazado, primero lo volvemos a pendiente
+          if (pago.estado === "rechazado") {
+            console.log(`[${timestamp}] 🔄 Pago rechazado tiene nuevo pago aprobado, reseteando a pendiente...`);
+            this.db.actualizarEstadoPago(pagoId, "pendiente");
+          }
+          
           // Confirmar el pago y crear la cuenta
           await this.confirmarPagoYCrearCuenta(pagoId, pagoMP.id);
           // Devolver el pago actualizado

@@ -237,7 +237,7 @@ export default function SponsorsPage({ isMobileMenuOpen, setIsMobileMenuOpen }: 
               <div className="max-w-7xl mx-auto">
                 <div className="mb-12 text-center">
                   <p className="text-xs uppercase tracking-[0.3em] text-gray-600">Diseñado para sponsors</p>
-                  <h2 className="mt-3 text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-semibold text-gray-900">Beneficios</h2>
+                  <h2 className="mt-3 text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-gray-900">Beneficios</h2>
                   <p className="mt-2 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700">
                     Estructura simple, misma filosofía builder-friendly de Supabase
                   </p>
@@ -266,7 +266,7 @@ export default function SponsorsPage({ isMobileMenuOpen, setIsMobileMenuOpen }: 
                       key={benefit.title}
                       className="rounded-lg border border-gray-200 bg-white p-6 sm:p-8 lg:p-10 xl:p-12 shadow-sm"
                     >
-                      <h3 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-semibold text-gray-900">{benefit.title}</h3>
+                      <h3 className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-serif font-medium text-gray-900">{benefit.title}</h3>
                       <p className="mt-2 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700">{benefit.description}</p>
                     </article>
                   ))}
@@ -281,7 +281,7 @@ export default function SponsorsPage({ isMobileMenuOpen, setIsMobileMenuOpen }: 
               <div className="max-w-7xl mx-auto">
                 <div className="rounded-lg border border-gray-200 bg-white p-8 sm:p-10 lg:p-12 xl:p-16 shadow-sm">
                   <p className="text-xs uppercase tracking-[0.3em] text-gray-600">Onboarding</p>
-                  <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-semibold text-gray-900">Sumarte es simple</h2>
+                  <h2 className="mt-4 text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-gray-900">Sumarte es simple</h2>
                   <p className="mt-2 text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700">Tres pasos inspirados en la experiencia de Supabase</p>
 
                   <div className="mt-10 grid gap-6 sm:gap-8 lg:gap-10 xl:gap-12 sm:grid-cols-3">
@@ -321,7 +321,7 @@ export default function SponsorsPage({ isMobileMenuOpen, setIsMobileMenuOpen }: 
             <div className="mx-auto max-w-3xl px-5 sm:px-6 lg:px-8">
               <div className="mb-10 text-center">
                 <p className="text-xs uppercase tracking-[0.3em] text-gray-600">FAQ</p>
-                <h2 className="mt-3 text-3xl font-semibold text-gray-900">Preguntas frecuentes</h2>
+                <h2 className="mt-3 text-3xl font-serif font-normal text-gray-900">Preguntas frecuentes</h2>
               </div>
 
               <div className="space-y-3">
@@ -348,7 +348,7 @@ export default function SponsorsPage({ isMobileMenuOpen, setIsMobileMenuOpen }: 
                     className="rounded-lg border border-gray-200 bg-white p-5"
                   >
                     <div className="flex items-start justify-between gap-4">
-                      <h3 className="text-base font-semibold text-gray-900">{item.q}</h3>
+                      <h3 className="text-base font-sans font-semibold text-gray-900">{item.q}</h3>
                     </div>
                     <p className="mt-2 text-sm text-gray-700">{item.a}</p>
                   </article>

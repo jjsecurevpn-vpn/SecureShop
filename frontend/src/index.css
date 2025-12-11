@@ -1,50 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+/* ============================================
+   SecureShop VPN - Estilos Globales
+   Sistema de fuentes inspirado en Proton VPN
+   ============================================ */
 
-/* Arizona Font de Proton VPN - Títulos (ABC Arizona Flare) */
-@font-face {
-  font-family: 'Arizona';
-  src: url('/arizona.woff2') format('woff2');
-  font-weight: 200 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Syne Font de Proton VPN - Destacados */
-@font-face {
-  font-family: 'Syne';
-  src: url('/syne.woff2') format('woff2');
-  font-weight: 400 800;
-  font-style: normal;
-  font-display: swap;
-}
+/* Importar sistema de fuentes */
+@import './styles/fonts.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Clases utilitarias para fuentes - sin !important para no bloquear Tailwind */
-.font-serif {
-  font-family: 'Arizona', Georgia, serif;
-}
-
-.font-display {
-  font-family: 'Syne', 'Poppins', sans-serif;
-}
-
-/* Body usa Inter por defecto */
-body {
-  font-family: 'Inter', 'Poppins', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  /* Ocultar barra de scroll en todos los navegadores */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE y Edge */
-}
-
-/* Chrome, Safari y Opera */
-body::-webkit-scrollbar {
-  display: none;
-}
+/* ============================================
+   ESTILOS BASE DEL DOCUMENTO
+   ============================================ */
 
 html {
   scrollbar-width: none; /* Firefox */
@@ -55,13 +23,15 @@ html::-webkit-scrollbar {
   display: none;
 }
 
-/* Énfasis visual premium tipo Proton */
-.text-primary, .accent-text {
-  color: #6D4AFF;
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.title-dark {
-  color: rgb(55, 37, 128);
+body::-webkit-scrollbar {
+  display: none;
 }
 
 #root {
@@ -72,6 +42,25 @@ html::-webkit-scrollbar {
 
 * {
   box-sizing: border-box;
+}
+
+/* ============================================
+   COLORES DE TEXTO SEMÁNTICOS
+   ============================================ */
+
+/* Texto principal oscuro (para títulos) */
+.text-title {
+  color: rgb(55, 37, 128); /* purple-800 de Proton */
+}
+
+/* Texto de cuerpo */
+.text-body {
+  color: rgb(75, 85, 99); /* gray-600 de Proton */
+}
+
+/* Texto de acento */
+.text-accent {
+  color: #6D4AFF; /* purple-500 de Proton */
 }
 
 /* Scrollbar personalizado - tema oscuro */

@@ -52,7 +52,7 @@ const PlanCard = ({
       <div className="p-4 sm:p-5 lg:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-center sm:text-left">
-            <h3 className="text-base font-bold text-gray-900 sm:text-lg md:text-xl">
+            <h3 className="text-base font-serif font-medium text-gray-900 sm:text-lg md:text-xl">
               {plan.nombre}
             </h3>
             <p className="mt-2 text-xs font-medium text-gray-600 sm:text-sm md:text-base">
@@ -173,7 +173,7 @@ export default function PlanGroupsSection({
                   )}
                 </div>
 
-                <h2 className="mt-4 sm:mt-6 lg:mt-8 text-xl sm:text-2xl lg:text-3xl font-black text-gray-900">
+                <h2 className="mt-4 sm:mt-6 lg:mt-8 text-xl sm:text-2xl lg:text-3xl font-serif font-normal text-gray-900">
                   {group.title}
                 </h2>
                 <p className="mt-2 sm:mt-3 lg:mt-4 text-xs sm:text-sm lg:text-base text-gray-600 max-w-4xl mx-auto leading-relaxed">
@@ -210,7 +210,7 @@ export default function PlanGroupsSection({
         {/* TABLA DE COMPARACIÓN */}
         <div className="mt-16 max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 overflow-x-auto">
 
-          <h3 className="text-center text-2xl font-black text-gray-900 mb-8">
+          <h3 className="text-center text-2xl font-serif font-normal text-gray-900 mb-8">
             Comparación de sistemas
           </h3>
 
@@ -327,7 +327,7 @@ export default function PlanGroupsSection({
 
         {/* PREGUNTAS FRECUENTES */}
         <div className="mt-16 sm:mt-20 lg:mt-24 max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl border border-gray-100 p-4 sm:p-6 lg:p-8">
-          <h3 className="text-center text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 mb-6 sm:mb-8 lg:mb-10">
+          <h3 className="text-center text-xl sm:text-2xl lg:text-3xl font-serif font-normal text-gray-900 mb-6 sm:mb-8 lg:mb-10">
             Preguntas frecuentes
           </h3>
           <div className="space-y-4 sm:space-y-6">

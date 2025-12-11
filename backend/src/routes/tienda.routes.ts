@@ -60,6 +60,7 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
       const planes = tiendaService.obtenerPlanes({
         forNewCustomers:
           forNewCustomers !== undefined ? forNewCustomers : !isRenewalContext,
+        forRenewal: isRenewalContext,
       });
 
       const response: ApiResponse = {

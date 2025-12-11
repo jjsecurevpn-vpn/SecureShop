@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { protonColors } from '../styles/colors';
+import { fontFamily, fontSize, lineHeight as lh } from '../styles/typography';
 
 type SubtitleSize = 'base' | 'lg' | 'sm';
 
@@ -10,27 +11,28 @@ interface SubtitleProps {
   center?: boolean;
 }
 
-// Tamaños exactos de ProtonVPN para subtítulos/párrafos
+// Tamaños del sistema de tipografía
 const sizeStyles: Record<SubtitleSize, { fontSize: string; lineHeight: string }> = {
   sm: {
-    fontSize: '0.875rem',  // 14px
-    lineHeight: '1.5',
+    fontSize: fontSize.sm,
+    lineHeight: lh.loose,
   },
   base: {
-    fontSize: '1rem',      // 16px - tamaño principal de ProtonVPN
-    lineHeight: '1.625',
+    fontSize: fontSize.base,
+    lineHeight: lh.loose,
   },
   lg: {
-    fontSize: '1.125rem',  // 18px
-    lineHeight: '1.55',
+    fontSize: fontSize.lg,
+    lineHeight: lh.relaxed,
   },
 };
 
 export function Subtitle({ children, size = 'base', className = '', center = false }: SubtitleProps) {
   return (
     <p
-      className={`font-sans ${center ? 'text-center' : ''} ${className}`}
+      className={`${center ? 'text-center' : ''} ${className}`}
       style={{
+        fontFamily: fontFamily.sans,
         fontSize: sizeStyles[size].fontSize,
         lineHeight: sizeStyles[size].lineHeight,
         color: protonColors.gray[600],

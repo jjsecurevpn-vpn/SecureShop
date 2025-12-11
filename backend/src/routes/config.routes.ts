@@ -7,7 +7,7 @@ const router = express.Router();
 /**
  * POST /api/config/activar-promo
  * Activa la promoción por una duración configurable
- * Body: { duracion_horas: number, tipo?: "planes" | "revendedores", descuento_porcentaje?: number, solo_nuevos?: boolean }
+ * Body: { duracion_horas: number, tipo?: "planes" | "revendedores", descuento_porcentaje?: number, solo_nuevos?: boolean, solo_renovaciones?: boolean }
  */
 router.post("/activar-promo", async (req: Request, res: Response) => {
   try {
@@ -16,6 +16,7 @@ router.post("/activar-promo", async (req: Request, res: Response) => {
       tipo = "planes",
       descuento_porcentaje = 20,
       solo_nuevos = false,
+      solo_renovaciones = false,
     } = req.body;
 
     if (!duracion_horas || duracion_horas <= 0) {
@@ -42,6 +43,19 @@ router.post("/activar-promo", async (req: Request, res: Response) => {
       });
     }
 
+    if (typeof solo_renovaciones !== "boolean") {
+      return res.status(400).json({
+        error: "solo_renovaciones debe ser un booleano",
+      });
+    }
+
+    // Validar que no se activen ambos flags al mismo tiempo
+    if (solo_nuevos && solo_renovaciones) {
+      return res.status(400).json({
+        error: "No se puede activar solo_nuevos y solo_renovaciones al mismo tiempo",
+      });
+    }
+
     const now = new Date().toISOString();
 
     // Si es "planes" o ambos
@@ -55,6 +69,7 @@ router.post("/activar-promo", async (req: Request, res: Response) => {
           auto_desactivar: true,
           descuento_porcentaje: 20,
           solo_nuevos: false,
+          solo_renovaciones: false,
         };
       }
       configPlanes.promo_config.activa = true;
@@ -63,6 +78,7 @@ router.post("/activar-promo", async (req: Request, res: Response) => {
       configPlanes.promo_config.auto_desactivar = true;
       configPlanes.promo_config.descuento_porcentaje = descuento_porcentaje;
       configPlanes.promo_config.solo_nuevos = solo_nuevos;
+      configPlanes.promo_config.solo_renovaciones = solo_renovaciones;
       configPlanes.ultima_actualizacion = now;
 
       // 🆕 Recalcular precios en overrides basándose en descuento_porcentaje
@@ -101,6 +117,7 @@ router.post("/activar-promo", async (req: Request, res: Response) => {
           auto_desactivar: true,
           descuento_porcentaje: 20,
           solo_nuevos: false,
+          solo_renovaciones: false,
         };
       }
       configRevendedores.promo_config.activa = true;
@@ -109,6 +126,7 @@ router.post("/activar-promo", async (req: Request, res: Response) => {
       configRevendedores.promo_config.auto_desactivar = true;
       configRevendedores.promo_config.descuento_porcentaje = descuento_porcentaje;
       configRevendedores.promo_config.solo_nuevos = solo_nuevos;
+      configRevendedores.promo_config.solo_renovaciones = solo_renovaciones;
       configRevendedores.ultima_actualizacion = now;
 
       // 🆕 Recalcular precios en overrides basándose en descuento_porcentaje
@@ -367,6 +385,7 @@ router.get("/promo-status", (_req: Request, res: Response) => {
         duracion_horas: 0,
         auto_desactivar: true,
         solo_nuevos: false,
+        solo_renovaciones: false,
       },
     });
   } catch (error) {
@@ -404,6 +423,7 @@ router.get("/promo-status-revendedores", (_req: Request, res: Response) => {
         duracion_horas: 0,
         auto_desactivar: true,
         solo_nuevos: false,
+        solo_renovaciones: false,
       },
     });
   } catch (error) {

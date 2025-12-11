@@ -217,7 +217,7 @@ const ErrorPage: React.FC = () => {
               <div className="w-16 h-16 mx-auto lg:mx-0 mb-6 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center">
                 <AlertCircle className="w-8 h-8 text-rose-700" />
               </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-serif font-medium text-gray-900 mb-2">
                 {errorDetails.title}
               </h1>
               <p className="text-gray-600 max-w-xl mx-auto lg:mx-0">

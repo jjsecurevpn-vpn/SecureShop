@@ -52,6 +52,7 @@ export function crearRutasRevendedores(
           forceForNewCustomers !== undefined
             ? forceForNewCustomers
             : !forRenewalsContext,
+        forRenewal: forRenewalsContext,
       });
       console.log(
         "[PLANES-REVENDEDORES ROUTE] Got",

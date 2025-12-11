@@ -47,7 +47,7 @@ export default function AppDownloadSection() {
                     <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
                   </div>
                 </div>
-                <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-sm sm:text-base lg:text-lg font-serif font-medium text-gray-900 mb-2">
                   {feature.title}
                 </h3>
                 <p className="text-xs sm:text-sm lg:text-base text-gray-600">{feature.description}</p>
@@ -58,7 +58,7 @@ export default function AppDownloadSection() {
 
         {/* CTA Section */}
         <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg sm:rounded-xl p-5 sm:p-6 lg:p-8 text-center hover:shadow-lg transition-all duration-300">
-          <h3 className="text-base sm:text-lg lg:text-xl font-semibold text-gray-900 mb-2">
+          <h3 className="text-base sm:text-lg lg:text-xl font-serif font-medium text-gray-900 mb-2">
             Descarga gratis hoy
           </h3>
           <p className="text-sm sm:text-base text-gray-600 mb-5 sm:mb-6">
@@ -79,19 +79,19 @@ export default function AppDownloadSection() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-10 lg:mt-12 pt-8 sm:pt-10 lg:pt-12 border-t border-gray-200">
           <div className="text-center rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-4 sm:p-5 lg:p-6 hover:shadow-lg transition-all duration-300">
-            <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-indigo-600 mb-1">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-indigo-600 mb-1">
               100K+
             </div>
             <p className="text-xs sm:text-sm text-gray-600">Descargas activas</p>
           </div>
           <div className="text-center rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-4 sm:p-5 lg:p-6 hover:shadow-lg transition-all duration-300">
-            <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-indigo-600 mb-1">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-indigo-600 mb-1">
               4.8★
             </div>
             <p className="text-xs sm:text-sm text-gray-600">Calificación en Play Store</p>
           </div>
           <div className="text-center rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-4 sm:p-5 lg:p-6 hover:shadow-lg transition-all duration-300">
-            <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-indigo-600 mb-1">
+            <div className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-indigo-600 mb-1">
               24/7
             </div>
             <p className="text-xs sm:text-sm text-gray-600">Soporte en vivo</p>

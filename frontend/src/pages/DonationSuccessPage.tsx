@@ -75,7 +75,7 @@ const DonationSuccessPage = () => {
       <div className="min-h-screen text-gray-900 pt-16 flex items-center justify-center px-4 bg-white">
         <div className="max-w-md w-full bg-rose-50 border border-rose-200 rounded-lg p-6 text-center space-y-4">
           <AlertTriangle className="w-10 h-10 mx-auto text-rose-700" />
-          <h1 className="text-xl font-semibold text-gray-900">Estamos verificando tu aporte</h1>
+          <h1 className="text-xl font-serif font-medium text-gray-900">Estamos verificando tu aporte</h1>
           <p className="text-sm text-gray-700">{error}</p>
           <Link
             to="/donaciones"
@@ -110,7 +110,7 @@ const DonationSuccessPage = () => {
                 className={`w-8 h-8 ${aprobada ? "text-emerald-600" : "text-amber-600"}`}
               />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-serif font-medium text-gray-900 mb-2">
               {aprobada ? "¡Gracias por tu donación!" : "Donación en proceso"}
             </h1>
             <p className="text-gray-700">

@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { protonColors } from '../styles/colors';
+import { fontFamily, lineHeight as lh } from '../styles/typography';
 
 type TitleSize = 'h1' | 'h2' | 'h3';
 
@@ -10,19 +11,19 @@ interface TitleProps {
   center?: boolean;
 }
 
-// Tamaños EXACTOS de ProtonVPN - más conservadores
+// Tamaños inspirados en ProtonVPN
 const sizeStyles: Record<TitleSize, { fontSize: string; lineHeight: string }> = {
   h1: {
-    fontSize: 'clamp(2.25rem, 3vw, 3rem)',    // 36px → 48px (ProtonVPN usa 48px base, 72px solo en pantallas muy grandes)
-    lineHeight: '1.08',
+    fontSize: 'clamp(2.25rem, 5vw + 1rem, 4.5rem)',
+    lineHeight: lh.tight,
   },
   h2: {
-    fontSize: 'clamp(1.875rem, 2.5vw, 2.25rem)', // 30px → 36px (Secciones)
-    lineHeight: '1.13',
+    fontSize: 'clamp(1.875rem, 3vw + 0.5rem, 3rem)',
+    lineHeight: lh.snug,
   },
   h3: {
-    fontSize: 'clamp(1.25rem, 2vw, 1.5rem)',  // 20px → 24px (Subtítulos)
-    lineHeight: '1.34',
+    fontSize: 'clamp(1.5rem, 2vw + 0.5rem, 2.25rem)',
+    lineHeight: lh.normal,
   },
 };
 
@@ -32,10 +33,13 @@ export function Title({ children, as = 'h1', className = '', center = false }: T
 
   return (
     <Tag
-      className={`font-serif font-medium ${center ? 'text-center' : ''} ${className}`}
+      className={`${center ? 'text-center' : ''} ${className}`}
       style={{
+        fontFamily: fontFamily.serif,
         fontSize: styles.fontSize,
         lineHeight: styles.lineHeight,
+        fontWeight: 400,
+        letterSpacing: '-0.02em',
         color: protonColors.purple[800],
       }}
     >

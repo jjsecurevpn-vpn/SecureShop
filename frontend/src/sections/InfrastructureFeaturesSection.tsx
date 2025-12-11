@@ -80,7 +80,7 @@ export default function InfrastructureFeaturesSection() {
                 <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100">
                   <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${feature.color}`} />
                 </div>
-                <h3 className="mt-4 text-sm sm:text-base lg:text-lg font-semibold text-gray-900">{feature.title}</h3>
+                <h3 className="mt-4 text-sm sm:text-base lg:text-lg font-serif font-medium text-gray-900">{feature.title}</h3>
                 <p className="mt-2 text-xs sm:text-sm lg:text-base text-gray-700 leading-relaxed">{feature.description}</p>
               </article>
             );

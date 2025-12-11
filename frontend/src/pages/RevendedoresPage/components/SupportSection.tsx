@@ -5,7 +5,7 @@ export function SupportSection() {
     <section className="py-8 md:py-12 xl:py-16 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 xl:px-12">
         <div className="text-center mb-8 sm:mb-10 lg:mb-12">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">¿Tienes dudas?</h2>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-normal text-gray-900 mb-3 sm:mb-4">¿Tienes dudas?</h2>
           <p className="text-xs sm:text-sm md:text-base text-gray-600">Contacta a nuestro equipo de soporte</p>
         </div>
 

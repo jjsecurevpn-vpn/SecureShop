@@ -65,14 +65,14 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
   const [heroPromoPlanes, setHeroPromoPlanes] = useState<HeroPromoConfig | null>(null);
   const [durationInputPlanes, setDurationInputPlanes] = useState("");
   const [discountPercentagePlanes, setDiscountPercentagePlanes] = useState("20");
-  const [applyRenewalsPlanes, setApplyRenewalsPlanes] = useState(true);
+  const [promoScopePlanes, setPromoScopePlanes] = useState<"todos" | "solo_nuevos" | "solo_renovaciones">("todos");
 
   // Estado de promociones - Revendedores
   const [promoConfigRevendedores, setPromoConfigRevendedores] = useState<PromoConfig | null>(null);
   const [heroPromoRevendedores, setHeroPromoRevendedores] = useState<HeroPromoConfig | null>(null);
   const [durationInputRevendedores, setDurationInputRevendedores] = useState("");
   const [discountPercentageRevendedores, setDiscountPercentageRevendedores] = useState("20");
-  const [applyRenewalsRevendedores, setApplyRenewalsRevendedores] = useState(true);
+  const [promoScopeRevendedores, setPromoScopeRevendedores] = useState<"todos" | "solo_nuevos" | "solo_renovaciones">("todos");
 
   // Estado compartido de promociones
   const [promoSuccess, setPromoSuccess] = useState<string | null>(null);
@@ -121,8 +121,23 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
 
       setPromoConfigPlanes(planesConfig);
       setPromoConfigRevendedores(revendedoresConfig);
-      setApplyRenewalsPlanes(!planesConfig?.solo_nuevos);
-      setApplyRenewalsRevendedores(!revendedoresConfig?.solo_nuevos);
+      
+      // Determinar el scope basado en la config actual
+      if (planesConfig?.solo_nuevos) {
+        setPromoScopePlanes("solo_nuevos");
+      } else if (planesConfig?.solo_renovaciones) {
+        setPromoScopePlanes("solo_renovaciones");
+      } else {
+        setPromoScopePlanes("todos");
+      }
+      
+      if (revendedoresConfig?.solo_nuevos) {
+        setPromoScopeRevendedores("solo_nuevos");
+      } else if (revendedoresConfig?.solo_renovaciones) {
+        setPromoScopeRevendedores("solo_renovaciones");
+      } else {
+        setPromoScopeRevendedores("todos");
+      }
 
       // Cargar la configuración del hero
       if (heroPlanes?.promocion) {
@@ -377,14 +392,15 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
       setIsSavingPromo(true);
       const duracion = tipo === "planes" ? parseInt(durationInputPlanes) : parseInt(durationInputRevendedores);
       const descuento = tipo === "planes" ? parseInt(discountPercentagePlanes) : parseInt(discountPercentageRevendedores);
-      const soloNuevos =
-        tipo === "planes"
-          ? !applyRenewalsPlanes
-          : !applyRenewalsRevendedores;
+      const scope = tipo === "planes" ? promoScopePlanes : promoScopeRevendedores;
+      
+      const soloNuevos = scope === "solo_nuevos";
+      const soloRenovaciones = scope === "solo_renovaciones";
 
-      await apiService.activarPromo(duracion || 24, tipo, descuento, soloNuevos);
+      await apiService.activarPromo(duracion || 24, tipo, descuento, soloNuevos, soloRenovaciones);
 
-      setPromoSuccess(`Descuento global de ${descuento}% en ${tipo} activado`);
+      const scopeLabel = scope === "todos" ? "todos" : scope === "solo_nuevos" ? "solo nuevas cuentas" : "solo renovaciones";
+      setPromoSuccess(`Descuento global de ${descuento}% en ${tipo} activado (${scopeLabel})`);
       await loadPromoConfigs();
     } catch (error) {
       console.error("Error al activar promoción:", error);
@@ -619,10 +635,10 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
                   onSetDurationInputRevendedores={setDurationInputRevendedores}
                   onSetDiscountPercentagePlanes={setDiscountPercentagePlanes}
                   onSetDiscountPercentageRevendedores={setDiscountPercentageRevendedores}
-                  applyRenewalsPlanes={applyRenewalsPlanes}
-                  applyRenewalsRevendedores={applyRenewalsRevendedores}
-                  onToggleApplyRenewalsPlanes={setApplyRenewalsPlanes}
-                  onToggleApplyRenewalsRevendedores={setApplyRenewalsRevendedores}
+                  promoScopePlanes={promoScopePlanes}
+                  promoScopeRevendedores={promoScopeRevendedores}
+                  onSetPromoScopePlanes={setPromoScopePlanes}
+                  onSetPromoScopeRevendedores={setPromoScopeRevendedores}
                   onActivatePromo={handleActivatePromo}
                   onDeactivatePromo={handleDeactivatePromo}
                   onSetHeroPromoPlanes={setHeroPromoPlanes}

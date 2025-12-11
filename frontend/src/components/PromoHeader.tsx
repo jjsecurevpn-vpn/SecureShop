@@ -1,6 +1,6 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { X } from "lucide-react";
+import { fontFamily } from "../styles/typography";
 
 interface PromoConfig {
   activa: boolean;
@@ -14,14 +14,273 @@ interface PromoHeaderProps {
   onButtonClick?: () => void;
 }
 
+// Componente para cada dígito con efecto flip
+function FlipDigit({ digit, prevDigit }: { digit: string; prevDigit: string }) {
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [displayPrev, setDisplayPrev] = useState(prevDigit);
+
+  useEffect(() => {
+    if (digit !== prevDigit) {
+      setDisplayPrev(prevDigit);
+      setIsFlipping(true);
+      const timer = setTimeout(() => setIsFlipping(false), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [digit, prevDigit]);
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: 'clamp(14px, 3.5vw, 20px)',
+        height: 'clamp(18px, 4.5vw, 26px)',
+        perspective: '400px',
+        margin: '0 0.5px',
+      }}
+    >
+      {/* Mitad inferior - muestra el número nuevo desde el inicio */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '50%',
+          borderRadius: '0 0 3px 3px',
+          background: 'linear-gradient(180deg, #150a24 0%, #0d0518 100%)',
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+        }}
+      >
+        <span
+          style={{
+            fontFamily: fontFamily.mono,
+            fontSize: 'clamp(10px, 2.5vw, 14px)',
+            fontWeight: '700',
+            color: '#d4ff00',
+            textShadow: '0 0 6px rgba(212, 255, 0, 0.3)',
+            transform: 'translateY(-50%)',
+          }}
+        >
+          {digit}
+        </span>
+      </div>
+
+      {/* Mitad superior - muestra el número anterior durante el flip, luego el nuevo */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          height: '50%',
+          borderRadius: '3px 3px 0 0',
+          background: 'linear-gradient(180deg, #1a0d2e 0%, #150a24 100%)',
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)',
+          zIndex: 2,
+        }}
+      >
+        <span
+          style={{
+            fontFamily: fontFamily.mono,
+            fontSize: 'clamp(10px, 2.5vw, 14px)',
+            fontWeight: '700',
+            color: '#d4ff00',
+            textShadow: '0 0 6px rgba(212, 255, 0, 0.3)',
+            transform: 'translateY(50%)',
+          }}
+        >
+          {isFlipping ? displayPrev : digit}
+        </span>
+      </div>
+
+      {/* Línea divisoria horizontal */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: '50%',
+          height: '1px',
+          background: 'rgba(0,0,0,0.5)',
+          zIndex: 5,
+          transform: 'translateY(-0.5px)',
+        }}
+      />
+
+      {/* Mitad superior que "cae" - muestra el número anterior */}
+      {isFlipping && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '50%',
+            borderRadius: '3px 3px 0 0',
+            background: 'linear-gradient(180deg, #1a0d2e 0%, #150a24 100%)',
+            overflow: 'hidden',
+            transformOrigin: 'bottom center',
+            animation: 'flipDown 0.6s cubic-bezier(0.455, 0.030, 0.515, 0.955) forwards',
+            zIndex: 3,
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+          }}
+        >
+          <span
+            style={{
+              fontFamily: fontFamily.mono,
+              fontSize: 'clamp(10px, 2.5vw, 14px)',
+              fontWeight: '700',
+              color: '#d4ff00',
+              textShadow: '0 0 6px rgba(212, 255, 0, 0.3)',
+              transform: 'translateY(50%)',
+            }}
+          >
+            {displayPrev}
+          </span>
+        </div>
+      )}
+
+      {/* Mitad inferior que "sube" - muestra el número nuevo */}
+      {isFlipping && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '50%',
+            borderRadius: '0 0 3px 3px',
+            background: 'linear-gradient(180deg, #150a24 0%, #0d0518 100%)',
+            overflow: 'hidden',
+            transformOrigin: 'top center',
+            animation: 'flipUp 0.6s cubic-bezier(0.455, 0.030, 0.515, 0.955) forwards',
+            zIndex: 4,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+          }}
+        >
+          <span
+            style={{
+              fontFamily: fontFamily.mono,
+              fontSize: 'clamp(10px, 2.5vw, 14px)',
+              fontWeight: '700',
+              color: '#d4ff00',
+              textShadow: '0 0 6px rgba(212, 255, 0, 0.3)',
+              transform: 'translateY(-50%)',
+            }}
+          >
+            {digit}
+          </span>
+        </div>
+      )}
+
+      {/* Brillo superior */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '50%',
+          borderRadius: '3px 3px 0 0',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%)',
+          pointerEvents: 'none',
+          zIndex: 6,
+        }}
+      />
+    </div>
+  );
+}
+
+// Componente para un grupo de dos dígitos (ej: horas, minutos, segundos)
+function FlipUnit({ value, label }: { value: number; label: string }) {
+  const prevValueRef = useRef(value);
+  const digits = String(value).padStart(2, '0').split('');
+  const prevDigits = String(prevValueRef.current).padStart(2, '0').split('');
+
+  useEffect(() => {
+    // Actualizar el ref después de que el render se complete
+    // para que el próximo render tenga el valor anterior correcto
+    prevValueRef.current = value;
+  }, [value]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
+      <div style={{ display: 'flex', gap: '1px' }}>
+        <FlipDigit digit={digits[0]} prevDigit={prevDigits[0]} />
+        <FlipDigit digit={digits[1]} prevDigit={prevDigits[1]} />
+      </div>
+      <span
+        style={{
+          fontSize: 'clamp(6px, 1.2vw, 7px)',
+          fontWeight: '500',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          color: 'rgba(255,255,255,0.4)',
+          marginTop: '1px',
+        }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+// Separador entre unidades
+function TimeSeparator() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '2px',
+        padding: '0 clamp(2px, 0.5vw, 4px)',
+        alignSelf: 'flex-start',
+        marginTop: 'clamp(4px, 1vw, 7px)',
+      }}
+    >
+      <div
+        style={{
+          width: 'clamp(2px, 0.6vw, 3px)',
+          height: 'clamp(2px, 0.6vw, 3px)',
+          borderRadius: '50%',
+          backgroundColor: '#d4ff00',
+          boxShadow: '0 0 4px rgba(212, 255, 0, 0.5)',
+        }}
+      />
+      <div
+        style={{
+          width: 'clamp(2px, 0.6vw, 3px)',
+          height: 'clamp(2px, 0.6vw, 3px)',
+          borderRadius: '50%',
+          backgroundColor: '#d4ff00',
+          boxShadow: '0 0 4px rgba(212, 255, 0, 0.5)',
+        }}
+      />
+    </div>
+  );
+}
+
 export function PromoHeader({ 
   showButton = true, 
   buttonText = "Obtener la oferta",
   onButtonClick 
 }: PromoHeaderProps) {
   const navigate = useNavigate();
-  const [promoVisible, setPromoVisible] = useState(true);
-  const [isClosing, setIsClosing] = useState(false);
+  const location = useLocation();
+  const isPlanesPage = location.pathname === '/planes';
   const [promo_config, setPromoConfig] = useState<PromoConfig | null>(null);
   const [tiempo_restante_segundos, setTiempoRestante] = useState(0);
   const configRef = useRef<PromoConfig | null>(null);
@@ -66,24 +325,20 @@ export function PromoHeader({
     };
 
     fetchPromo();
-    const interval = setInterval(fetchPromo, 1000); // Actualizar cada segundo
-    return () => clearInterval(interval);
+    // Fetch cada 30 segundos para sincronizar
+    const fetchInterval = setInterval(fetchPromo, 30000);
+    return () => clearInterval(fetchInterval);
   }, []);
 
+  // Contador local que actualiza cada segundo
   useEffect(() => {
-    // Solo restaurar visibilidad si la promo está habilitada
-    // y no fue cerrada por el usuario
-    if (promo_config?.activa) {
-      const wasClosed = localStorage.getItem('promoHeaderClosed');
-      if (!wasClosed) {
-        setPromoVisible(true);
-        setIsClosing(false);
+    const tickInterval = setInterval(() => {
+      if (configRef.current) {
+        setTiempoRestante(calcularTiempoRestante(configRef.current));
       }
-    } else {
-      // Si la promo está desactivada, ocultar siempre
-      setPromoVisible(false);
-    }
-  }, [promo_config]);
+    }, 1000);
+    return () => clearInterval(tickInterval);
+  }, []);
 
   const handleButtonClick = () => {
     if (onButtonClick) {
@@ -93,163 +348,153 @@ export function PromoHeader({
     }
   };
 
-  const handleClose = () => {
-    setIsClosing(true);
-    // Guardar que el usuario cerró la promo
-    localStorage.setItem('promoHeaderClosed', 'true');
-    // Esperar a que termine la animación antes de ocultar
-    setTimeout(() => {
-      setPromoVisible(false);
-      setIsClosing(false);
-    }, 300);
-  };
-
-  // Estilos de animación
-  const animationStyles = `
-    @keyframes slideUpOut {
-      from {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      to {
-        opacity: 0;
-        transform: translateY(-100%);
-      }
-    }
-
-    .promo-banner-closing {
-      animation: slideUpOut 0.3s ease-in-out forwards;
-    }
-
-    .promo-banner-hidden {
-      display: none;
-    }
-  `;
-
-  // No renderizar si la promo está desactivada o ya fue cerrada
-  if (!promoVisible || !promo_config?.activa) {
+  // No renderizar si la promo está desactivada
+  if (!promo_config?.activa) {
     return null;
   }
 
+  // Estilos de animación para el flip
+  const flipStyles = `
+    @keyframes flipDown {
+      0% {
+        transform: rotateX(0deg);
+      }
+      100% {
+        transform: rotateX(-90deg);
+      }
+    }
+    @keyframes flipUp {
+      0% {
+        transform: rotateX(90deg);
+      }
+      100% {
+        transform: rotateX(0deg);
+      }
+    }
+  `;
+
   return (
     <>
-      <style>{animationStyles}</style>
-      <div 
-        className={isClosing && !promoVisible ? 'promo-banner-hidden' : isClosing ? 'promo-banner-closing' : ''}
+      <style>{flipStyles}</style>
+      <div
         style={{
-          backgroundColor: '#110723',
+          background: 'linear-gradient(180deg, #110723 0%, #0a0312 100%)',
           color: '#ffffff',
-          padding: '8px 12px',
+          padding: 'clamp(4px, 1vw, 6px) clamp(8px, 2vw, 12px)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '12px',
+          justifyContent: isPlanesPage ? 'center' : 'space-between',
+          gap: 'clamp(8px, 2vw, 16px)',
           width: '100%',
-          overflow: 'auto',
-          overflowY: 'hidden',
-          flexWrap: 'wrap'
-        }}>
-        {/* Texto y timer a la izquierda */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          flex: 1,
-          minWidth: '0'
-        }}>
-          {/* Texto principal - oculto en móvil extra pequeño */}
-          <span style={{
-            fontSize: 'clamp(10px, 2vw, 13px)',
-            fontWeight: '600',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            whiteSpace: 'nowrap',
-            color: '#ffffff',
-            display: window.innerWidth < 420 ? 'none' : 'inline-block'
-          }}>
-            OFERTA
-          </span>
-
-          {/* Timer en formato HH : MM : SS */}
-          <div style={{
+          borderBottom: '1px solid rgba(212, 255, 0, 0.1)',
+        }}
+      >
+        {/* Contenedor del timer */}
+        <div
+          style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '2px',
-            fontFamily: '"SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
-            fontSize: 'clamp(12px, 2.5vw, 14px)',
-            fontWeight: '700',
-            letterSpacing: '0.06em',
-            color: '#d4ff00',
-            whiteSpace: 'nowrap'
-          }}>
-            <span>{String(horas).padStart(2, '0')}</span>
-            <span style={{ opacity: 0.6, color: '#ffffff', margin: '0 1px' }}>:</span>
-            <span>{String(minutos).padStart(2, '0')}</span>
-            <span style={{ opacity: 0.6, color: '#ffffff', margin: '0 1px' }}>:</span>
-            <span>{String(segundos).padStart(2, '0')}</span>
+            gap: 'clamp(6px, 1.5vw, 10px)',
+            flex: isPlanesPage ? 'none' : 1,
+            justifyContent: isPlanesPage ? 'center' : 'flex-start',
+          }}
+        >
+          {/* Etiqueta OFERTA con icono */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            {/* Icono de rayo */}
+            <div
+              style={{
+                width: 'clamp(14px, 2.5vw, 16px)',
+                height: 'clamp(14px, 2.5vw, 16px)',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #d4ff00 0%, #a8cc00 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 8px rgba(212, 255, 0, 0.4)',
+              }}
+            >
+              <svg
+                width="clamp(8px, 1.5vw, 10px)"
+                height="clamp(8px, 1.5vw, 10px)"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#110723"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+            </div>
+            
+            <span
+              style={{
+                fontSize: 'clamp(8px, 1.5vw, 10px)',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                color: '#ffffff',
+                display: window.innerWidth < 380 ? 'none' : 'block',
+              }}
+            >
+              Oferta
+            </span>
+          </div>
+
+          {/* Flip Clock */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+            }}
+          >
+            <FlipUnit value={horas} label="hrs" />
+            <TimeSeparator />
+            <FlipUnit value={minutos} label="min" />
+            <TimeSeparator />
+            <FlipUnit value={segundos} label="seg" />
           </div>
         </div>
 
-        {/* Botón a la derecha */}
-        <div style={{
-          display: 'flex',
-          gap: '8px',
-          alignItems: 'center',
-          flexShrink: 0
-        }}>
-          {/* Botón Obtener la oferta */}
-          {showButton && (
-            <button
-              onClick={handleButtonClick}
-              style={{
-                flexShrink: 0,
-                backgroundColor: '#d4ff00',
-                border: 'none',
-                color: '#110723',
-                cursor: 'pointer',
-                padding: 'clamp(6px, 1.5vw, 8px) clamp(12px, 2vw, 16px)',
-                borderRadius: '16px',
-                fontSize: 'clamp(10px, 1.8vw, 12px)',
-                fontWeight: '600',
-                transition: 'all 0.2s ease',
-                whiteSpace: 'nowrap'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#e8ff33';
-                e.currentTarget.style.transform = 'scale(1.05)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#d4ff00';
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-            >
-              {buttonText || 'Obtener'}
-            </button>
-          )}
-
-          {/* Botón Cerrar */}
+        {/* Botón CTA - oculto en /planes */}
+        {showButton && !isPlanesPage && (
           <button
-            onClick={handleClose}
+            onClick={handleButtonClick}
             style={{
               flexShrink: 0,
-              backgroundColor: 'transparent',
+              background: 'linear-gradient(135deg, #d4ff00 0%, #b8e600 100%)',
               border: 'none',
-              color: '#ffffff',
+              color: '#110723',
               cursor: 'pointer',
-              padding: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'opacity 0.2s',
-              opacity: 0.7
+              padding: 'clamp(4px, 1vw, 6px) clamp(10px, 2vw, 14px)',
+              borderRadius: '12px',
+              fontSize: 'clamp(8px, 1.5vw, 10px)',
+              fontWeight: '700',
+              transition: 'all 0.2s ease',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 1px 8px rgba(212, 255, 0, 0.3)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
             }}
-            onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
-            aria-label="Cerrar promoción"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = '0 3px 12px rgba(212, 255, 0, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 1px 8px rgba(212, 255, 0, 0.3)';
+            }}
           >
-            <X style={{width: 'clamp(16px, 4vw, 18px)', height: 'clamp(16px, 4vw, 18px)'}} />
+            {buttonText || 'Obtener'}
           </button>
-        </div>
+        )}
       </div>
     </>
   );

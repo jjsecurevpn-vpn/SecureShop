@@ -125,7 +125,7 @@ export function ServerGlobalSummary() {
                 <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold tracking-[0.3em] text-gray-600 uppercase">
                   Resumen Global
                 </p>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mt-2">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-serif font-normal text-gray-900 mt-2">
                   Visión instantánea de la red
                 </h2>
                 <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600 mt-2">

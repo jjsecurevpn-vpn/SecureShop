@@ -606,11 +606,12 @@ class ApiService {
     duracion_horas: number,
     tipo: "planes" | "revendedores" = "planes",
     descuento_porcentaje: number = 20,
-    solo_nuevos: boolean = false
+    solo_nuevos: boolean = false,
+    solo_renovaciones: boolean = false
   ): Promise<any> {
     const response = await this.client.post<ApiResponse<any>>(
       "/config/activar-promo",
-      { duracion_horas, tipo, descuento_porcentaje, solo_nuevos }
+      { duracion_horas, tipo, descuento_porcentaje, solo_nuevos, solo_renovaciones }
     );
     if (!response.data.success) {
       throw new Error(response.data.error || "Error activando promoción");

@@ -191,7 +191,7 @@ const DonacionesPage = ({
           <div className="w-full px-5 sm:px-6 lg:px-8 xl:px-10 py-12 sm:py-16 lg:py-20 xl:py-24">
             <div className="mb-8 sm:mb-10 lg:mb-12 xl:mb-16 grid gap-6 sm:gap-8 lg:gap-10 xl:gap-12 items-center lg:grid-cols-[1.1fr,0.9fr]">
               <div className="text-center lg:text-left">
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold mb-3 sm:mb-4 lg:mb-5 xl:mb-6 text-gray-900">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal mb-3 sm:mb-4 lg:mb-5 xl:mb-6 text-gray-900">
                   Apoyá a JJSecure VPN
                 </h1>
                 <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700 max-w-4xl mx-auto lg:mx-0">

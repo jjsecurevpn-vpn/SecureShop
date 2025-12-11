@@ -165,14 +165,17 @@ export class PagosPendientesService {
 
   /**
    * Obtiene pagos pendientes de una tabla específica
+   * También incluye pagos "rechazados" recientes porque el usuario puede haber hecho un reintento exitoso
    */
   private obtenerPagosPendientes(tabla: 'pagos' | 'pagos_revendedores', minAge: Date, maxAge: Date): any[] {
     try {
       const db = this.db.getDatabase();
+      // Incluimos estado 'rechazado' porque el usuario puede hacer múltiples intentos
+      // de pago y el segundo intento puede ser exitoso
       const query = `
-        SELECT id, fecha_creacion, cliente_email
+        SELECT id, fecha_creacion, cliente_email, estado
         FROM ${tabla}
-        WHERE estado = 'pendiente'
+        WHERE estado IN ('pendiente', 'rechazado')
           AND datetime(fecha_creacion) < datetime(?)
           AND datetime(fecha_creacion) > datetime(?)
         ORDER BY fecha_creacion ASC
@@ -192,6 +195,7 @@ export class PagosPendientesService {
 
   /**
    * Verifica un pago contra MercadoPago y lo procesa si está aprobado
+   * También maneja pagos "rechazados" que pueden haber tenido un reintento exitoso
    */
   private async verificarYProcesarPago(pagoId: string, tipo: 'cliente' | 'revendedor'): Promise<boolean> {
     try {
@@ -204,13 +208,14 @@ export class PagosPendientesService {
       }
 
       if (pagoMP.status === 'approved') {
-        console.log(`[PagosPendientes] 💰 Pago ${pagoId} aprobado en MP, procesando...`);
+        console.log(`[PagosPendientes] 💰 Pago ${pagoId} aprobado en MP (payment_id: ${pagoMP.id}), procesando...`);
 
         if (tipo === 'cliente') {
           // Usar el método existente de TiendaService
           await this.tiendaService.verificarYProcesarPago(pagoId);
         } else if (tipo === 'revendedor' && this.tiendaRevendedoresService) {
           // Usar el método existente de TiendaRevendedoresService
+          // (este método ya maneja el caso de pagos rechazados con reintento exitoso)
           await this.tiendaRevendedoresService.verificarYProcesarPago(pagoId);
         }
 
@@ -219,13 +224,21 @@ export class PagosPendientesService {
       }
 
       if (pagoMP.status === 'rejected' || pagoMP.status === 'cancelled') {
-        // Marcar como rechazado para no volver a verificarlo
+        // Solo marcar como rechazado si está pendiente
+        // NO marcar si ya está rechazado (para permitir reintentos futuros del mismo external_reference)
         if (tipo === 'cliente') {
-          this.db.actualizarEstadoPago(pagoId, 'rechazado', pagoMP.id?.toString());
+          const pagoActual = this.db.obtenerPagoPorId(pagoId);
+          if (pagoActual && pagoActual.estado === 'pendiente') {
+            this.db.actualizarEstadoPago(pagoId, 'rechazado', pagoMP.id?.toString());
+            console.log(`[PagosPendientes] ❌ Pago ${pagoId} rechazado/cancelado en MP`);
+          }
         } else {
-          this.db.actualizarEstadoPagoRevendedor(pagoId, 'rechazado', pagoMP.id?.toString());
+          const pagoActual = this.db.obtenerPagoRevendedorPorId(pagoId);
+          if (pagoActual && pagoActual.estado === 'pendiente') {
+            this.db.actualizarEstadoPagoRevendedor(pagoId, 'rechazado', pagoMP.id?.toString());
+            console.log(`[PagosPendientes] ❌ Pago ${pagoId} rechazado/cancelado en MP`);
+          }
         }
-        console.log(`[PagosPendientes] ❌ Pago ${pagoId} rechazado/cancelado en MP`);
         return false;
       }
 

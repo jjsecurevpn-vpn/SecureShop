@@ -206,7 +206,7 @@ const PrivacyPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: PrivacyPageProps
                           <span className="text-sm font-medium text-indigo-600">
                             {String(index + 1).padStart(2, "0")}
                           </span>
-                          <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900 group-hover:text-indigo-700 transition-colors">
+                          <h2 className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-serif font-medium text-gray-900 group-hover:text-indigo-700 transition-colors">
                             {section.title}
                           </h2>
                         </div>
@@ -227,7 +227,7 @@ const PrivacyPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: PrivacyPageProps
                 <div className="w-16 h-16 bg-white/70 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <MessageCircle className="w-8 h-8 text-indigo-600" />
                 </div>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-4">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-serif font-normal text-gray-900 mb-4">
                   ¿Tienes preguntas sobre privacidad?
                 </h2>
                 <p className="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-600 mb-8">

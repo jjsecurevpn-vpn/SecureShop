@@ -20,6 +20,7 @@ export interface PromoConfig {
   duracion_horas: number;
   auto_desactivar: boolean;
   solo_nuevos?: boolean;
+  solo_renovaciones?: boolean;
 }
 
 export interface HeroPromoConfig {

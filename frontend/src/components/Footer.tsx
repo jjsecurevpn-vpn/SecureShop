@@ -57,7 +57,7 @@ export default function Footer() {
         {!hideFAQ && (
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8 sm:py-12 lg:py-16 xl:py-20">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-8 sm:mb-12 lg:mb-16 xl:mb-20" style={protonStyles.textPrimary}>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-normal mb-8 sm:mb-12 lg:mb-16 xl:mb-20" style={protonStyles.textPrimary}>
               Preguntas frecuentes
             </h2>
 
@@ -71,7 +71,7 @@ export default function Footer() {
                     onClick={() => toggleFAQ(item.id)}
                     className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6 flex items-center justify-between hover:bg-purple-50/60 transition-colors duration-200"
                   >
-                    <h3 className="text-left font-semibold text-xs sm:text-sm lg:text-base leading-relaxed" style={protonStyles.textPrimary}>
+                    <h3 className="text-left font-sans font-semibold text-xs sm:text-sm lg:text-base leading-relaxed" style={protonStyles.textPrimary}>
                       {item.question}
                     </h3>
                     <ChevronDown

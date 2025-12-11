@@ -11,9 +11,6 @@ const Header = () => {
   const [featuresOpen, setFeaturesOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Detectar si estamos en la página de Planes
-  const isPlanesPage = location.pathname === '/planes';
-  
   // Bloquear scroll cuando el menú está abierto
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -44,11 +41,11 @@ const Header = () => {
         />
       )}
 
-      {/* Header - Oscuro y estático en Planes, cremita y sticky en otras páginas */}
+      {/* Header - Siempre claro y sticky */}
       <header 
-        className={`${isPlanesPage ? 'relative' : 'sticky top-0'} left-0 right-0 w-full z-[9999] overflow-visible`}
+        className="sticky top-0 left-0 right-0 w-full z-[9999] overflow-visible"
         style={{ 
-          backgroundColor: isPlanesPage ? 'rgb(17, 7, 35)' : '#f4eaff'
+          backgroundColor: '#f4eaff'
         }}
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-12 flex items-center justify-between overflow-visible">
@@ -76,9 +73,7 @@ const Header = () => {
                   reloadDocument
                   className="px-3 py-2 rounded-lg text-sm font-semibold transition-colors hover:opacity-80"
                   style={{ 
-                    color: isPlanesPage 
-                      ? (isActive(link.path) ? '#d4ff00' : 'white')
-                      : (isActive(link.path) ? protonColors.purple[500] : protonColors.purple[800])
+                    color: isActive(link.path) ? protonColors.purple[500] : protonColors.purple[800]
                   }}
                 >
                   {link.label}
@@ -91,7 +86,7 @@ const Header = () => {
                   onClick={() => setFeaturesOpen(!featuresOpen)}
                   onBlur={() => setTimeout(() => setFeaturesOpen(false), 150)}
                   className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-semibold transition-colors hover:opacity-80"
-                  style={{ color: isPlanesPage ? 'white' : protonColors.purple[800] }}
+                  style={{ color: protonColors.purple[800] }}
                 >
                   Características
                   <ChevronDown className={`h-4 w-4 transition-transform ${featuresOpen ? 'rotate-180' : ''}`} />
@@ -202,7 +197,7 @@ const Header = () => {
             </div>
 
             {/* CTA Button - escondido en /planes */}
-            {!isPlanesPage && (
+            {location.pathname !== '/planes' && (
               <Link
                 to="/planes"
                 reloadDocument
@@ -220,7 +215,7 @@ const Header = () => {
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="lg:hidden p-2 rounded-lg transition-opacity hover:opacity-70"
-              style={{ color: isPlanesPage ? 'white' : protonColors.purple[800] }}
+              style={{ color: protonColors.purple[800] }}
               aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -267,7 +262,7 @@ const Header = () => {
               <div className="my-3 border-t border-gray-200" />
 
               {/* CTA - escondido en /planes */}
-              {!isPlanesPage && (
+              {location.pathname !== '/planes' && (
                 <div className="p-4">
                   <Link
                     to="/planes"

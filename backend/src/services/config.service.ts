@@ -19,6 +19,7 @@ const PromoConfigSchema = z.object({
   auto_desactivar: z.boolean(),
   descuento_porcentaje: z.number().optional().default(20),
   solo_nuevos: z.boolean().optional().default(false),
+  solo_renovaciones: z.boolean().optional().default(false),
 });
 
 const HeroConfigSchema = z.object({
@@ -68,10 +69,12 @@ interface PromoConfig {
   auto_desactivar: boolean;
   descuento_porcentaje?: number;
   solo_nuevos?: boolean;
+  solo_renovaciones?: boolean;
 }
 
 interface OverrideOptions {
   forNewCustomers?: boolean;
+  forRenewal?: boolean;
 }
 
 interface ConfigPlanes {
@@ -1047,14 +1050,20 @@ export class ConfigService {
   }
 
   private shouldApplyPromo(
-    promoConfig?: { activa?: boolean; solo_nuevos?: boolean | null },
+    promoConfig?: { activa?: boolean; solo_nuevos?: boolean | null; solo_renovaciones?: boolean | null },
     options?: OverrideOptions
   ): boolean {
     if (!promoConfig?.activa) {
       return false;
     }
 
+    // Si es solo para nuevos clientes y NO es un cliente nuevo, no aplicar
     if (promoConfig.solo_nuevos && !options?.forNewCustomers) {
+      return false;
+    }
+
+    // Si es solo para renovaciones y NO es una renovación, no aplicar
+    if (promoConfig.solo_renovaciones && !options?.forRenewal) {
       return false;
     }
 

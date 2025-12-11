@@ -255,7 +255,7 @@ const CheckoutRenovacionPage: React.FC = () => {
             <div className="space-y-8">
               {/* Header */}
               <div>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-2">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-gray-900 mb-2">
                   Renovar tu cuenta
                 </h1>
                 <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
@@ -401,7 +401,7 @@ const CheckoutRenovacionPage: React.FC = () => {
                 {/* Info Header */}
                 <div>
                   <div className="text-sm text-gray-400 mb-2">Resumen de renovación</div>
-                  <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-1">
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-white mb-1">
                     Renovación de {dias} días
                   </h2>
                 </div>
@@ -447,7 +447,7 @@ const CheckoutRenovacionPage: React.FC = () => {
 
                   <div className="border-t border-white/20 pt-3 flex justify-between items-center">
                     <span className="text-white font-medium">Total</span>
-                    <span className="text-3xl font-bold text-indigo-400">
+                    <span className="text-3xl font-display font-bold text-indigo-400">
                       ${precio.toLocaleString("es-AR")}
                     </span>
                   </div>

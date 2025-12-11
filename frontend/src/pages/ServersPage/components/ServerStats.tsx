@@ -39,7 +39,7 @@ const ServerCard = ({ server, isExpanded, onToggle }: { server: Server; isExpand
               
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-lg sm:text-xl truncate">{server.serverName}</h3>
+                  <h3 className="font-serif font-medium text-lg sm:text-xl truncate">{server.serverName}</h3>
                   <div className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-400 animate-pulse" : "bg-gray-500"}`} />
                 </div>
                 <p className="text-sm text-gray-400 flex items-center gap-1.5 mt-0.5">

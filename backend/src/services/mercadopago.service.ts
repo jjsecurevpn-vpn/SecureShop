@@ -198,6 +198,7 @@ export class MercadoPagoService {
 
   /**
    * Verifica el estado de un pago usando la referencia externa
+   * IMPORTANTE: Busca primero un pago aprobado, ya que puede haber múltiples intentos
    */
   async verificarPagoPorReferencia(
     externalReference: string
@@ -206,12 +207,29 @@ export class MercadoPagoService {
       const response = await this.client.get("/v1/payments/search", {
         params: {
           external_reference: externalReference,
+          sort: "date_created",
+          criteria: "desc", // Más recientes primero
         },
       });
 
       const payments = response.data.results;
       if (payments && payments.length > 0) {
-        // Retornar el pago más reciente
+        // Primero buscar si hay algún pago aprobado (prioridad máxima)
+        const pagoAprobado = payments.find((p: any) => p.status === "approved");
+        if (pagoAprobado) {
+          console.log(`[MercadoPago] ✅ Encontrado pago aprobado: ${pagoAprobado.id} de ${payments.length} pagos totales`);
+          return pagoAprobado;
+        }
+        
+        // Si no hay aprobado, buscar pendiente
+        const pagoPendiente = payments.find((p: any) => p.status === "pending" || p.status === "in_process");
+        if (pagoPendiente) {
+          console.log(`[MercadoPago] ⏳ Encontrado pago pendiente: ${pagoPendiente.id}`);
+          return pagoPendiente;
+        }
+        
+        // Si no hay aprobado ni pendiente, devolver el más reciente (probablemente rechazado)
+        console.log(`[MercadoPago] ℹ️ Devolviendo pago más reciente: ${payments[0].id} (status: ${payments[0].status})`);
         return payments[0];
       }
 

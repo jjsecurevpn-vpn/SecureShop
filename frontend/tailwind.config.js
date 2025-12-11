@@ -6,26 +6,46 @@ export default {
   ],
   theme: {
     extend: {
+      // ============================================
+      // SISTEMA DE FUENTES - Inspirado en Proton VPN
+      // ============================================
       fontFamily: {
-        sans: ['Inter', 'Poppins', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        serif: ['Arizona', 'Georgia', 'serif'],
-        display: ['Syne', 'Poppins', 'sans-serif'],
+        // Inter - Textos generales (igual que Proton VPN)
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        // Fraunces - Títulos (alternativa gratuita a ABC Arizona)
+        serif: ['Fraunces', 'ui-serif', 'Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
+        // Syne - Elementos destacados (igual que Proton VPN)
+        display: ['Syne', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // Monospace
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
       },
       fontSize: {
-        // Tamaños exactos de ProtonVPN
-        'proton-base': ['1rem', { lineHeight: '1.625' }],
-        'proton-lg': ['1.125rem', { lineHeight: '1.55' }],
-        'proton-xl': ['1.25rem', { lineHeight: '1.5' }],
-        'proton-2xl': ['1.5rem', { lineHeight: '1.34' }],
-        'proton-3xl': ['1.875rem', { lineHeight: '1.13' }],
-        'proton-4xl': ['2.25rem', { lineHeight: '1.11' }],
-        'proton-5xl': ['3rem', { lineHeight: '1.125' }],
-        'proton-7xl': ['4.5rem', { lineHeight: '1.08' }],
+        // Tamaños exactos de ProtonVPN con line-heights optimizados
+        'xs': ['0.75rem', { lineHeight: '1.5' }],
+        'sm': ['0.875rem', { lineHeight: '1.625' }],
+        'base': ['1rem', { lineHeight: '1.625' }],
+        'lg': ['1.125rem', { lineHeight: '1.55' }],
+        'xl': ['1.25rem', { lineHeight: '1.5' }],
+        '2xl': ['1.5rem', { lineHeight: '1.34' }],
+        '3xl': ['1.875rem', { lineHeight: '1.13' }],
+        '4xl': ['2.25rem', { lineHeight: '1.11' }],
+        '5xl': ['3rem', { lineHeight: '1.125' }],
+        '6xl': ['3.75rem', { lineHeight: '1.1' }],
+        '7xl': ['4.5rem', { lineHeight: '1.08' }],
       },
       lineHeight: {
-        'proton-title': '1.08',
-        'proton-subtitle': '1.125',
-        'proton-body': '1.625',
+        'tight': '1.08',      // Títulos hero
+        'snug': '1.125',      // Títulos sección  
+        'normal': '1.34',     // Subtítulos
+        'relaxed': '1.5',     // Texto grande
+        'loose': '1.625',     // Texto cuerpo
+      },
+      letterSpacing: {
+        'tighter': '-0.02em',
+        'tight': '-0.01em',
+        'normal': '0',
+        'wide': '0.01em',
+        'wider': '0.025em',
       },
       colors: {
         neutral: {

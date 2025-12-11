@@ -1,5 +1,7 @@
 import { PromoConfig, HeroPromoConfig } from "../types";
 
+type PromoScope = "todos" | "solo_nuevos" | "solo_renovaciones";
+
 interface PromoPanelProps {
   titulo: string;
   icono: string;
@@ -11,8 +13,8 @@ interface PromoPanelProps {
   isSaving: boolean;
   onDurationChange: (value: string) => void;
   onDiscountPercentageChange: (value: string) => void;
-  applyToRenewals: boolean;
-  onToggleApplyToRenewals: (value: boolean) => void;
+  promoScope: PromoScope;
+  onSetPromoScope: (value: PromoScope) => void;
   onActivate: () => void;
   onDeactivate: () => void;
   onTextoChange: (value: string) => void;
@@ -30,13 +32,21 @@ export function PromoPanel({
   isSaving,
   onDurationChange,
   onDiscountPercentageChange,
-  applyToRenewals,
-  onToggleApplyToRenewals,
+  promoScope,
+  onSetPromoScope,
   onActivate,
   onDeactivate,
   onTextoChange,
   onGuardarTexto,
 }: PromoPanelProps) {
+  
+  // Helper para obtener label del scope actual de la promo activa
+  const getActiveScopeLabel = () => {
+    if (promoConfig?.solo_nuevos) return "solo nuevas cuentas";
+    if (promoConfig?.solo_renovaciones) return "solo renovaciones";
+    return "todos";
+  };
+  
   return (
     <div className="border border-neutral-700 rounded-xl bg-neutral-900/40 p-5 space-y-4">
       <div>
@@ -75,60 +85,71 @@ export function PromoPanel({
         </div>
       </div>
 
-      {/* Controles de activación */}
       {/* Alcance de la promo */}
       <div className="space-y-3 rounded-lg border border-neutral-800 bg-neutral-800/20 px-3 py-3">
-        <div className="flex items-center justify-between text-xs text-neutral-300">
-          <div>
-            <div className="font-semibold text-neutral-100">Nuevas cuentas</div>
-            <p className="text-[11px] text-neutral-500">Siempre incluidas en la promoción.</p>
-          </div>
-          <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[11px] text-emerald-300">Incluidas</span>
+        <div>
+          <div className="font-semibold text-neutral-100 text-xs mb-1">Alcance de la promoción</div>
+          <p className="text-[11px] text-neutral-500">
+            Define a quién aplica el descuento global.
+          </p>
+          {promoConfig?.activa && (
+            <p className="mt-1 text-[11px] text-emerald-400">
+              Promo actual: {getActiveScopeLabel()}
+            </p>
+          )}
         </div>
-        <div className="flex items-center justify-between gap-4 text-xs text-neutral-300">
-          <div>
-            <div className="font-semibold text-neutral-100">Renovaciones</div>
-            <p className="text-[11px] text-neutral-500">
-              Define si el descuento global alcanza a cuentas existentes o solo a cuentas nuevas.
-            </p>
-            {promoConfig?.activa && (
-              <p className="mt-1 text-[11px] text-emerald-400">
-                Promo actual: {promoConfig.solo_nuevos ? "solo nuevas cuentas" : "incluye renovaciones"}
-              </p>
-            )}
-            <p className="mt-1 text-[11px] text-neutral-400">
-              Próximas activaciones: {applyToRenewals ? "incluyen renovaciones" : "solo nuevas cuentas"}
-            </p>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <span
-              className={`text-[11px] font-semibold ${
-                applyToRenewals ? "text-emerald-300" : "text-amber-300"
-              }`}
-            >
-              {applyToRenewals ? "Incluye renovaciones" : "Solo nuevas cuentas"}
-            </span>
-            <button
-              type="button"
-              disabled={isSaving || promoConfig?.activa}
-              onClick={() => onToggleApplyToRenewals(!applyToRenewals)}
-              className={`relative h-6 w-11 rounded-full transition ${
-                applyToRenewals ? "bg-violet-500" : "bg-neutral-700"
-              } ${promoConfig?.activa ? "opacity-60 cursor-not-allowed" : "hover:opacity-90"}`}
-              aria-pressed={applyToRenewals}
-              aria-label={
-                applyToRenewals
-                  ? "Desactivar descuento para renovaciones"
-                  : "Activar descuento para renovaciones"
-              }
-            >
-              <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${
-                  applyToRenewals ? "translate-x-5" : "translate-x-0.5"
-                }`}
-              />
-            </button>
-          </div>
+        
+        {/* Selector de scope */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={isSaving || promoConfig?.activa}
+            onClick={() => onSetPromoScope("todos")}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition ${
+              promoScope === "todos"
+                ? "bg-violet-600 text-white"
+                : "bg-neutral-700 text-neutral-300 hover:bg-neutral-600"
+            } ${promoConfig?.activa ? "opacity-60 cursor-not-allowed" : ""}`}
+          >
+            🌐 Todos
+          </button>
+          <button
+            type="button"
+            disabled={isSaving || promoConfig?.activa}
+            onClick={() => onSetPromoScope("solo_nuevos")}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition ${
+              promoScope === "solo_nuevos"
+                ? "bg-emerald-600 text-white"
+                : "bg-neutral-700 text-neutral-300 hover:bg-neutral-600"
+            } ${promoConfig?.activa ? "opacity-60 cursor-not-allowed" : ""}`}
+          >
+            ✨ Solo nuevas cuentas
+          </button>
+          <button
+            type="button"
+            disabled={isSaving || promoConfig?.activa}
+            onClick={() => onSetPromoScope("solo_renovaciones")}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition ${
+              promoScope === "solo_renovaciones"
+                ? "bg-amber-600 text-white"
+                : "bg-neutral-700 text-neutral-300 hover:bg-neutral-600"
+            } ${promoConfig?.activa ? "opacity-60 cursor-not-allowed" : ""}`}
+          >
+            🔄 Solo renovaciones
+          </button>
+        </div>
+        
+        {/* Explicación del scope seleccionado */}
+        <div className="text-[11px] text-neutral-400 mt-2">
+          {promoScope === "todos" && (
+            <p>El descuento aplicará tanto a compras de nuevas cuentas como a renovaciones.</p>
+          )}
+          {promoScope === "solo_nuevos" && (
+            <p>El descuento solo aplicará a clientes que compran por primera vez. Las renovaciones mantienen precio normal.</p>
+          )}
+          {promoScope === "solo_renovaciones" && (
+            <p>El descuento solo aplicará a clientes existentes que renuevan. Las compras nuevas mantienen precio normal.</p>
+          )}
         </div>
       </div>
 

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BarChart3, RefreshCw, Zap } from "lucide-react";
 import HeroReventa from "./components/HeroReventa";
-import { Title } from "../../components/Title";
 import { PlanRevendedor } from "../../types";
 import { apiService, ValidacionCupon } from "../../services/api.service";
 import { ModeSelector } from "./components/ModeSelector";
@@ -554,15 +553,6 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
 
         <section id="planes-section" className="bg-white py-8 md:py-12 xl:py-16">
           <div className="mx-auto max-w-7xl px-4 md:px-8 xl:px-16 space-y-6 md:space-y-8 xl:space-y-12">
-            <div className="space-y-3 text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 sm:text-xs">Sistemas de venta</p>
-              <Title as="h1">
-                Planes de Revendedor
-              </Title>
-              <p className="text-xs sm:text-sm md:text-base text-gray-600">
-                Elegí entre Créditos o Validez, ambos diseñados para iterar precios, duraciones y márgenes sin fricciones.
-              </p>
-            </div>
 
             <ModeSelector
               mode={modoSeleccion}

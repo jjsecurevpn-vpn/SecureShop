@@ -241,7 +241,7 @@ const SuccessPage: React.FC = () => {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-rose-300 bg-rose-100">
             <AlertCircle className="h-8 w-8 text-rose-700" />
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900">Verificando pago</h2>
+          <h2 className="text-2xl font-serif font-medium text-gray-900">Verificando pago</h2>
           <p className="mt-2 text-gray-600">{error || "No se encontró información del pago."}</p>
           <Link
             to="/"
@@ -300,7 +300,7 @@ const SuccessPage: React.FC = () => {
                 <div className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.4em] text-emerald-700">
                   {renovacionParam === "true" ? "Renovación" : "Nuevo acceso"}
                 </div>
-                <h1 className="mt-4 text-4xl font-semibold text-gray-900">¡Pago completado!</h1>
+                <h1 className="mt-4 text-4xl font-serif font-medium text-gray-900">¡Pago completado!</h1>
                 <p className="mt-3 text-gray-600 max-w-2xl">
                   {renovacionParam === "true"
                     ? "Tu renovación está activa y los días extra ya figuran en Secure Panel."
@@ -330,7 +330,7 @@ const SuccessPage: React.FC = () => {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-[0.4em] text-gray-600">Credenciales</p>
-                  <h2 className="text-2xl font-semibold text-gray-900">Panel Servex</h2>
+                  <h2 className="text-2xl font-serif font-medium text-gray-900">Panel Servex</h2>
                 </div>
                 <button
                   type="button"
@@ -411,7 +411,7 @@ const SuccessPage: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-[0.35em] text-indigo-700">Panel de gestión</p>
-                      <h3 className="text-xl font-semibold text-gray-900">Administra tus cuentas</h3>
+                      <h3 className="text-xl font-serif font-medium text-gray-900">Administra tus cuentas</h3>
                       <p className="text-sm text-gray-700 mt-1">Controla usuarios, aplica upgrades y monitorea consumo en tiempo real.</p>
                     </div>
                   </div>
@@ -434,7 +434,7 @@ const SuccessPage: React.FC = () => {
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.35em] text-gray-600">{isRevendedor ? "Próximos pasos" : "Cómo conectarte"}</p>
-                <h3 className="text-2xl font-semibold text-gray-900 mt-1">
+                <h3 className="text-2xl font-serif font-medium text-gray-900 mt-1">
                   {isRevendedor ? "Impulsa tu operación" : "Conéctate en tres pasos"}
                 </h3>
               </div>
