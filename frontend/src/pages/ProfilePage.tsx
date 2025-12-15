@@ -19,11 +19,28 @@ import {
   Key,
   Wifi,
   ArrowRight,
+  ChevronDown,
+  ChevronUp,
+  AlertTriangle,
+  Users,
+  Zap,
+  RefreshCw,
 } from 'lucide-react';
 import { protonColors } from '../styles/colors';
 import { Title } from '../components/Title';
 import { Subtitle } from '../components/Subtitle';
 import { Button } from '../components/Button';
+import { apiService, EstadoCuenta } from '../services/api.service';
+
+// Estado de cuenta expandido por compra
+interface EstadoCuentaMap {
+  [username: string]: {
+    loading: boolean;
+    data: EstadoCuenta | null;
+    error: string | null;
+    expanded: boolean;
+  };
+}
 
 export default function ProfilePage() {
   const { user, profile, purchaseHistory, loading, signOut, updateProfile } = useAuth();
@@ -32,6 +49,59 @@ export default function ProfilePage() {
   const [editedNombre, setEditedNombre] = useState(profile?.nombre || '');
   const [editedTelefono, setEditedTelefono] = useState(profile?.telefono || '');
   const [saving, setSaving] = useState(false);
+  const [estadosCuenta, setEstadosCuenta] = useState<EstadoCuentaMap>({});
+
+  // Función para consultar estado de cuenta
+  const consultarEstadoCuenta = async (username: string) => {
+    // Si ya está expandido, solo colapsar
+    if (estadosCuenta[username]?.expanded) {
+      setEstadosCuenta(prev => ({
+        ...prev,
+        [username]: { ...prev[username], expanded: false }
+      }));
+      return;
+    }
+
+    // Expandir y cargar datos
+    setEstadosCuenta(prev => ({
+      ...prev,
+      [username]: { loading: true, data: null, error: null, expanded: true }
+    }));
+
+    try {
+      const data = await apiService.obtenerEstadoCuenta(username);
+      setEstadosCuenta(prev => ({
+        ...prev,
+        [username]: { loading: false, data, error: null, expanded: true }
+      }));
+    } catch (error: any) {
+      setEstadosCuenta(prev => ({
+        ...prev,
+        [username]: { loading: false, data: null, error: error.message || 'Error consultando', expanded: true }
+      }));
+    }
+  };
+
+  // Función para refrescar estado
+  const refrescarEstadoCuenta = async (username: string) => {
+    setEstadosCuenta(prev => ({
+      ...prev,
+      [username]: { ...prev[username], loading: true, error: null }
+    }));
+
+    try {
+      const data = await apiService.obtenerEstadoCuenta(username);
+      setEstadosCuenta(prev => ({
+        ...prev,
+        [username]: { loading: false, data, error: null, expanded: true }
+      }));
+    } catch (error: any) {
+      setEstadosCuenta(prev => ({
+        ...prev,
+        [username]: { ...prev[username], loading: false, error: error.message }
+      }));
+    }
+  };
 
   // Redirigir si no hay usuario (después de que loading termine)
   useEffect(() => {
@@ -320,26 +390,202 @@ export default function ProfilePage() {
 
                     {/* Footer */}
                     <div 
-                      className="mt-4 pt-4 border-t flex flex-wrap items-center gap-4 text-sm"
+                      className="mt-4 pt-4 border-t flex flex-wrap items-center justify-between gap-4 text-sm"
                       style={{ 
                         borderColor: protonColors.purple[100],
                         color: protonColors.gray[500]
                       }}
                     >
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>{formatDate(compra.created_at)}</span>
-                      </div>
-                      {compra.servex_expiracion && (
+                      <div className="flex flex-wrap items-center gap-4">
                         <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          <span>Expira: {formatDate(compra.servex_expiracion)}</span>
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(compra.created_at)}</span>
                         </div>
-                      )}
-                      {compra.mp_payment_id && (
-                        <span style={{ color: protonColors.gray[400] }}>ID: {compra.mp_payment_id}</span>
+                        {compra.servex_expiracion && (
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            <span>Expira: {formatDate(compra.servex_expiracion)}</span>
+                          </div>
+                        )}
+                        {compra.mp_payment_id && (
+                          <span style={{ color: protonColors.gray[400] }}>ID: {compra.mp_payment_id}</span>
+                        )}
+                      </div>
+                      
+                      {/* Botón Ver Estado - solo para compras aprobadas con username */}
+                      {compra.estado === 'aprobado' && compra.servex_username && (
+                        <button
+                          onClick={() => consultarEstadoCuenta(compra.servex_username!)}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:bg-purple-100"
+                          style={{ 
+                            color: protonColors.purple[500],
+                            backgroundColor: estadosCuenta[compra.servex_username]?.expanded ? protonColors.purple[100] : 'transparent'
+                          }}
+                        >
+                          <Zap className="w-4 h-4" />
+                          Ver estado
+                          {estadosCuenta[compra.servex_username]?.expanded ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                        </button>
                       )}
                     </div>
+
+                    {/* Panel expandible con estado de cuenta */}
+                    <AnimatePresence>
+                      {compra.servex_username && estadosCuenta[compra.servex_username]?.expanded && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div 
+                            className="mt-4 p-4 rounded-xl"
+                            style={{ backgroundColor: protonColors.purple[50], border: `1px solid ${protonColors.purple[200]}` }}
+                          >
+                            {estadosCuenta[compra.servex_username]?.loading ? (
+                              <div className="flex items-center justify-center gap-2 py-4">
+                                <Loader2 className="w-5 h-5 animate-spin" style={{ color: protonColors.purple[500] }} />
+                                <span style={{ color: protonColors.purple[500] }}>Consultando estado...</span>
+                              </div>
+                            ) : estadosCuenta[compra.servex_username]?.error ? (
+                              <div className="flex items-center justify-center gap-2 py-4 text-red-600">
+                                <AlertTriangle className="w-5 h-5" />
+                                <span>{estadosCuenta[compra.servex_username]?.error}</span>
+                              </div>
+                            ) : estadosCuenta[compra.servex_username]?.data ? (
+                              <div>
+                                {/* Header con estado y botón refrescar */}
+                                <div className="flex items-center justify-between mb-4">
+                                  <div className="flex items-center gap-2">
+                                    {estadosCuenta[compra.servex_username]?.data?.estado === 'activo' ? (
+                                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium">
+                                        <CheckCircle className="w-4 h-4" />
+                                        Cuenta Activa
+                                      </div>
+                                    ) : estadosCuenta[compra.servex_username]?.data?.estado === 'por_expirar' ? (
+                                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-sm font-medium">
+                                        <AlertTriangle className="w-4 h-4" />
+                                        Por Expirar
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-red-700 text-sm font-medium">
+                                        <XCircle className="w-4 h-4" />
+                                        Expirada
+                                      </div>
+                                    )}
+                                  </div>
+                                  <button
+                                    onClick={() => refrescarEstadoCuenta(compra.servex_username!)}
+                                    className="flex items-center gap-1 text-sm hover:bg-purple-200 px-2 py-1 rounded transition-all"
+                                    style={{ color: protonColors.purple[500] }}
+                                  >
+                                    <RefreshCw className="w-4 h-4" />
+                                    Actualizar
+                                  </button>
+                                </div>
+
+                                {/* Grid de información */}
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                  {/* Días restantes */}
+                                  <div className="text-center p-3 rounded-lg bg-white">
+                                    <div 
+                                      className="text-2xl font-bold"
+                                      style={{ 
+                                        color: (estadosCuenta[compra.servex_username]?.data?.diasRestantes || 0) <= 3 
+                                          ? '#ef4444' 
+                                          : protonColors.purple[500] 
+                                      }}
+                                    >
+                                      {estadosCuenta[compra.servex_username]?.data?.diasRestantes || 0}
+                                    </div>
+                                    <div className="text-xs" style={{ color: protonColors.gray[500] }}>
+                                      Días restantes
+                                    </div>
+                                  </div>
+
+                                  {/* Fecha expiración */}
+                                  <div className="text-center p-3 rounded-lg bg-white">
+                                    <div className="text-sm font-semibold" style={{ color: protonColors.purple[700] }}>
+                                      {estadosCuenta[compra.servex_username]?.data?.fechaExpiracion 
+                                        ? formatDate(estadosCuenta[compra.servex_username]?.data?.fechaExpiracion || '')
+                                        : 'N/A'}
+                                    </div>
+                                    <div className="text-xs" style={{ color: protonColors.gray[500] }}>
+                                      Fecha expiración
+                                    </div>
+                                  </div>
+
+                                  {/* Para revendedores: créditos */}
+                                  {estadosCuenta[compra.servex_username]?.data?.tipo === 'revendedor' ? (
+                                    <>
+                                      <div className="text-center p-3 rounded-lg bg-white">
+                                        <div className="flex items-center justify-center gap-1">
+                                          <Users className="w-4 h-4" style={{ color: protonColors.purple[500] }} />
+                                          <span className="text-2xl font-bold" style={{ color: protonColors.purple[500] }}>
+                                            {estadosCuenta[compra.servex_username]?.data?.creditosRestantes || 0}
+                                          </span>
+                                        </div>
+                                        <div className="text-xs" style={{ color: protonColors.gray[500] }}>
+                                          Créditos disponibles
+                                        </div>
+                                      </div>
+                                      <div className="text-center p-3 rounded-lg bg-white">
+                                        <div className="text-sm font-semibold" style={{ color: protonColors.purple[700] }}>
+                                          {estadosCuenta[compra.servex_username]?.data?.usuariosActuales || 0} / {estadosCuenta[compra.servex_username]?.data?.maxUsuarios || 0}
+                                        </div>
+                                        <div className="text-xs" style={{ color: protonColors.gray[500] }}>
+                                          Usuarios creados
+                                        </div>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      {/* Para clientes: conexiones y estado online */}
+                                      <div className="text-center p-3 rounded-lg bg-white">
+                                        <div className="flex items-center justify-center gap-1">
+                                          <Wifi className="w-4 h-4" style={{ color: protonColors.purple[500] }} />
+                                          <span className="text-lg font-bold" style={{ color: protonColors.purple[500] }}>
+                                            {estadosCuenta[compra.servex_username]?.data?.conexionesMaximas || 1}
+                                          </span>
+                                        </div>
+                                        <div className="text-xs" style={{ color: protonColors.gray[500] }}>
+                                          Conexiones máx.
+                                        </div>
+                                      </div>
+                                      <div className="text-center p-3 rounded-lg bg-white">
+                                        <div className={`flex items-center justify-center gap-1 text-sm font-semibold ${
+                                          estadosCuenta[compra.servex_username]?.data?.online ? 'text-green-600' : 'text-gray-400'
+                                        }`}>
+                                          <div className={`w-2 h-2 rounded-full ${
+                                            estadosCuenta[compra.servex_username]?.data?.online ? 'bg-green-500 animate-pulse' : 'bg-gray-300'
+                                          }`} />
+                                          {estadosCuenta[compra.servex_username]?.data?.online ? 'Online' : 'Offline'}
+                                        </div>
+                                        <div className="text-xs" style={{ color: protonColors.gray[500] }}>
+                                          Estado actual
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+
+                                {/* Última conexión */}
+                                {estadosCuenta[compra.servex_username]?.data?.ultimaConexion && (
+                                  <div className="mt-3 text-center text-xs" style={{ color: protonColors.gray[500] }}>
+                                    Última conexión: {formatDate(estadosCuenta[compra.servex_username]?.data?.ultimaConexion || '')}
+                                  </div>
+                                )}
+                              </div>
+                            ) : null}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 ))}
               </AnimatePresence>

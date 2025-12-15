@@ -84,7 +84,11 @@ CREATE POLICY "Service role can manage purchases"
 -- Crea un perfil cuando un usuario se registra
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   INSERT INTO public.profiles (id, email, nombre)
   VALUES (
@@ -94,7 +98,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Trigger para ejecutar la función al crear usuario
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
@@ -107,12 +111,15 @@ CREATE TRIGGER on_auth_user_created
 -- ============================================
 
 CREATE OR REPLACE FUNCTION public.update_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Trigger para actualizar updated_at en profiles
 DROP TRIGGER IF EXISTS update_profiles_updated_at ON public.profiles;

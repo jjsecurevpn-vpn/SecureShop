@@ -674,6 +674,44 @@ class ApiService {
       throw new Error("Error eliminando sponsor");
     }
   }
+
+  // ============================================
+  // ESTADO DE CUENTA (Servex)
+  // ============================================
+
+  /**
+   * Obtiene el estado actual de una cuenta desde Servex
+   * Incluye días restantes, conexiones, etc.
+   */
+  async obtenerEstadoCuenta(username: string): Promise<EstadoCuenta> {
+    const response = await this.client.get<ApiResponse<EstadoCuenta>>(
+      `/clients/estado/${encodeURIComponent(username)}`
+    );
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.error || "Error obteniendo estado de cuenta");
+    }
+    return response.data.data;
+  }
+}
+
+// Tipo para el estado de cuenta
+export interface EstadoCuenta {
+  username: string;
+  tipo: 'cliente' | 'revendedor';
+  estado: 'activo' | 'por_expirar' | 'expirado';
+  activo: boolean;
+  diasRestantes: number;
+  fechaExpiracion: string | null;
+  // Para clientes
+  conexionesMaximas?: number;
+  online?: boolean;
+  // Para revendedores
+  maxUsuarios?: number;
+  usuariosActuales?: number;
+  creditosRestantes?: number;
+  // Fechas
+  fechaCreacion?: string;
+  ultimaConexion?: string;
 }
 
 export const apiService = new ApiService();

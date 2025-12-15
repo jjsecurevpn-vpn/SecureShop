@@ -86,5 +86,102 @@ export function crearRutasClientes(
     }
   });
 
+  /**
+   * GET /api/clients/estado/:username
+   * Obtiene el estado actual de una cuenta desde Servex
+   * Usado por usuarios para ver días restantes, conexiones, etc.
+   * Busca primero en clientes, luego en revendedores
+   */
+  router.get('/clients/estado/:username', async (req: Request, res: Response) => {
+    try {
+      const { username } = req.params;
+      
+      if (!username || username.trim().length < 2) {
+        res.status(400).json({
+          success: false,
+          error: 'Username inválido'
+        } as ApiResponse);
+        return;
+      }
+
+      console.log(`[Clientes] Consultando estado de cuenta: ${username}`);
+      
+      // Primero buscar en clientes
+      let cuenta = await servexService.buscarClientePorUsername(username.trim());
+      let esRevendedor = false;
+      
+      // Si no se encuentra en clientes, buscar en revendedores
+      if (!cuenta) {
+        console.log(`[Clientes] No encontrado en clientes, buscando en revendedores...`);
+        cuenta = await servexService.buscarRevendedorPorUsername(username.trim());
+        esRevendedor = cuenta !== null;
+      }
+      
+      if (!cuenta) {
+        res.status(404).json({
+          success: false,
+          error: 'Cuenta no encontrada'
+        } as ApiResponse);
+        return;
+      }
+
+      // Calcular días restantes
+      let diasRestantes = 0;
+      let estadoCuenta = 'activo';
+      const ahora = new Date();
+      
+      if (cuenta.expiration_date) {
+        const expiracion = new Date(cuenta.expiration_date);
+        const diffMs = expiracion.getTime() - ahora.getTime();
+        diasRestantes = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        
+        if (diasRestantes <= 0) {
+          estadoCuenta = 'expirado';
+          diasRestantes = 0;
+        } else if (diasRestantes <= 3) {
+          estadoCuenta = 'por_expirar';
+        }
+      }
+
+      // Si no es revendedor por búsqueda, verificar por max_users
+      if (!esRevendedor) {
+        esRevendedor = cuenta.max_users && cuenta.max_users > 1;
+      }
+
+      const estadoInfo = {
+        username: cuenta.username,
+        tipo: esRevendedor ? 'revendedor' : 'cliente',
+        estado: estadoCuenta,
+        activo: cuenta.is_active !== false,
+        diasRestantes,
+        fechaExpiracion: cuenta.expiration_date,
+        // Datos específicos
+        ...(esRevendedor ? {
+          maxUsuarios: cuenta.max_users,
+          usuariosActuales: cuenta.current_users || 0,
+          creditosRestantes: (cuenta.max_users || 0) - (cuenta.current_users || 0)
+        } : {
+          conexionesMaximas: cuenta.max_connections || 1,
+          online: cuenta.is_online || false
+        }),
+        // Fechas
+        fechaCreacion: cuenta.created_at,
+        ultimaConexion: cuenta.last_connection
+      };
+
+      res.json({
+        success: true,
+        data: estadoInfo
+      } as ApiResponse);
+
+    } catch (error: any) {
+      console.error('[Clientes] Error consultando estado:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message || 'Error consultando estado de cuenta'
+      } as ApiResponse);
+    }
+  });
+
   return router;
 }
