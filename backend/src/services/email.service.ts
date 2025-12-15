@@ -572,6 +572,128 @@ class EmailService {
       html,
     });
   }
+
+  /**
+   * Envía confirmación de renovación (clientes y revendedores)
+   */
+  async enviarConfirmacionRenovacion(
+    email: string,
+    datos: {
+      tipo: 'cliente' | 'revendedor';
+      username: string;
+      diasAgregados: number;
+      nuevaExpiracion: string;
+      monto: number;
+      operacion?: string; // 'upgrade', 'validity', 'credit', etc.
+      detallesExtra?: string; // Info adicional según tipo
+    }
+  ): Promise<boolean> {
+    const esCliente = datos.tipo === 'cliente';
+    const colorPrimario = esCliente ? '#667eea' : '#28a745';
+    const icono = esCliente ? '🔐' : '🏪';
+    const tipoTexto = esCliente ? 'Cliente VPN' : 'Revendedor';
+    
+    let tituloOperacion = 'Renovación exitosa';
+    if (datos.operacion === 'upgrade') {
+      tituloOperacion = 'Upgrade exitoso';
+    } else if (datos.operacion === 'validity') {
+      tituloOperacion = 'Renovación de validez exitosa';
+    } else if (datos.operacion === 'credit') {
+      tituloOperacion = 'Recarga de créditos exitosa';
+    }
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, ${colorPrimario} 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${colorPrimario}; }
+          .info-item { margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+          .info-label { font-weight: bold; color: ${colorPrimario}; }
+          .info-value { font-family: monospace; background: #f0f0f0; padding: 5px 10px; border-radius: 4px; }
+          .success-box { background: #d4edda; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745; text-align: center; }
+          .success-text { color: #155724; font-size: 18px; font-weight: bold; }
+          .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+          .button { display: inline-block; padding: 12px 30px; background: ${colorPrimario}; color: white; text-decoration: none; border-radius: 6px; margin: 10px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>${icono} ${tituloOperacion}</h1>
+            <p>${tipoTexto} - JJSecure VPN</p>
+          </div>
+          <div class="content">
+            <div class="success-box">
+              <p class="success-text">✅ Tu ${datos.tipo === 'cliente' ? 'cuenta' : 'panel de revendedor'} ha sido renovado exitosamente</p>
+            </div>
+            
+            <div class="info-box">
+              <h3>📋 Detalles de la renovación:</h3>
+              <div class="info-item">
+                <span class="info-label">👤 Usuario:</span>
+                <span class="info-value">${datos.username}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">📅 Días agregados:</span>
+                <span class="info-value">${datos.diasAgregados} días</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">⏰ Nueva expiración:</span>
+                <span class="info-value">${datos.nuevaExpiracion}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">💰 Monto pagado:</span>
+                <span class="info-value">$${datos.monto.toLocaleString('es-AR')}</span>
+              </div>
+              ${datos.detallesExtra ? `
+              <div class="info-item">
+                <span class="info-label">ℹ️ Detalles:</span>
+                <span class="info-value">${datos.detallesExtra}</span>
+              </div>
+              ` : ''}
+            </div>
+
+            <p style="text-align: center;">
+              ${esCliente ? `
+                <p>Tu cuenta está activa y lista para usar. ¡Disfruta de tu conexión segura!</p>
+              ` : `
+                <p>Tu panel de revendedor está actualizado. Puedes acceder desde:</p>
+                <a href="https://servex.jhservices.com.ar/reseller" class="button">Ir al Panel de Revendedor</a>
+              `}
+            </p>
+
+            <p><strong>💡 Recuerda:</strong></p>
+            <ul>
+              <li>Tu cuenta se renovará automáticamente desde la fecha actual</li>
+              <li>Si tienes dudas, contáctanos por WhatsApp</li>
+              <li>Guarda este email como comprobante de tu renovación</li>
+            </ul>
+
+            <p style="text-align: center;">
+              <a href="https://shop.jhservices.com.ar" class="button">Visitar la tienda</a>
+            </p>
+          </div>
+          <div class="footer">
+            <p>© 2025 JJSecure VPN - Todos los derechos reservados</p>
+            <p>Este es un correo automático, por favor no responder.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.enviarEmail({
+      to: email,
+      subject: `${icono} ${tituloOperacion} - ${datos.username} | JJSecure VPN`,
+      html,
+    });
+  }
+
   /**
    * Envía credenciales de demostración gratuita (2 horas)
    */

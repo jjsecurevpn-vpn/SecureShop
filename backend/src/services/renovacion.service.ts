@@ -837,6 +837,55 @@ export class RenovacionService {
         // No lanzamos error, la renovación ya está procesada
       }
 
+      // Enviar email de confirmación al cliente
+      try {
+        // Obtener la nueva fecha de expiración
+        let nuevaExpiracion = '';
+        let detallesExtra = '';
+        
+        if (renovacion.tipo === 'cliente') {
+          const clienteActualizado = await this.servex.buscarClientePorUsername(renovacion.servex_username);
+          if (clienteActualizado?.expiration_date) {
+            nuevaExpiracion = new Date(clienteActualizado.expiration_date).toLocaleDateString('es-AR', {
+              day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+          }
+          if (renovacion.operacion === 'upgrade') {
+            const datosNuevos = JSON.parse(renovacion.datos_nuevos || '{}');
+            detallesExtra = `Nuevo límite: ${datosNuevos.connection_limit} dispositivos`;
+          }
+        } else if (renovacion.tipo === 'revendedor') {
+          const revendedorActualizado = await this.servex.buscarRevendedorPorUsername(renovacion.servex_username);
+          if (revendedorActualizado?.expiration_date) {
+            nuevaExpiracion = new Date(revendedorActualizado.expiration_date).toLocaleDateString('es-AR', {
+              day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+          }
+          if (renovacion.datos_nuevos) {
+            const datosNuevos = JSON.parse(renovacion.datos_nuevos);
+            if (datosNuevos.tipo_renovacion === 'validity') {
+              detallesExtra = `${datosNuevos.cantidad} usuarios máx`;
+            } else if (datosNuevos.tipo_renovacion === 'credit') {
+              detallesExtra = `+${datosNuevos.cantidad} créditos`;
+            }
+          }
+        }
+        
+        await emailService.enviarConfirmacionRenovacion(renovacion.cliente_email, {
+          tipo: renovacion.tipo,
+          username: renovacion.servex_username,
+          diasAgregados: renovacion.dias_agregados,
+          nuevaExpiracion: nuevaExpiracion || 'Ver en panel',
+          monto: renovacion.monto,
+          operacion: renovacion.operacion || (renovacion.datos_nuevos ? JSON.parse(renovacion.datos_nuevos).tipo_renovacion : undefined),
+          detallesExtra: detallesExtra || undefined,
+        });
+        console.log(`[Renovacion] ✅ Email de confirmación enviado a ${renovacion.cliente_email}`);
+      } catch (emailClienteError: any) {
+        console.error('[Renovacion] ⚠️ Error enviando email de confirmación al cliente:', emailClienteError.message);
+        // No lanzamos error, la renovación ya está procesada
+      }
+
     } catch (error: any) {
       console.error('[Renovacion] ❌ Error ejecutando renovación:', error.message);
       this.db.actualizarEstadoRenovacion(renovacionId, 'pendiente');
@@ -950,6 +999,13 @@ export class RenovacionService {
    */
   obtenerRenovacionPorId(renovacionId: number): any | null {
     return this.db.obtenerRenovacionPorId(renovacionId);
+  }
+
+  /**
+   * Busca renovaciones por email del cliente
+   */
+  buscarRenovacionesPorEmail(email: string): any[] {
+    return this.db.buscarRenovacionesPorEmail(email);
   }
 
   /**

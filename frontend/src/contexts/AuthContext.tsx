@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useRef,
   ReactNode,
 } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
@@ -30,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [purchaseHistory, setPurchaseHistory] = useState<PurchaseHistory[]>([]);
   const [loading, setLoading] = useState(true);
+  const initRef = useRef(false);
 
   // Cargar perfil del usuario
   const fetchProfile = async (userId: string) => {
@@ -79,38 +81,79 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Obtener sesión inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id);
-        fetchPurchaseHistory(session.user.id);
+    // Evitar doble inicialización (React StrictMode)
+    if (initRef.current) {
+      return;
+    }
+    initRef.current = true;
+
+    let isMounted = true;
+
+    const initAuth = async () => {
+      try {
+        console.log('🔐 Iniciando autenticación...');
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
+        
+        if (error) {
+          console.error('❌ Error getting session:', error);
+          setLoading(false);
+          return;
+        }
+        
+        console.log('✅ Sesión obtenida:', session ? 'Usuario logueado' : 'Sin sesión');
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          console.log('👤 Cargando perfil e historial...');
+          await Promise.all([
+            fetchProfile(session.user.id),
+            fetchPurchaseHistory(session.user.id)
+          ]);
+          console.log('✅ Datos cargados');
+        }
+        
+        if (isMounted) {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('❌ Error en initAuth:', error);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-      
-      setLoading(false);
-    });
+    };
+
+    initAuth();
 
     // Escuchar cambios de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        console.log('🔄 Auth state changed:', _event);
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Poner loading en false INMEDIATAMENTE
+        setLoading(false);
 
         if (session?.user) {
-          await fetchProfile(session.user.id);
-          await fetchPurchaseHistory(session.user.id);
+          // Cargar datos en background sin bloquear
+          fetchProfile(session.user.id).catch(console.error);
+          fetchPurchaseHistory(session.user.id).catch(console.error);
         } else {
           setProfile(null);
           setPurchaseHistory([]);
         }
-
-        setLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Registrar usuario

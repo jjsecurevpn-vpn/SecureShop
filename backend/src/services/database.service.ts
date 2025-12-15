@@ -941,6 +941,19 @@ export class DatabaseService {
   }
 
   /**
+   * Busca renovaciones por email del cliente
+   */
+  buscarRenovacionesPorEmail(email: string): any[] {
+    const stmt = this.db.prepare(`
+      SELECT * FROM renovaciones 
+      WHERE cliente_email LIKE ? 
+      ORDER BY fecha_creacion DESC 
+      LIMIT 50
+    `);
+    return stmt.all(`%${email}%`);
+  }
+
+  /**
    * Actualiza el estado de una renovación
    */
   actualizarEstadoRenovacion(
@@ -1013,5 +1026,37 @@ export class DatabaseService {
 
   close(): void {
     this.db.close();
+  }
+
+  // ============================================
+  // MÉTODOS ADMIN
+  // ============================================
+
+  /**
+   * Buscar pagos por email del cliente
+   */
+  buscarPagosPorEmail(email: string): Pago[] {
+    const stmt = this.db.prepare(`
+      SELECT * FROM pagos 
+      WHERE cliente_email LIKE ?
+      ORDER BY fecha_creacion DESC
+      LIMIT 50
+    `);
+    const rows = stmt.all(`%${email}%`) as PagoRow[];
+    return rows.map((row) => this.mapPagoRowToPago(row));
+  }
+
+  /**
+   * Obtener últimos pagos pendientes
+   */
+  obtenerPagosPendientes(limite: number = 20): Pago[] {
+    const stmt = this.db.prepare(`
+      SELECT * FROM pagos 
+      WHERE estado = 'pendiente'
+      ORDER BY fecha_creacion DESC
+      LIMIT ?
+    `);
+    const rows = stmt.all(limite) as PagoRow[];
+    return rows.map((row) => this.mapPagoRowToPago(row));
   }
 }

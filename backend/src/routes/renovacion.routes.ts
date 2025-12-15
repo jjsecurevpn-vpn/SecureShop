@@ -428,5 +428,145 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
     );
   });
 
+  /**
+   * POST /api/renovacion/admin/reenviar-email/:renovacionId
+   * Reenvía el email de confirmación de una renovación aprobada
+   */
+  router.post('/admin/reenviar-email/:renovacionId', async (req: Request, res: Response) => {
+    try {
+      const renovacionId = parseInt(req.params.renovacionId, 10);
+      
+      if (isNaN(renovacionId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'ID de renovación inválido'
+        });
+      }
+
+      // Importar solo email service
+      const emailService = (await import('../services/email.service')).default;
+
+      // Obtener renovación usando el servicio
+      const renovacion = await renovacionService.obtenerRenovacionPorId(renovacionId);
+      
+      if (!renovacion) {
+        return res.status(404).json({
+          success: false,
+          error: 'Renovación no encontrada'
+        });
+      }
+
+      if (renovacion.estado !== 'aprobado') {
+        return res.status(400).json({
+          success: false,
+          error: `Renovación en estado: ${renovacion.estado}. Solo renovaciones aprobadas pueden reenviar email.`
+        });
+      }
+
+      // Obtener datos actualizados de Servex usando métodos del renovacionService
+      let nuevaExpiracion = '';
+      let detallesExtra = '';
+      
+      if (renovacion.tipo === 'cliente') {
+        const clienteActualizado = await renovacionService.obtenerClienteActualizado(renovacion.servex_username);
+        if (clienteActualizado?.expiration_date) {
+          nuevaExpiracion = new Date(clienteActualizado.expiration_date).toLocaleDateString('es-AR', {
+            day: '2-digit', month: '2-digit', year: 'numeric'
+          });
+        }
+        if (renovacion.operacion === 'upgrade' && renovacion.datos_nuevos) {
+          const datosNuevos = JSON.parse(renovacion.datos_nuevos);
+          detallesExtra = `Nuevo límite: ${datosNuevos.connection_limit} dispositivos`;
+        }
+      } else if (renovacion.tipo === 'revendedor') {
+        const revendedorActualizado = await renovacionService.obtenerRevendedorActualizado(renovacion.servex_username);
+        if (revendedorActualizado?.expiration_date) {
+          nuevaExpiracion = new Date(revendedorActualizado.expiration_date).toLocaleDateString('es-AR', {
+            day: '2-digit', month: '2-digit', year: 'numeric'
+          });
+        }
+        if (renovacion.datos_nuevos) {
+          const datosNuevos = JSON.parse(renovacion.datos_nuevos);
+          if (datosNuevos.tipo_renovacion === 'validity') {
+            detallesExtra = `${datosNuevos.cantidad} usuarios máx`;
+          } else if (datosNuevos.tipo_renovacion === 'credit') {
+            detallesExtra = `+${datosNuevos.cantidad} créditos`;
+          }
+        }
+      }
+
+      // Enviar email
+      await emailService.enviarConfirmacionRenovacion(renovacion.cliente_email, {
+        tipo: renovacion.tipo,
+        username: renovacion.servex_username,
+        diasAgregados: renovacion.dias_agregados,
+        nuevaExpiracion: nuevaExpiracion || 'Ver en panel',
+        monto: renovacion.monto,
+        operacion: renovacion.operacion || (renovacion.datos_nuevos ? JSON.parse(renovacion.datos_nuevos).tipo_renovacion : undefined),
+        detallesExtra: detallesExtra || undefined,
+      });
+
+      // Notificar al administrador del reenvío
+      const tipoNotificacion = renovacion.tipo === 'cliente' ? 'renovacion-cliente' : 'renovacion-revendedor';
+      await emailService.notificarVentaAdmin(tipoNotificacion, {
+        clienteNombre: renovacion.cliente_nombre,
+        clienteEmail: renovacion.cliente_email,
+        monto: renovacion.monto,
+        descripcion: `📧 REENVÍO EMAIL - ${renovacion.tipo === 'cliente' ? 'Renovación cliente' : 'Renovación revendedor'}: ${renovacion.dias_agregados} días${detallesExtra ? ` (${detallesExtra})` : ''}`,
+        username: renovacion.servex_username
+      });
+
+      return res.json({
+        success: true,
+        message: `Email de confirmación reenviado a ${renovacion.cliente_email}`,
+        renovacion: {
+          id: renovacion.id,
+          tipo: renovacion.tipo,
+          username: renovacion.servex_username,
+          email: renovacion.cliente_email,
+          nuevaExpiracion
+        }
+      });
+    } catch (error: any) {
+      console.error('[Renovacion API] Error reenviando email:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
+  /**
+   * GET /api/renovacion/admin/buscar-por-email
+   * Busca renovaciones por email del cliente
+   */
+  router.get('/admin/buscar-por-email', async (req: Request, res: Response) => {
+    try {
+      const email = req.query.email as string;
+      
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          error: 'Email requerido'
+        });
+      }
+
+      const renovaciones = await renovacionService.buscarRenovacionesPorEmail(email);
+      
+      return res.json({
+        success: true,
+        email,
+        total: renovaciones.length,
+        renovaciones
+      });
+    } catch (error: any) {
+      console.error('[Renovacion API] Error buscando renovaciones por email:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
   return router;
 }

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, LogIn, ChevronDown, ShoppingBag, LogOut, Loader2 } from 'lucide-react';
+import { User, ChevronDown, ShoppingBag, LogOut, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import AuthModal from './AuthModal';
+import { protonColors } from '../styles/colors';
 
 export default function UserMenu() {
   const { user, profile, loading, signOut } = useAuth();
@@ -14,7 +15,7 @@ export default function UserMenu() {
   if (loading) {
     return (
       <div className="p-2">
-        <Loader2 className="w-5 h-5 animate-spin text-neutral-500" />
+        <Loader2 className="w-5 h-5 animate-spin" style={{ color: protonColors.purple[500] }} />
       </div>
     );
   }
@@ -24,10 +25,10 @@ export default function UserMenu() {
       <>
         <button
           onClick={() => setShowAuthModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all"
+          className="text-sm font-semibold transition-colors hover:opacity-80"
+          style={{ color: protonColors.purple[800] }}
         >
-          <LogIn className="w-4 h-4" />
-          <span className="hidden sm:inline">Iniciar Sesión</span>
+          Iniciar sesión
         </button>
         <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
       </>
@@ -48,15 +49,24 @@ export default function UserMenu() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg transition-colors"
+        className="flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors"
+        style={{ color: protonColors.purple[800] }}
+        onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[100]}
+        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
       >
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-sm font-bold text-white">
+        <div 
+          className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-white"
+          style={{ backgroundColor: protonColors.purple[500] }}
+        >
           {(profile?.nombre || user.email || 'U')[0].toUpperCase()}
         </div>
-        <span className="hidden sm:inline text-sm text-white max-w-[100px] truncate">
+        <span className="hidden sm:inline text-sm font-medium max-w-[100px] truncate">
           {profile?.nombre || user.email?.split('@')[0]}
         </span>
-        <ChevronDown className={`w-4 h-4 text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown 
+          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+          style={{ color: protonColors.purple[500] }}
+        />
       </button>
 
       <AnimatePresence>
@@ -68,34 +78,40 @@ export default function UserMenu() {
               onClick={() => setIsOpen(false)}
             />
             
-            {/* Dropdown */}
+            {/* Dropdown - Estilo claro como el resto del header */}
             <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 mt-2 w-56 bg-neutral-800 border border-neutral-700 rounded-xl shadow-xl overflow-hidden z-50"
+              className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg ring-1 ring-black/5 overflow-hidden z-50"
             >
               {/* Header */}
-              <div className="px-4 py-3 border-b border-neutral-700">
-                <p className="text-sm font-medium text-white truncate">
+              <div className="px-4 py-3 border-b border-gray-100">
+                <p className="text-sm font-semibold truncate" style={{ color: protonColors.purple[800] }}>
                   {profile?.nombre || 'Usuario'}
                 </p>
-                <p className="text-xs text-neutral-400 truncate">{user.email}</p>
+                <p className="text-xs truncate" style={{ color: protonColors.purple[500] }}>{user.email}</p>
               </div>
 
               {/* Menu Items */}
-              <div className="py-2">
+              <div className="py-1">
                 <button
                   onClick={handleGoToProfile}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                  style={{ color: protonColors.purple[800], backgroundColor: 'transparent' }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <User className="w-4 h-4" />
                   Mi Perfil
                 </button>
                 <button
                   onClick={handleGoToProfile}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                  style={{ color: protonColors.purple[800], backgroundColor: 'transparent' }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <ShoppingBag className="w-4 h-4" />
                   Mis Compras
@@ -103,10 +119,13 @@ export default function UserMenu() {
               </div>
 
               {/* Logout */}
-              <div className="border-t border-neutral-700 py-2">
+              <div className="border-t border-gray-100 py-1">
                 <button
                   onClick={handleSignOut}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 transition-colors"
+                  style={{ backgroundColor: 'transparent' }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <LogOut className="w-4 h-4" />
                   Cerrar Sesión

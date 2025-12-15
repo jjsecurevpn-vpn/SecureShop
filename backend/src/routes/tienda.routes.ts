@@ -790,6 +790,99 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
   );
 
   /**
+   * GET /api/admin/buscar-pagos
+   * Buscar pagos por email (para admin)
+   */
+  router.get("/admin/buscar-pagos", async (req: Request, res: Response) => {
+    try {
+      const email = req.query.email as string;
+
+      if (!email) {
+        res.status(400).json({
+          success: false,
+          error: "Falta el parámetro email",
+        } as ApiResponse);
+        return;
+      }
+
+      const pagos = tiendaService.buscarPagosPorEmail(email);
+      console.log(`[Admin] Búsqueda de pagos para "${email}": ${pagos.length} resultados`);
+
+      res.json({
+        success: true,
+        data: pagos,
+      } as ApiResponse);
+    } catch (error: any) {
+      console.error("[Admin] Error buscando pagos:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Error buscando pagos",
+      } as ApiResponse);
+    }
+  });
+
+  /**
+   * GET /api/admin/pagos-pendientes
+   * Obtener últimos pagos pendientes
+   */
+  router.get("/admin/pagos-pendientes", async (req: Request, res: Response) => {
+    try {
+      const limite = parseInt(req.query.limite as string) || 20;
+      const pagos = tiendaService.obtenerPagosPendientes(limite);
+      
+      console.log(`[Admin] Pagos pendientes: ${pagos.length} resultados`);
+
+      res.json({
+        success: true,
+        data: pagos,
+      } as ApiResponse);
+    } catch (error: any) {
+      console.error("[Admin] Error obteniendo pagos pendientes:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Error obteniendo pagos pendientes",
+      } as ApiResponse);
+    }
+  });
+
+  /**
+   * POST /api/admin/aprobar-pago
+   * Aprobar un pago manualmente (crear cuenta VPN y enviar email)
+   */
+  router.post("/admin/aprobar-pago", async (req: Request, res: Response) => {
+    try {
+      const { pagoId, motivo } = req.body;
+
+      if (!pagoId) {
+        res.status(400).json({
+          success: false,
+          error: "Falta el ID del pago",
+        } as ApiResponse);
+        return;
+      }
+
+      console.log(`[Admin] Aprobando pago manualmente: ${pagoId}`);
+      
+      const pagoAprobado = await tiendaService.aprobarPagoManualmente(
+        pagoId, 
+        motivo || 'Aprobación manual desde admin'
+      );
+
+      res.json({
+        success: true,
+        message: `Pago aprobado exitosamente. Usuario: ${pagoAprobado.servex_username}`,
+        data: pagoAprobado,
+      } as ApiResponse);
+    } catch (error: any) {
+      console.error("[Admin] Error aprobando pago:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Error aprobando pago",
+      } as ApiResponse);
+    }
+  });
+
+  /**
    * POST /api/admin/reenviar-email
    * Reenvía el email de credenciales a un cliente (útil cuando falla el envío original)
    */

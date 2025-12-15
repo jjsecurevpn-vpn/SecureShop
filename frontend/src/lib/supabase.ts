@@ -3,9 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+console.log('🔧 Supabase Config:', {
+  url: supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : 'NOT SET',
+  keySet: !!supabaseAnonKey
+});
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    'Supabase URL o Anon Key no configurados. ' +
+  console.error(
+    '❌ Supabase URL o Anon Key no configurados. ' +
     'Agrega VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY a tu archivo .env'
   );
 }

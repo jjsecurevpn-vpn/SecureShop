@@ -24,6 +24,14 @@ module.exports = {
         RATE_LIMIT_WINDOW_MS: "900000",
         RATE_LIMIT_MAX_REQUESTS: "100",
         SERVEX_TIMEOUT: "30000",
+        // Email Configuration
+        SMTP_HOST: "smtp.gmail.com",
+        SMTP_PORT: "587",
+        EMAIL_USER: "jjsecurevpn@gmail.com",
+        EMAIL_PASS: "nnbupqttsrzators",
+        // Supabase Configuration
+        SUPABASE_URL: "https://yvxtlepjcpogiqgrzlpx.supabase.co",
+        SUPABASE_SERVICE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2eHRsZXBqY3BvZ2lxZ3J6bHB4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTc0ODk1MywiZXhwIjoyMDgxMzI0OTUzfQ.75iW23-u5jfDi4XtIjorzS6Kve7p2uhSySP81dmW7Y8",
       },
       error_file: "~/.pm2/logs/secureshop-backend-error.log",
       out_file: "~/.pm2/logs/secureshop-backend-out.log",

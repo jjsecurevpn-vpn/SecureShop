@@ -511,4 +511,51 @@ export class TiendaService {
     );
     return pago;
   }
+
+  /**
+   * ADMIN: Aprobar pago manualmente (sin verificar MercadoPago)
+   * Útil para pagos que se perdieron durante downtime del backend
+   */
+  async aprobarPagoManualmente(pagoId: string, adminMotivo: string = 'Aprobación manual admin'): Promise<Pago> {
+    console.log(`[Tienda ADMIN] 🔧 Aprobando pago manualmente: ${pagoId}`);
+    console.log(`[Tienda ADMIN] Motivo: ${adminMotivo}`);
+
+    const pago = this.db.obtenerPagoPorId(pagoId);
+    if (!pago) {
+      throw new Error(`Pago no encontrado: ${pagoId}`);
+    }
+
+    // Verificar que no tenga ya una cuenta creada
+    if (pago.servex_cuenta_id) {
+      console.log(`[Tienda ADMIN] ⚠️ Este pago ya tiene cuenta: ${pago.servex_username}`);
+      return pago;
+    }
+
+    // Llamar al método privado con un payment_id fake
+    const fakePaymentId = `ADMIN-MANUAL-${Date.now()}`;
+    await this.confirmarPagoYCrearCuenta(pagoId, fakePaymentId);
+
+    // Devolver el pago actualizado
+    const pagoActualizado = this.db.obtenerPagoPorId(pagoId);
+    if (!pagoActualizado) {
+      throw new Error('Error: pago no encontrado después de aprobar');
+    }
+
+    console.log(`[Tienda ADMIN] ✅ Pago aprobado manualmente. Username: ${pagoActualizado.servex_username}`);
+    return pagoActualizado;
+  }
+
+  /**
+   * ADMIN: Buscar pagos por email
+   */
+  buscarPagosPorEmail(email: string): Pago[] {
+    return this.db.buscarPagosPorEmail(email);
+  }
+
+  /**
+   * ADMIN: Obtener últimos pagos pendientes
+   */
+  obtenerPagosPendientes(limite: number = 20): Pago[] {
+    return this.db.obtenerPagosPendientes(limite);
+  }
 }
