@@ -11,6 +11,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutRevendedorPage from "./pages/CheckoutRevendedorPage";
 import CheckoutRenovacionPage from "./pages/CheckoutRenovacionPage";
+import ProfilePage from "./pages/ProfilePage";
 import Header from "./components/Header";
 import { PromoHeader } from "./components/PromoHeader";
 import ScrollToTop from "./components/ScrollToTop";
@@ -18,6 +19,7 @@ import Footer from "./components/Footer";
 import PageLoading from "./components/PageLoading";
 import { useState, useEffect } from "react";
 import { LoadingProvider, useLoading } from "./contexts/LoadingContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import AdminToolsPage from "./pages/AdminToolsPage/index";
 import DonacionesPage from "./pages/DonacionesPage";
 import DonationSuccessPage from "./pages/DonationSuccessPage";
@@ -59,6 +61,7 @@ const AppContent = () => {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/checkout-renovacion" element={<CheckoutRenovacionPage />} />
           <Route path="/checkout-revendedor" element={<CheckoutRevendedorPage />} />
+          <Route path="/perfil" element={<ProfilePage />} />
           <Route path="/planes" element={<PlanesPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/revendedores" element={<RevendedoresPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/servidores" element={<ServersPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
@@ -81,9 +84,11 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <LoadingProvider>
-      <AppContent />
-    </LoadingProvider>
+    <AuthProvider>
+      <LoadingProvider>
+        <AppContent />
+      </LoadingProvider>
+    </AuthProvider>
   );
 };
 

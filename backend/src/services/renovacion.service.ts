@@ -4,6 +4,7 @@ import { MercadoPagoService } from './mercadopago.service';
 import { configService } from './config.service';
 import emailService from './email.service';
 import { cuponesService } from './cupones.service';
+import { supabaseService } from './supabase.service';
 import { RenovacionAutoRetryConfig } from '../types';
 
 export class RenovacionService {
@@ -818,6 +819,21 @@ export class RenovacionService {
         console.log('[Renovacion] ✅ Notificación enviada al administrador');
       } catch (emailError: any) {
         console.error('[Renovacion] ⚠️ Error notificando al admin:', emailError.message);
+        // No lanzamos error, la renovación ya está procesada
+      }
+
+      // Sincronizar con Supabase (historial de usuario)
+      try {
+        await supabaseService.syncApprovedPurchase({
+          email: renovacion.cliente_email,
+          planNombre: renovacion.operacion === 'upgrade' ? `Upgrade: ${renovacion.dias_agregados} días` : `Renovación: ${renovacion.dias_agregados} días`,
+          monto: renovacion.monto,
+          tipo: 'renovacion',
+          servexUsername: renovacion.servex_username,
+          mpPaymentId: mpPaymentId || undefined,
+        });
+      } catch (supabaseError: any) {
+        console.error('[Renovacion] ⚠️ Error sincronizando con Supabase:', supabaseError.message);
         // No lanzamos error, la renovación ya está procesada
       }
 

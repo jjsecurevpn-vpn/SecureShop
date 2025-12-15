@@ -19,6 +19,7 @@
   "author": "SecureShop",
   "license": "ISC",
   "dependencies": {
+    "@supabase/supabase-js": "^2.87.1",
     "axios": "^1.6.2",
     "better-sqlite3": "^9.2.2",
     "cors": "^2.8.5",

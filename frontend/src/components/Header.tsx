@@ -1,8 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, Home, Users, CreditCard, Store, Heart, Star, Server } from 'lucide-react';
+import { Menu, X, ChevronDown, Home, Users, CreditCard, Store, Heart, Star, Server, User } from 'lucide-react';
 import ContactButton from "./ContactButton";
 import NoticiasPopover from "./NoticiasPopover";
 import CuponesPopover from "./CuponesPopover";
+import UserMenu from "./UserMenu";
 import { useState, useEffect } from "react";
 import { protonColors } from "../styles/colors";
 
@@ -187,6 +188,7 @@ const Header = () => {
               <CuponesPopover />
               <NoticiasPopover />
               <ContactButton />
+              <UserMenu />
             </div>
 
             {/* Mobile icons */}
@@ -241,6 +243,7 @@ const Header = () => {
                 { path: '/donaciones', label: 'Donaciones', icon: Heart },
                 { path: '/sponsors', label: 'Sponsors', icon: Star },
                 { path: '/servidores', label: 'Servidores', icon: Server },
+                { path: '/perfil', label: 'Mi Cuenta', icon: User },
               ].map((item) => (
                 <Link
                   key={item.path}

@@ -7,6 +7,7 @@ import { DemoService } from "./demo.service";
 import { configService } from "./config.service";
 import emailService from "./email.service";
 import { cuponesService } from "./cupones.service";
+import { supabaseService } from "./supabase.service";
 import { Plan, Pago, CrearPagoInput, ClienteServex } from "../types";
 
 export class TiendaService {
@@ -399,6 +400,24 @@ export class TiendaService {
           "[Tienda] ⚠️ Error notificando al admin:",
           emailError.message
         );
+        // No lanzamos error, la venta ya está procesada
+      }
+
+      // Sincronizar con Supabase (historial de usuario)
+      try {
+        await supabaseService.syncApprovedPurchase({
+          email: pago.cliente_email,
+          planNombre: plan.nombre,
+          monto: pago.monto,
+          tipo: 'plan',
+          servexUsername: clienteCreado.username,
+          servexPassword: clienteCreado.password,
+          servexExpiracion: clienteCreado.expiration_date,
+          servexConnectionLimit: clienteCreado.connection_limit,
+          mpPaymentId: mpPaymentId,
+        });
+      } catch (supabaseError: any) {
+        console.error("[Tienda] ⚠️ Error sincronizando con Supabase:", supabaseError.message);
         // No lanzamos error, la venta ya está procesada
       }
     } catch (error: any) {
