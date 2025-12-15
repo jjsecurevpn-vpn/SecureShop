@@ -568,5 +568,87 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
     }
   });
 
+  /**
+   * POST /api/renovacion/admin/sync-historial
+   * Sincroniza renovaciones aprobadas al historial de Supabase
+   */
+  router.post('/admin/sync-historial', async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          error: 'Email requerido'
+        });
+      }
+
+      const { supabaseService } = await import('../services/supabase.service');
+      
+      // Buscar renovaciones aprobadas de este usuario
+      const renovaciones = await renovacionService.buscarRenovacionesPorEmail(email);
+      const aprobadas = renovaciones.filter((r: any) => r.estado === 'aprobado');
+      
+      if (aprobadas.length === 0) {
+        return res.json({
+          success: true,
+          message: 'No hay renovaciones aprobadas para sincronizar',
+          sincronizadas: 0
+        });
+      }
+
+      let sincronizadas = 0;
+      const errores: string[] = [];
+
+      for (const renovacion of aprobadas) {
+        try {
+          let planNombre = '';
+          if (renovacion.tipo === 'cliente') {
+            planNombre = renovacion.operacion === 'upgrade' 
+              ? `Upgrade: ${renovacion.dias_agregados} días` 
+              : `Renovación: ${renovacion.dias_agregados} días`;
+          } else {
+            // Revendedor
+            if (renovacion.datos_nuevos) {
+              const datos = JSON.parse(renovacion.datos_nuevos);
+              planNombre = datos.plan_nombre || `Recarga: ${datos.cantidad || 0} créditos`;
+            } else {
+              planNombre = `Renovación revendedor: ${renovacion.dias_agregados} días`;
+            }
+          }
+
+          const resultado = await supabaseService.syncApprovedPurchase({
+            email: renovacion.cliente_email,
+            planNombre,
+            monto: renovacion.monto,
+            tipo: renovacion.tipo === 'cliente' ? 'renovacion' : 'revendedor',
+            servexUsername: renovacion.servex_username,
+            mpPaymentId: renovacion.mp_payment_id || `RENOV-${renovacion.id}`,
+          });
+
+          if (resultado) {
+            sincronizadas++;
+          }
+        } catch (err: any) {
+          errores.push(`Renovación ${renovacion.id}: ${err.message}`);
+        }
+      }
+
+      return res.json({
+        success: true,
+        message: `Se sincronizaron ${sincronizadas} de ${aprobadas.length} renovaciones`,
+        sincronizadas,
+        total: aprobadas.length,
+        errores: errores.length > 0 ? errores : undefined
+      });
+    } catch (error: any) {
+      console.error('[Renovacion API] Error sincronizando historial:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
   return router;
 }
