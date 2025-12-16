@@ -16,8 +16,46 @@ import {
   DescuentosGlobalesSection,
   SponsorsSection,
   PlanesSection,
+  ReferidosSection,
 } from "./components";
 import { CuponFormState, PromoConfig, HeroPromoConfig } from "./types";
+import {
+  LayoutDashboard,
+  Package,
+  Users,
+  Ticket,
+  Bell,
+  Percent,
+  Gift,
+  ChevronRight,
+} from "lucide-react";
+
+// Tipos de secciones disponibles
+type AdminSection = 
+  | "overview" 
+  | "planes" 
+  | "sponsors" 
+  | "cupones" 
+  | "noticias" 
+  | "descuentos" 
+  | "referidos";
+
+interface NavItem {
+  id: AdminSection;
+  label: string;
+  icon: React.ReactNode;
+  description: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { id: "overview", label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" />, description: "Resumen general" },
+  { id: "planes", label: "Planes", icon: <Package className="w-5 h-5" />, description: "Gestionar planes VPN" },
+  { id: "sponsors", label: "Sponsors", icon: <Users className="w-5 h-5" />, description: "Gestionar sponsors" },
+  { id: "cupones", label: "Cupones", icon: <Ticket className="w-5 h-5" />, description: "Crear y gestionar cupones" },
+  { id: "noticias", label: "Avisos", icon: <Bell className="w-5 h-5" />, description: "Configurar avisos" },
+  { id: "descuentos", label: "Descuentos", icon: <Percent className="w-5 h-5" />, description: "Descuentos globales" },
+  { id: "referidos", label: "Referidos", icon: <Gift className="w-5 h-5" />, description: "Programa de referidos" },
+];
 
 interface AdminToolsPageProps {
   isMobileMenuOpen?: boolean;
@@ -37,6 +75,9 @@ const FEEDBACK_TIMEOUT = 3000;
 
 // eslint-disable-next-line no-empty-pattern
 export default function AdminToolsPage({ }: AdminToolsPageProps) {
+  // Estado de navegación
+  const [activeSection, setActiveSection] = useState<AdminSection>("overview");
+
   // Estado de sponsors
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [sponsorsLoading, setSponsorsLoading] = useState(true);
@@ -502,152 +543,201 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
     });
   }, []);
 
+  // Renderizar contenido de la sección activa
+  const renderSectionContent = () => {
+    switch (activeSection) {
+      case "overview":
+        return (
+          <OverviewSection
+            cupones={cupones}
+            loadingCupones={loadingCupones}
+            isRefreshingCupones={isRefreshingCupones}
+            noticiasConfig={noticiasConfig}
+            numberFormatter={numberFormatter}
+            onRefreshCupones={handleRefreshCupones}
+          />
+        );
+
+      case "planes":
+        return (
+          <div className="space-y-6">
+            <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
+              <h3 className="text-xl font-semibold mb-4 text-neutral-200">Planes Normales</h3>
+              <PlanesSection tipo="normales" />
+            </div>
+            <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
+              <h3 className="text-xl font-semibold mb-4 text-neutral-200">Planes Revendedor</h3>
+              <PlanesSection tipo="revendedores" />
+            </div>
+          </div>
+        );
+
+      case "sponsors":
+        return (
+          <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
+            <SponsorsSection
+              sponsors={sponsors}
+              loading={sponsorsLoading}
+              onCreate={handleCreateSponsor}
+              onDelete={handleDeleteSponsor}
+              onUpdate={handleUpdateSponsor}
+              success={sponsorsSuccess}
+              error={sponsorsError}
+            />
+          </div>
+        );
+
+      case "cupones":
+        return (
+          <div className="space-y-6">
+            <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
+              <h3 className="text-xl font-semibold mb-4 text-neutral-200">Crear cupón</h3>
+              <CuponesForm
+                cuponForm={cuponForm}
+                isCreatingCupon={false}
+                cuponSuccess={cuponSuccess}
+                cuponError={cuponError}
+                onInputChange={handleInputChange}
+                onSubmit={handleCrearCupon}
+              />
+            </div>
+            <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
+              <h3 className="text-xl font-semibold mb-4 text-neutral-200">Cupones activos</h3>
+              <CuponesList
+                cupones={cupones}
+                loading={loadingCupones}
+                onDesactivar={handleDesactivarCupon}
+                onDelete={(cupon: Cupon) => setCuponToDelete(cupon)}
+              />
+            </div>
+          </div>
+        );
+
+      case "noticias":
+        return (
+          <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
+            {noticiasLoading ? (
+              <div className="text-center py-8 text-neutral-400">Cargando configuración...</div>
+            ) : noticiasConfig ? (
+              <NoticiasSection
+                config={noticiasConfig}
+                onToggle={handleNoticiasToggle}
+                onAvisoFieldChange={handleNoticiasAvisoFieldChange}
+                onSubmit={handleGuardarNoticias}
+                isLoading={isSavingNoticias}
+                success={noticiasSuccess}
+                error={noticiasError}
+              />
+            ) : (
+              <div className="text-center py-8 text-neutral-400">
+                No se pudo cargar la configuración
+              </div>
+            )}
+          </div>
+        );
+
+      case "descuentos":
+        return (
+          <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
+            <DescuentosGlobalesSection
+              promoConfigPlanes={promoConfigPlanes}
+              promoConfigRevendedores={promoConfigRevendedores}
+              heroPromoPlanes={heroPromoPlanes}
+              heroPromoRevendedores={heroPromoRevendedores}
+              promoSuccess={promoSuccess}
+              promoError={promoError}
+              isLoadingPromo={isLoadingPromo}
+              isSavingPromo={isSavingPromo}
+              durationInputPlanes={durationInputPlanes}
+              durationInputRevendedores={durationInputRevendedores}
+              discountPercentagePlanes={discountPercentagePlanes}
+              discountPercentageRevendedores={discountPercentageRevendedores}
+              onSetDurationInputPlanes={setDurationInputPlanes}
+              onSetDurationInputRevendedores={setDurationInputRevendedores}
+              onSetDiscountPercentagePlanes={setDiscountPercentagePlanes}
+              onSetDiscountPercentageRevendedores={setDiscountPercentageRevendedores}
+              promoScopePlanes={promoScopePlanes}
+              promoScopeRevendedores={promoScopeRevendedores}
+              onSetPromoScopePlanes={setPromoScopePlanes}
+              onSetPromoScopeRevendedores={setPromoScopeRevendedores}
+              onActivatePromo={handleActivatePromo}
+              onDeactivatePromo={handleDeactivatePromo}
+              onSetHeroPromoPlanes={setHeroPromoPlanes}
+              onSetHeroPromoRevendedores={setHeroPromoRevendedores}
+              onGuardarTextoHero={handleGuardarTextoHero}
+            />
+          </div>
+        );
+
+      case "referidos":
+        return (
+          <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
+            <ReferidosSection />
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen text-white">
       <main>
-        <div className="w-full max-w-6xl mx-auto px-4 py-12">
-          {/* Overview Section */}
-          <section className="py-16 border-b border-neutral-800">
-            <OverviewSection
-              cupones={cupones}
-              loadingCupones={loadingCupones}
-              isRefreshingCupones={isRefreshingCupones}
-              noticiasConfig={noticiasConfig}
-              numberFormatter={numberFormatter}
-              onRefreshCupones={handleRefreshCupones}
-            />
-          </section>
+        <div className="w-full max-w-7xl mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold">Panel de Administración</h1>
+            <p className="text-neutral-400 mt-1">Gestiona tu tienda SecureVPN</p>
+          </div>
 
-          {/* Planes Section */}
-          <section id="section-planes" className="py-16 border-b border-neutral-800">
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold">Gestionar Planes</h2>
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Sidebar Navigation */}
+            <nav className="lg:w-64 flex-shrink-0">
+              <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-2 lg:sticky lg:top-24">
+                <div className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
+                  {NAV_ITEMS.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveSection(item.id)}
+                      className={`
+                        flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap
+                        ${activeSection === item.id
+                          ? "bg-purple-600 text-white shadow-lg shadow-purple-600/20"
+                          : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                        }
+                      `}
+                    >
+                      {item.icon}
+                      <div className="hidden lg:block text-left">
+                        <div className="font-medium">{item.label}</div>
+                        <div className={`text-xs ${activeSection === item.id ? "text-purple-200" : "text-neutral-500"}`}>
+                          {item.description}
+                        </div>
+                      </div>
+                      <span className="lg:hidden">{item.label}</span>
+                      <ChevronRight className={`w-4 h-4 ml-auto hidden lg:block ${activeSection === item.id ? "text-purple-300" : "text-neutral-600"}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </nav>
+
+            {/* Main Content */}
+            <div className="flex-1 min-w-0">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold flex items-center gap-3">
+                  {NAV_ITEMS.find(item => item.id === activeSection)?.icon}
+                  {NAV_ITEMS.find(item => item.id === activeSection)?.label}
+                </h2>
+                <p className="text-neutral-400 mt-1">
+                  {NAV_ITEMS.find(item => item.id === activeSection)?.description}
+                </p>
+              </div>
               
-              {/* Planes normales */}
-              <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
-                <h3 className="text-xl font-semibold mb-4 text-neutral-200">Planes Normales</h3>
-                <PlanesSection tipo="normales" />
-              </div>
-
-              {/* Planes revendedores */}
-              <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
-                <h3 className="text-xl font-semibold mb-4 text-neutral-200">Planes Revendedor</h3>
-                <PlanesSection tipo="revendedores" />
-              </div>
+              {renderSectionContent()}
             </div>
-          </section>
-
-          {/* Sponsors Section */}
-          <section id="section-sponsors" className="py-16 border-b border-neutral-800">
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold">Gestionar Sponsors</h2>
-              <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
-                <SponsorsSection
-                  sponsors={sponsors}
-                  loading={sponsorsLoading}
-                  onCreate={handleCreateSponsor}
-                  onDelete={handleDeleteSponsor}
-                  onUpdate={handleUpdateSponsor}
-                  success={sponsorsSuccess}
-                  error={sponsorsError}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Cupones Form */}
-          <section id="section-cupones" className="py-16 border-b border-neutral-800">
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold">Crear cupón</h2>
-              <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
-                <CuponesForm
-                  cuponForm={cuponForm}
-                  isCreatingCupon={false}
-                  cuponSuccess={cuponSuccess}
-                  cuponError={cuponError}
-                  onInputChange={handleInputChange}
-                  onSubmit={handleCrearCupon}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Cupones List */}
-          <section className="py-16 border-b border-neutral-800">
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold">Cupones activos</h2>
-              <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
-                <CuponesList
-                  cupones={cupones}
-                  loading={loadingCupones}
-                  onDesactivar={handleDesactivarCupon}
-                  onDelete={(cupon: Cupon) => setCuponToDelete(cupon)}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Noticias Section */}
-          <section id="section-noticias" className="py-16 border-b border-neutral-800">
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold">Configuración de avisos</h2>
-              <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
-                {noticiasLoading ? (
-                  <div className="text-center py-8 text-neutral-400">Cargando configuración...</div>
-                ) : noticiasConfig ? (
-                  <NoticiasSection
-                    config={noticiasConfig}
-                    onToggle={handleNoticiasToggle}
-                    onAvisoFieldChange={handleNoticiasAvisoFieldChange}
-                    onSubmit={handleGuardarNoticias}
-                    isLoading={isSavingNoticias}
-                    success={noticiasSuccess}
-                    error={noticiasError}
-                  />
-                ) : (
-                  <div className="text-center py-8 text-neutral-400">
-                    No se pudo cargar la configuración
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* Descuentos Globales Section */}
-          <section id="section-descuentos-globales" className="py-16">
-            <div className="space-y-6">
-              <h2 className="text-3xl font-bold">Descuentos globales</h2>
-              <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
-                <DescuentosGlobalesSection
-                  promoConfigPlanes={promoConfigPlanes}
-                  promoConfigRevendedores={promoConfigRevendedores}
-                  heroPromoPlanes={heroPromoPlanes}
-                  heroPromoRevendedores={heroPromoRevendedores}
-                  promoSuccess={promoSuccess}
-                  promoError={promoError}
-                  isLoadingPromo={isLoadingPromo}
-                  isSavingPromo={isSavingPromo}
-                  durationInputPlanes={durationInputPlanes}
-                  durationInputRevendedores={durationInputRevendedores}
-                  discountPercentagePlanes={discountPercentagePlanes}
-                  discountPercentageRevendedores={discountPercentageRevendedores}
-                  onSetDurationInputPlanes={setDurationInputPlanes}
-                  onSetDurationInputRevendedores={setDurationInputRevendedores}
-                  onSetDiscountPercentagePlanes={setDiscountPercentagePlanes}
-                  onSetDiscountPercentageRevendedores={setDiscountPercentageRevendedores}
-                  promoScopePlanes={promoScopePlanes}
-                  promoScopeRevendedores={promoScopeRevendedores}
-                  onSetPromoScopePlanes={setPromoScopePlanes}
-                  onSetPromoScopeRevendedores={setPromoScopeRevendedores}
-                  onActivatePromo={handleActivatePromo}
-                  onDeactivatePromo={handleDeactivatePromo}
-                  onSetHeroPromoPlanes={setHeroPromoPlanes}
-                  onSetHeroPromoRevendedores={setHeroPromoRevendedores}
-                  onGuardarTextoHero={handleGuardarTextoHero}
-                />
-              </div>
-            </div>
-          </section>
+          </div>
         </div>
       </main>
 

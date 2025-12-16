@@ -101,7 +101,7 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
    */
   router.post("/comprar", async (req: Request, res: Response) => {
     try {
-      const { planId, clienteEmail, clienteNombre, codigoCupon } =
+      const { planId, clienteEmail, clienteNombre, codigoCupon, codigoReferido, saldoUsado } =
         req.body as CrearPagoInput;
 
       // Validaciones
@@ -123,12 +123,14 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
         return;
       }
 
-      // Procesar compra
+      // Procesar compra (incluyendo código de referido y saldo)
       const resultado = await tiendaService.procesarCompra({
         planId,
         clienteEmail,
         clienteNombre,
         codigoCupon,
+        codigoReferido,
+        saldoUsado,
       });
 
       const response: ApiResponse = {
@@ -628,13 +630,24 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
 
   /**
    * POST /api/demo
-   * Solicita una demostración gratuita (24 horas)
-   * Previene spam con bloqueo de email/IP por 48 horas
+   * Solicita una demostración gratuita (2 horas)
+   * REQUIERE: Usuario logueado
+   * LÍMITE: Máximo 2 demos por cuenta
    */
   router.post("/demo", async (req: Request, res: Response): Promise<void> => {
     try {
-      const { email, nombre } = req.body;
+      const { email, nombre, user_id } = req.body;
       const ipAddress = req.ip || req.connection.remoteAddress || "unknown";
+
+      // Validar que el usuario esté logueado
+      if (!user_id) {
+        res.status(401).json({
+          success: false,
+          error: "Debes iniciar sesión para solicitar una demo",
+          requiere_login: true
+        } as ApiResponse);
+        return;
+      }
 
       if (!email || !nombre) {
         res.status(400).json({
@@ -647,7 +660,20 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
       // Obtener el servicio de demos
       const demoService = tiendaService.getDemoService();
 
-      // Verificar si está bloqueado
+      // Verificar límite de demos por usuario (máximo 2)
+      const limiteUsuario = demoService.verificarLimiteUsuario(user_id);
+      if (limiteUsuario.bloqueado) {
+        res.status(429).json({
+          success: false,
+          error: limiteUsuario.motivo || "Has alcanzado el límite de demos",
+          limite_alcanzado: true,
+          demos_usadas: limiteUsuario.demos_usadas,
+          demos_maximas: limiteUsuario.demos_maximas
+        } as ApiResponse);
+        return;
+      }
+
+      // Verificar si está bloqueado por email/IP
       const bloqueo = await demoService.verificarBloqueo(email, ipAddress);
       if (bloqueo.bloqueado) {
         res.status(429).json({
@@ -659,19 +685,20 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
         return;
       }
 
-      // Crear la demo
-      const demo = await demoService.crearDemo(email, nombre, ipAddress);
+      // Crear la demo con user_id
+      await demoService.crearDemo(email, nombre, ipAddress, user_id);
 
-      console.log(`[API] ✅ Demo creada exitosamente para ${email}`);
+      console.log(`[API] ✅ Demo creada exitosamente para ${email} (userId: ${user_id})`);
 
+      // NO devolvemos las credenciales en la respuesta por seguridad
+      // Las credenciales solo se envían por email para verificar que el email es real
       const response: ApiResponse = {
         success: true,
-        message: "Demostración solicitada exitosamente",
+        message: "Las credenciales han sido enviadas a tu email",
         data: {
-          username: demo.servex_username,
-          password: demo.servex_password,
-          horas_validas: 24,
-          mensaje: "Revisa tu email para más instrucciones",
+          horas_validas: 2,
+          email_enviado: true,
+          demos_restantes: (limiteUsuario.demos_maximas || 2) - (limiteUsuario.demos_usadas || 0) - 1
         },
       };
 
@@ -681,6 +708,43 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
       res.status(500).json({
         success: false,
         error: error.message || "Error creando demostración",
+      } as ApiResponse);
+    }
+  });
+
+  /**
+   * GET /api/demo/disponibles/:user_id
+   * Consulta cuántas demos tiene disponibles un usuario
+   */
+  router.get("/demo/disponibles/:user_id", async (req: Request, res: Response) => {
+    try {
+      const { user_id } = req.params;
+      
+      if (!user_id) {
+        res.status(400).json({
+          success: false,
+          error: "user_id es requerido"
+        } as ApiResponse);
+        return;
+      }
+
+      const demoService = tiendaService.getDemoService();
+      const demosInfo = demoService.obtenerDemosUsadas(user_id);
+
+      res.json({
+        success: true,
+        data: {
+          demos_usadas: demosInfo.usadas,
+          demos_maximas: demosInfo.maximas,
+          demos_disponibles: demosInfo.maximas - demosInfo.usadas,
+          puede_solicitar: demosInfo.usadas < demosInfo.maximas
+        }
+      } as ApiResponse);
+    } catch (error: any) {
+      console.error("[API] Error consultando demos disponibles:", error.message);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Error consultando demos"
       } as ApiResponse);
     }
   });

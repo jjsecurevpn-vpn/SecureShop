@@ -148,6 +148,16 @@ export function crearRutasClientes(
         esRevendedor = cuenta.max_users && cuenta.max_users > 1;
       }
 
+      // Log para debug de campos de revendedor
+      if (esRevendedor) {
+        console.log(`[Clientes] Datos revendedor ${username}:`, JSON.stringify(cuenta, null, 2));
+      }
+
+      // Determinar tipo de cuenta de revendedor: 'credit' o 'validity'
+      const tipoRevendedor = cuenta.account_type || 'validity';
+      // Para cuentas de validez: usedUsers o userCount son los usuarios creados por el revendedor
+      const usuariosCreados = cuenta.usedUsers || cuenta.userCount || cuenta.clients_count || cuenta.total_clients || 0;
+
       const estadoInfo = {
         username: cuenta.username,
         tipo: esRevendedor ? 'revendedor' : 'cliente',
@@ -157,11 +167,19 @@ export function crearRutasClientes(
         fechaExpiracion: cuenta.expiration_date,
         // Datos específicos
         ...(esRevendedor ? {
-          maxUsuarios: cuenta.max_users,
-          usuariosActuales: cuenta.current_users || 0,
-          creditosRestantes: (cuenta.max_users || 0) - (cuenta.current_users || 0)
+          // Distinguir entre cuenta de crédito y validez
+          tipoRevendedor: tipoRevendedor,
+          ...(tipoRevendedor === 'credit' ? {
+            // Cuenta de crédito: solo muestra créditos disponibles
+            creditos: cuenta.max_users || 0
+          } : {
+            // Cuenta de validez: muestra usuarios actuales / máximos
+            maxUsuarios: cuenta.max_users || 0,
+            usuariosActuales: usuariosCreados
+          })
         } : {
-          conexionesMaximas: cuenta.max_connections || 1,
+          // connection_limit es el campo real de Servex para límite de conexiones
+          conexionesMaximas: cuenta.connection_limit || cuenta.max_connections || 1,
           online: cuenta.is_online || false
         }),
         // Fechas

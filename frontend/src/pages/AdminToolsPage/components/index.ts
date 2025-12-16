@@ -7,3 +7,4 @@ export { PromoPanel } from "./PromoPanel";
 export { DescuentosGlobalesSection } from "./DescuentosGlobalesSection";
 export { default as SponsorsSection } from "./SponsorsSection";
 export { PlanesSection } from "./PlanesSection";
+export { ReferidosSection } from "./ReferidosSection";

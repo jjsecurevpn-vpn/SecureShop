@@ -1,16 +1,20 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, Home, Users, CreditCard, Store, Heart, Star, Server, User } from 'lucide-react';
+import { Menu, X, ChevronDown, Home, Users, CreditCard, Store, Heart, Star, Server, User, LogIn } from 'lucide-react';
 import ContactButton from "./ContactButton";
 import NoticiasPopover from "./NoticiasPopover";
 import CuponesPopover from "./CuponesPopover";
 import UserMenu from "./UserMenu";
+import AuthModal from "./AuthModal";
 import { useState, useEffect } from "react";
 import { protonColors } from "../styles/colors";
+import { useAuth } from "../contexts/AuthContext";
 
 const Header = () => {
   const location = useLocation();
+  const { user } = useAuth();
   const [featuresOpen, setFeaturesOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   // Bloquear scroll cuando el menú está abierto
   useEffect(() => {
@@ -33,12 +37,12 @@ const Header = () => {
 
   return (
     <>
-      {/* Overlay cuando el menú está abierto */}
+      {/* Overlay cuando el menú está abierto - solo cubre debajo del header */}
       {mobileMenuOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[8888]"
+          className="lg:hidden fixed inset-x-0 bottom-0 bg-black/50 backdrop-blur-sm z-[8888]"
           onClick={() => setMobileMenuOpen(false)}
-          style={{ top: '0' }}
+          style={{ top: '48px' }}
         />
       )}
 
@@ -228,7 +232,7 @@ const Header = () => {
         {/* Mobile Menu - Estilo ProtonVPN con fondo blanco */}
         {mobileMenuOpen && (
           <div 
-            className="lg:hidden w-full border-t border-gray-100 bg-white"
+            className="lg:hidden w-full border-t border-gray-100 bg-white relative z-[9999]"
             style={{ 
               maxHeight: '80vh',
               overflowY: 'auto',
@@ -243,7 +247,6 @@ const Header = () => {
                 { path: '/donaciones', label: 'Donaciones', icon: Heart },
                 { path: '/sponsors', label: 'Sponsors', icon: Star },
                 { path: '/servidores', label: 'Servidores', icon: Server },
-                { path: '/perfil', label: 'Mi Cuenta', icon: User },
               ].map((item) => (
                 <Link
                   key={item.path}
@@ -260,6 +263,35 @@ const Header = () => {
                   {item.label}
                 </Link>
               ))}
+
+              {/* Mi Cuenta o Iniciar Sesión */}
+              {user ? (
+                <Link
+                  to="/perfil"
+                  reloadDocument
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-base transition-colors"
+                  style={{ 
+                    color: isActive('/perfil') ? protonColors.purple[500] : protonColors.purple[800],
+                    backgroundColor: isActive('/perfil') ? protonColors.purple[50] : 'transparent'
+                  }}
+                >
+                  <User className="h-5 w-5" />
+                  Mi Cuenta
+                </Link>
+              ) : (
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setShowAuthModal(true);
+                  }}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-base transition-colors w-full text-left"
+                  style={{ color: protonColors.purple[800] }}
+                >
+                  <LogIn className="h-5 w-5" />
+                  Iniciar sesión
+                </button>
+              )}
 
               {/* Separador */}
               <div className="my-3 border-t border-gray-200" />
@@ -282,6 +314,9 @@ const Header = () => {
           </div>
         )}
       </header>
+
+      {/* Modal de autenticación para móvil */}
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </>
   );
 };

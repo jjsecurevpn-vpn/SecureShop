@@ -650,5 +650,98 @@ export function crearRutasRenovacion(renovacionService: RenovacionService): Rout
     }
   });
 
+  /**
+   * POST /api/renovacion/admin/agregar-historial
+   * Agrega manualmente una compra/cuenta existente al historial de un usuario
+   * Útil para asociar cuentas existentes de Servex a usuarios de la plataforma
+   */
+  router.post('/admin/agregar-historial', async (req: Request, res: Response) => {
+    try {
+      const { 
+        email, 
+        servex_username,
+        servex_password, // Contraseña real (opcional, ya que Servex no la devuelve)
+        tipo = 'plan',
+        plan_nombre,
+        monto = 0 
+      } = req.body;
+      
+      if (!email || !servex_username) {
+        return res.status(400).json({
+          success: false,
+          error: 'Email y servex_username son requeridos'
+        });
+      }
+
+      const { supabaseService } = await import('../services/supabase.service');
+      
+      // Buscar datos de la cuenta en Servex
+      const servexService = renovacionService.getServexService();
+      let cuenta = await servexService.buscarClientePorUsername(servex_username);
+      
+      if (!cuenta) {
+        // Buscar en revendedores
+        cuenta = await servexService.buscarRevendedorPorUsername(servex_username);
+      }
+
+      if (!cuenta) {
+        return res.status(404).json({
+          success: false,
+          error: `Cuenta ${servex_username} no encontrada en Servex`
+        });
+      }
+
+      // Determinar tipo
+      const esRevendedor = cuenta.max_users && cuenta.max_users > 1;
+      const tipoFinal = esRevendedor ? 'revendedor' : tipo;
+      
+      // Generar nombre del plan si no se proporciona
+      const planNombreFinal = plan_nombre || 
+        (esRevendedor 
+          ? `Cuenta Revendedor: ${cuenta.max_users} créditos`
+          : `Plan VPN: ${cuenta.max_connections || 1} conexión`);
+
+      // No guardar hash de contraseña - solo usar si se proporciona explícitamente
+      // Servex devuelve el hash bcrypt, no la contraseña real
+      const passwordReal = servex_password || null;
+
+      // Sincronizar con Supabase
+      const resultado = await supabaseService.syncApprovedPurchase({
+        email,
+        planNombre: planNombreFinal,
+        monto,
+        tipo: tipoFinal,
+        servexUsername: cuenta.username,
+        servexPassword: passwordReal,
+        servexExpiracion: cuenta.expiration_date,
+        mpPaymentId: `MANUAL-${Date.now()}`,
+      });
+
+      if (!resultado) {
+        return res.status(400).json({
+          success: false,
+          error: 'No se pudo agregar al historial. ¿El email está registrado en la plataforma?'
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: `Cuenta ${servex_username} asociada exitosamente a ${email}`,
+        data: {
+          username: cuenta.username,
+          tipo: tipoFinal,
+          planNombre: planNombreFinal,
+          expiracion: cuenta.expiration_date
+        }
+      });
+    } catch (error: any) {
+      console.error('[Renovacion API] Error agregando al historial:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message
+      });
+    }
+  });
+
   return router;
 }

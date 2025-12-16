@@ -373,18 +373,24 @@ class ApiService {
 
   /**
    * Solicita una demostración gratuita
+   * Requiere usuario logueado y tiene límite de 2 demos por cuenta
    */
-  async solicitarDemo(nombre: string, email: string): Promise<any> {
+  async solicitarDemo(nombre: string, email: string, userId: string): Promise<any> {
     try {
       const response = await this.client.post<ApiResponse<any>>("/demo", {
         nombre,
         email,
+        user_id: userId
       });
       return response.data;
     } catch (error: any) {
-      // Capturar respuesta 429 (bloqueado) con datos
+      // Capturar respuesta 401 (requiere login)
+      if (error.response?.status === 401 && error.response?.data) {
+        return error.response.data;
+      }
+      // Capturar respuesta 429 (bloqueado o límite alcanzado)
       if (error.response?.status === 429 && error.response?.data) {
-        return error.response.data; // Retornar la respuesta del servidor tal cual
+        return error.response.data;
       }
 
       // Para otros errores, retornar con mensaje amigable
@@ -392,6 +398,27 @@ class ApiService {
         success: false,
         error: error.mensaje || error.message || "Error al solicitar demo",
       };
+    }
+  }
+
+  /**
+   * Consulta cuántas demos tiene disponibles un usuario
+   */
+  async obtenerDemosDisponibles(userId: string): Promise<{
+    demos_usadas: number;
+    demos_maximas: number;
+    demos_disponibles: number;
+    puede_solicitar: boolean;
+  } | null> {
+    try {
+      const response = await this.client.get<ApiResponse<any>>(`/demo/disponibles/${userId}`);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error obteniendo demos disponibles:", error);
+      return null;
     }
   }
 
@@ -706,12 +733,154 @@ export interface EstadoCuenta {
   conexionesMaximas?: number;
   online?: boolean;
   // Para revendedores
-  maxUsuarios?: number;
-  usuariosActuales?: number;
-  creditosRestantes?: number;
+  tipoRevendedor?: 'credit' | 'validity'; // Tipo de cuenta de revendedor
+  maxUsuarios?: number; // Para cuentas de validez
+  usuariosActuales?: number; // Para cuentas de validez
+  creditos?: number; // Para cuentas de crédito
   // Fechas
   fechaCreacion?: string;
   ultimaConexion?: string;
 }
 
+// ============================================
+// TIPOS PARA REFERIDOS
+// ============================================
+
+export interface ReferralSettings {
+  activo: boolean;
+  porcentaje_recompensa: number;
+  porcentaje_descuento_referido: number;
+  mensaje_promocional: string;
+}
+
+export interface ReferralStats {
+  referral_code: string;
+  total_referrals: number;
+  total_earned: number;
+  saldo_actual: number;
+  referidos: Array<{
+    id: string;
+    referred_email?: string;
+    referred_nombre?: string;
+    purchase_amount: number;
+    reward_amount: number;
+    status: string;
+    created_at: string;
+  }>;
+}
+
+export interface SaldoTransaccion {
+  id: string;
+  tipo: string;
+  monto: number;
+  saldo_anterior: number;
+  saldo_nuevo: number;
+  descripcion: string | null;
+  created_at: string;
+}
+
+export interface ValidacionCodigoReferido {
+  valido: boolean;
+  referrer_id?: string;
+  descuento?: number;
+  mensaje?: string;
+}
+
 export const apiService = new ApiService();
+
+// ============================================
+// SERVICIO DE REFERIDOS (separado para claridad)
+// ============================================
+
+class ReferidosApiService {
+  private client = apiService['client']; // Reutilizar el cliente axios
+
+  /**
+   * Obtiene la configuración pública del programa de referidos
+   */
+  async getSettings(): Promise<ReferralSettings> {
+    const response = await this.client.get('/referidos/settings');
+    return response.data;
+  }
+
+  /**
+   * Valida un código de referido
+   */
+  async validarCodigo(codigo: string, email?: string): Promise<ValidacionCodigoReferido> {
+    const params = email ? { email } : {};
+    const response = await this.client.get(`/referidos/validar/${codigo}`, { params });
+    return response.data;
+  }
+
+  /**
+   * Obtiene el saldo de un usuario por email
+   */
+  async getSaldoByEmail(email: string): Promise<{ userId: string | null; saldo: number }> {
+    const response = await this.client.get(`/referidos/saldo/${encodeURIComponent(email)}`);
+    return response.data;
+  }
+
+  /**
+   * Obtiene estadísticas de referidos de un usuario
+   */
+  async getStats(userId: string): Promise<ReferralStats> {
+    const response = await this.client.get(`/referidos/stats/${userId}`);
+    return response.data;
+  }
+
+  /**
+   * Obtiene el historial de transacciones de saldo
+   */
+  async getTransacciones(userId: string, limit = 50): Promise<SaldoTransaccion[]> {
+    const response = await this.client.get(`/referidos/transacciones/${userId}`, {
+      params: { limit }
+    });
+    return response.data;
+  }
+
+  // ============================================
+  // MÉTODOS ADMIN
+  // ============================================
+
+  /**
+   * Obtiene configuración completa (admin)
+   */
+  async getAdminSettings(): Promise<any> {
+    const response = await this.client.get('/referidos/admin/settings');
+    return response.data;
+  }
+
+  /**
+   * Actualiza configuración del programa (admin)
+   */
+  async updateSettings(settings: Partial<ReferralSettings>): Promise<{ success: boolean }> {
+    const response = await this.client.put('/referidos/admin/settings', settings);
+    return response.data;
+  }
+
+  /**
+   * Obtiene todos los referidos del sistema (admin)
+   */
+  async getAllReferidos(limit = 100): Promise<any[]> {
+    const response = await this.client.get('/referidos/admin/all', { params: { limit } });
+    return response.data;
+  }
+
+  /**
+   * Ajusta el saldo de un usuario manualmente (admin)
+   */
+  async ajustarSaldo(email: string, monto: number, descripcion: string): Promise<{
+    success: boolean;
+    nuevo_saldo?: number;
+    mensaje: string;
+  }> {
+    const response = await this.client.post('/referidos/admin/ajustar-saldo', {
+      email,
+      monto,
+      descripcion
+    });
+    return response.data;
+  }
+}
+
+export const referidosService = new ReferidosApiService();

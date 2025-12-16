@@ -397,25 +397,25 @@ const CheckoutRenovacionPage: React.FC = () => {
             {/* Right Column - Resumen (Sticky) */}
             <div className="md:sticky md:top-32 h-fit space-y-6">
               {/* Plan Card */}
-              <div className="bg-gradient-to-br from-slate-900/90 via-gray-900/90 to-slate-800/90 rounded-lg p-5 sm:p-6 lg:p-8 xl:p-10 space-y-6 text-white">
+              <div className="bg-gradient-to-br from-purple-100 via-purple-50 to-white border border-purple-200 rounded-lg p-5 sm:p-6 lg:p-8 xl:p-10 space-y-6">
                 {/* Info Header */}
                 <div>
-                  <div className="text-sm text-gray-400 mb-2">Resumen de renovación</div>
-                  <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-white mb-1">
+                  <div className="text-sm text-purple-600 mb-2">Resumen de renovación</div>
+                  <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-gray-900 mb-1">
                     Renovación de {dias} días
                   </h2>
                 </div>
 
                 {/* Divider */}
-                <div className="border-t border-white/20" />
+                <div className="border-t border-purple-200" />
 
                 {/* Price Breakdown */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg">
-                    <span className="text-gray-400">Precio por día</span>
+                    <span className="text-gray-600">Precio por día</span>
                     {hayDescuento ? (
                       <div className="text-right">
-                        <span className="text-white font-medium">
+                        <span className="text-gray-900 font-medium">
                           ${precioPorDia.toLocaleString("es-AR")}
                         </span>
                         <span className="text-[11px] text-gray-500 line-through block">
@@ -423,7 +423,7 @@ const CheckoutRenovacionPage: React.FC = () => {
                         </span>
                       </div>
                     ) : (
-                      <span className="text-white font-medium">
+                      <span className="text-gray-900 font-medium">
                         ${precioPorDia.toLocaleString("es-AR")}
                       </span>
                     )}
@@ -431,33 +431,33 @@ const CheckoutRenovacionPage: React.FC = () => {
 
                   {hayDescuento && (
                     <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg">
-                      <span className="text-gray-400">Precio original</span>
-                      <span className="text-gray-400 line-through">
+                      <span className="text-gray-600">Precio original</span>
+                      <span className="text-gray-500 line-through">
                         ${precioBase.toLocaleString("es-AR")}
                       </span>
                     </div>
                   )}
 
                   {hayDescuento && (
-                    <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-400">
+                    <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-600">
                       <span>Descuento {codigoCupon ? `(${codigoCupon})` : ""}</span>
                       <span>- ${descuentoFinal.toLocaleString("es-AR")}</span>
                     </div>
                   )}
 
-                  <div className="border-t border-white/20 pt-3 flex justify-between items-center">
-                    <span className="text-white font-medium">Total</span>
-                    <span className="text-3xl font-display font-bold text-indigo-400">
+                  <div className="border-t border-purple-200 pt-3 flex justify-between items-center">
+                    <span className="text-gray-900 font-medium">Total</span>
+                    <span className="text-3xl font-display font-bold text-purple-600">
                       ${precio.toLocaleString("es-AR")}
                     </span>
                   </div>
                 </div>
 
                 {/* Divider */}
-                <div className="border-t border-white/20" />
+                <div className="border-t border-purple-200" />
 
                 {/* Details */}
-                <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400 space-y-2">
+                <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600 space-y-2">
                   <p>Al pagar, procesaremos tu renovación automáticamente.</p>
                   <p>Recibirás un email con la confirmación.</p>
                 </div>
@@ -486,8 +486,8 @@ const CheckoutRenovacionPage: React.FC = () => {
               </div>
 
               {/* Security Badge */}
-              <div className="flex items-start gap-3 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-700 bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <Shield className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-600 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-700 bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <Shield className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-purple-600 flex-shrink-0 mt-0.5" />
                 <span>Pago 100% seguro con <span className="font-medium">MercadoPago</span></span>
               </div>
 

@@ -18,6 +18,13 @@ export class RenovacionService {
   private autoRetryRunning = false;
   private autoRetryAttempts = new Map<number, number>();
 
+  /**
+   * Getter para acceder al servicio de Servex desde las rutas
+   */
+  getServexService(): ServexService {
+    return this.servex;
+  }
+
   iniciarAutoRevisionesPendientes(config: RenovacionAutoRetryConfig): void {
     if (!config.enabled) {
       console.log('[Renovacion] Auto-revisión de pendientes deshabilitada por configuración');

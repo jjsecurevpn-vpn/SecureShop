@@ -73,6 +73,9 @@ export interface CompraRequest {
   clienteEmail: string;
   clienteNombre: string;
   codigoCupon?: string;
+  // Nuevos campos para referidos y saldo
+  codigoReferido?: string;
+  saldoUsado?: number;
 }
 
 export interface CompraRevendedorRequest {
@@ -86,6 +89,18 @@ export interface CompraResponse {
   pago: Pago;
   linkPago: string;
   preferenceId: string;
+  // Nuevos campos para pago con saldo
+  pagoConSaldoCompleto?: boolean;
+  saldoUsado?: number;
+  descuentoAplicado?: number;
+  codigoReferidoUsado?: string;
+  // Datos de la cuenta VPN (solo si se pagó con saldo completo)
+  cuentaVPN?: {
+    username: string;
+    password: string;
+    expiracion: string;
+    categoria: string;
+  };
 }
 
 export interface Usuario {
@@ -217,3 +232,60 @@ export interface CrearSponsorPayload {
 }
 
 export type ActualizarSponsorPayload = Partial<CrearSponsorPayload>;
+
+// ============================================
+// TIPOS PARA SALDO Y REFERIDOS
+// ============================================
+
+export interface SaldoTransaccion {
+  id: string;
+  user_id: string;
+  tipo: 'referido' | 'compra' | 'ajuste_admin' | 'bonus' | 'reembolso';
+  monto: number;
+  saldo_anterior: number;
+  saldo_nuevo: number;
+  descripcion: string | null;
+  referencia_id: string | null;
+  created_at: string;
+}
+
+export interface Referido {
+  id: string;
+  referrer_id: string;
+  referred_id: string;
+  referral_code: string;
+  purchase_id: string | null;
+  purchase_amount: number;
+  reward_amount: number;
+  reward_percentage: number;
+  status: 'pending' | 'completed' | 'cancelled';
+  created_at: string;
+  completed_at: string | null;
+  // Datos del referido (join)
+  referred_email?: string;
+  referred_nombre?: string;
+}
+
+export interface ReferralSettings {
+  id: number;
+  porcentaje_recompensa: number;
+  porcentaje_descuento_referido: number;
+  min_compra_requerida: number;
+  activo: boolean;
+  solo_primera_compra: boolean;
+  max_recompensa_por_referido: number | null;
+  mensaje_promocional: string;
+  updated_at: string;
+}
+
+export interface ReferralStats {
+  total_referrals: number;
+  total_earned: number;
+  saldo_actual: number;
+  referral_code: string;
+  referidos: Referido[];
+}
+
+export interface UsarSaldoRequest {
+  monto: number;
+}

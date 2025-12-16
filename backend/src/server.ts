@@ -19,6 +19,7 @@ import { crearRutasStats } from "./routes/stats.routes";
 import { crearRutasClientes } from "./routes/clientes.routes";
 import configRoutes from "./routes/config.routes";
 import cuponesRoutes from "./routes/cupones.routes";
+import referidosRoutes from "./routes/referidos.routes";
 // import promoRoutes from "./routes/promo.routes"; // DESACTIVADO por conflicto
 import { cuponesService } from "./services/cupones.service";
 import { ServexPollingService } from "./services/servex-polling.service";
@@ -317,6 +318,9 @@ class Server {
 
     // Rutas de la API - Cupones
     this.app.use("/api/cupones", cuponesRoutes);
+
+    // Rutas de la API - Referidos y Saldo
+    this.app.use("/api/referidos", referidosRoutes);
 
     this.app.use(
       "/api/sponsors",

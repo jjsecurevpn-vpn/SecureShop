@@ -7,9 +7,19 @@ interface FormSectionProps {
   planId: number;
   planPrecio: number;
   onCuponChange: (descuento: number) => void;
+  onEmailChange?: (email: string) => void;
+  userEmail?: string;
 }
 
-export const FormSection = ({ error, formRef, planId, planPrecio, onCuponChange }: FormSectionProps) => {
+export const FormSection = ({ 
+  error, 
+  formRef, 
+  planId, 
+  planPrecio, 
+  onCuponChange,
+  onEmailChange,
+  userEmail
+}: FormSectionProps) => {
   return (
     <div className="space-y-6">
       {/* Error */}
@@ -26,6 +36,8 @@ export const FormSection = ({ error, formRef, planId, planPrecio, onCuponChange 
         planPrecio={planPrecio}
         loading={false}
         onCuponChange={onCuponChange}
+        onEmailChange={onEmailChange}
+        userEmail={userEmail}
       />
     </div>
   );

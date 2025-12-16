@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { InformacionCupon } from "../types";
+import { InformacionCupon, InformacionReferido } from "../types";
 
 interface EmailOptions {
   to: string;
@@ -14,6 +14,7 @@ interface CredencialesCliente {
   expiracion: string;
   servidores: string[];
   cupon?: InformacionCupon;
+  referido?: InformacionReferido;
 }
 
 interface CredencialesRevendedor {
@@ -100,7 +101,7 @@ class EmailService {
   ): Promise<boolean> {
     const cuponSection = credenciales.cupon ? `
       <div class="cupon-info">
-        <h3>✅ Descuento Aplicado</h3>
+        <h3>✅ Cupón Aplicado</h3>
         <div class="cupon-details">
           <div class="detail-item">
             <span class="detail-label">🎟️ Cupón:</span>
@@ -110,21 +111,35 @@ class EmailService {
             <span class="detail-label">💰 Descuento:</span>
             <span class="detail-value">$${credenciales.cupon.descuentoAplicado.toFixed(2)} ${credenciales.cupon.tipo === 'porcentaje' ? `(${credenciales.cupon.valor}%)` : ''}</span>
           </div>
+        </div>
+      </div>
+    ` : '';
+
+    const referidoSection = credenciales.referido ? `
+      <div class="referido-info">
+        <h3>🎁 Código de Referido Usado</h3>
+        <div class="referido-details">
           <div class="detail-item">
-            <span class="detail-label">📊 Precio original:</span>
-            <span class="detail-value" style="text-decoration: line-through; color: #999;">$${credenciales.cupon.montoOriginal.toFixed(2)}</span>
+            <span class="detail-label">📋 Código:</span>
+            <span class="detail-value">${credenciales.referido.codigoUsado}</span>
           </div>
-          <div class="detail-item" style="border-top: 2px solid #28a745; padding-top: 10px; margin-top: 10px;">
-            <span class="detail-label">✨ Precio final:</span>
-            <span class="detail-value" style="font-weight: bold; font-size: 18px; color: #28a745;">$${credenciales.cupon.montoFinal.toFixed(2)}</span>
+          <div class="detail-item">
+            <span class="detail-label">💸 Descuento obtenido:</span>
+            <span class="detail-value">$${credenciales.referido.descuentoAplicado.toFixed(2)} (${credenciales.referido.porcentajeDescuento}%)</span>
+          </div>
+          ${credenciales.referido.saldoUsado && credenciales.referido.saldoUsado > 0 ? `
+          <div class="detail-item">
+            <span class="detail-label">💳 Saldo usado:</span>
+            <span class="detail-value">$${credenciales.referido.saldoUsado.toFixed(2)}</span>
+          </div>
+          ` : ''}
+          <div class="detail-item">
+            <span class="detail-label">💰 Método de pago:</span>
+            <span class="detail-value">${credenciales.referido.metodoPago === 'saldo' ? '100% Saldo' : credenciales.referido.metodoPago === 'mixto' ? 'Saldo + MercadoPago' : 'MercadoPago'}</span>
           </div>
         </div>
       </div>
-    ` : `
-      <div class="sin-cupon">
-        <p style="text-align: center; color: #999;">Sin cupón aplicado</p>
-      </div>
-    `;
+    ` : '';
 
     const html = `
       <!DOCTYPE html>
@@ -143,8 +158,11 @@ class EmailService {
           .server-item { padding: 8px; margin: 5px 0; background: #f0f0f0; border-radius: 4px; }
           .cupon-info { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745; }
           .cupon-details { background: #f0fff4; padding: 15px; border-radius: 6px; }
+          .referido-info { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9333ea; }
+          .referido-details { background: #faf5ff; padding: 15px; border-radius: 6px; }
           .detail-item { margin: 8px 0; display: flex; justify-content: space-between; align-items: center; }
           .detail-label { font-weight: bold; color: #28a745; }
+          .referido-details .detail-label { color: #9333ea; }
           .detail-value { background: white; padding: 5px 10px; border-radius: 4px; }
           .sin-cupon { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
           .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
@@ -181,6 +199,7 @@ class EmailService {
             </div>
 
             ${cuponSection}
+            ${referidoSection}
 
             <div class="servers">
               <h3>🌍 Servidores Disponibles:</h3>
@@ -243,6 +262,7 @@ class EmailService {
       descripcion: string;
       username?: string;
       cupon?: InformacionCupon;
+      referido?: InformacionReferido;
     }
   ): Promise<boolean> {
     const jazminEmail = "jazmincardozoh05@gmail.com";
@@ -272,11 +292,41 @@ class EmailService {
           </div>
         </div>
       </div>
-    ` : `
-      <div class="sin-cupon-section">
-        <p style="color: #999; font-size: 12px;">Sin cupón aplicado</p>
+    ` : '';
+
+    const referidoSection = datos.referido ? `
+      <div class="referido-section">
+        <h3>🎁 Código de Referido</h3>
+        <div class="referido-data">
+          <div class="referido-item">
+            <span class="referido-label">Código usado:</span>
+            <span class="referido-value">${datos.referido.codigoUsado}</span>
+          </div>
+          <div class="referido-item">
+            <span class="referido-label">Referidor:</span>
+            <span class="referido-value">${datos.referido.referidorEmail}</span>
+          </div>
+          <div class="referido-item">
+            <span class="referido-label">Descuento cliente:</span>
+            <span class="referido-value">$${datos.referido.descuentoAplicado.toFixed(2)} (${datos.referido.porcentajeDescuento}%)</span>
+          </div>
+          <div class="referido-item">
+            <span class="referido-label">Comisión referidor:</span>
+            <span class="referido-value" style="color: #28a745; font-weight: bold;">+$${datos.referido.comisionReferidor.toFixed(2)}</span>
+          </div>
+          ${datos.referido.saldoUsado && datos.referido.saldoUsado > 0 ? `
+          <div class="referido-item">
+            <span class="referido-label">Saldo usado:</span>
+            <span class="referido-value">$${datos.referido.saldoUsado.toFixed(2)}</span>
+          </div>
+          ` : ''}
+          <div class="referido-item">
+            <span class="referido-label">Método pago:</span>
+            <span class="referido-value">${datos.referido.metodoPago === 'saldo' ? '💳 100% Saldo' : datos.referido.metodoPago === 'mixto' ? '💳 Saldo + MercadoPago' : '💰 MercadoPago'}</span>
+          </div>
+        </div>
       </div>
-    `;
+    ` : '';
 
     const html = `
       <!DOCTYPE html>
@@ -297,6 +347,11 @@ class EmailService {
           .cupon-item { margin: 8px 0; display: flex; justify-content: space-between; align-items: center; }
           .cupon-label { font-weight: bold; color: #ff9800; }
           .cupon-value { background: white; padding: 5px 10px; border-radius: 4px; }
+          .referido-section { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9333ea; }
+          .referido-data { background: #faf5ff; padding: 15px; border-radius: 6px; }
+          .referido-item { margin: 8px 0; display: flex; justify-content: space-between; align-items: center; }
+          .referido-label { font-weight: bold; color: #9333ea; }
+          .referido-value { background: white; padding: 5px 10px; border-radius: 4px; }
           .sin-cupon-section { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
           .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
         </style>
@@ -336,6 +391,7 @@ class EmailService {
             </div>
 
             ${cuponSection}
+            ${referidoSection}
 
             <div class="monto">
               💵 Monto final pagado: $${datos.monto}

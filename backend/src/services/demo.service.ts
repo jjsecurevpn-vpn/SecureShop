@@ -7,6 +7,7 @@ import emailService from "./email.service";
 export interface Demo {
   id: string;
   email: string;
+  user_id?: string;
   ip_address: string;
   cliente_nombre: string;
   servex_username?: string;
@@ -23,6 +24,9 @@ export interface VerificacionBloqueo {
   tiempo_restante?: number;
   email_bloqueado?: boolean;
   ip_bloqueada?: boolean;
+  limite_alcanzado?: boolean;
+  demos_usadas?: number;
+  demos_maximas?: number;
 }
 
 export class DemoService {
@@ -41,6 +45,7 @@ export class DemoService {
       CREATE TABLE IF NOT EXISTS demos (
         id TEXT PRIMARY KEY,
         email TEXT NOT NULL,
+        user_id TEXT,
         ip_address TEXT NOT NULL,
         cliente_nombre TEXT NOT NULL,
         servex_username TEXT,
@@ -52,12 +57,21 @@ export class DemoService {
       )
     `);
 
+    // Agregar columna user_id si no existe (migración)
+    try {
+      this.db.exec(`ALTER TABLE demos ADD COLUMN user_id TEXT`);
+      console.log('[DemoService] Columna user_id agregada a demos');
+    } catch (e) {
+      // Columna ya existe, ignorar
+    }
+
     // Crear índices
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_demos_email ON demos(email);
       CREATE INDEX IF NOT EXISTS idx_demos_ip ON demos(ip_address);
       CREATE INDEX IF NOT EXISTS idx_demos_estado ON demos(estado);
       CREATE INDEX IF NOT EXISTS idx_demos_expires ON demos(expires_at);
+      CREATE INDEX IF NOT EXISTS idx_demos_user_id ON demos(user_id);
     `);
   }
 
@@ -131,18 +145,68 @@ export class DemoService {
   }
 
   /**
-   * Crea una nueva demo
+   * Verifica el límite de demos por usuario (máximo 2 demos de por vida por cuenta)
+   */
+  verificarLimiteUsuario(userId: string): VerificacionBloqueo {
+    const LIMITE_DEMOS = 2;
+    
+    const result = this.db.prepare(`
+      SELECT COUNT(*) as total FROM demos 
+      WHERE user_id = ? 
+      AND estado IN ('pendiente', 'generado', 'enviado', 'expirado')
+    `).get(userId) as { total: number };
+    
+    const demosUsadas = result?.total || 0;
+    
+    if (demosUsadas >= LIMITE_DEMOS) {
+      return {
+        bloqueado: true,
+        motivo: `Has alcanzado el límite máximo de ${LIMITE_DEMOS} demos por cuenta.`,
+        limite_alcanzado: true,
+        demos_usadas: demosUsadas,
+        demos_maximas: LIMITE_DEMOS
+      };
+    }
+    
+    return {
+      bloqueado: false,
+      demos_usadas: demosUsadas,
+      demos_maximas: LIMITE_DEMOS
+    };
+  }
+
+  /**
+   * Obtiene el número de demos usadas por un usuario
+   */
+  obtenerDemosUsadas(userId: string): { usadas: number; maximas: number } {
+    const LIMITE_DEMOS = 2;
+    
+    const result = this.db.prepare(`
+      SELECT COUNT(*) as total FROM demos 
+      WHERE user_id = ? 
+      AND estado IN ('pendiente', 'generado', 'enviado', 'expirado')
+    `).get(userId) as { total: number };
+    
+    return {
+      usadas: result?.total || 0,
+      maximas: LIMITE_DEMOS
+    };
+  }
+
+  /**
+   * Crea una nueva demo (requiere user_id)
    */
   async crearDemo(
     email: string,
     nombre: string,
-    ipAddress: string
+    ipAddress: string,
+    userId?: string
   ): Promise<Demo> {
     try {
       const demoId = uuidv4();
 
       console.log(
-        `[${new Date().toISOString()}] 🎬 Creando DEMO para: ${email} desde IP: ${ipAddress}`
+        `[${new Date().toISOString()}] 🎬 Creando DEMO para: ${email} (userId: ${userId || 'N/A'}) desde IP: ${ipAddress}`
       );
 
       // 1. Verificar bloqueos
@@ -178,15 +242,16 @@ export class DemoService {
         }`
       );
 
-      // 5. Guardar en BD
+      // 5. Guardar en BD (incluyendo user_id)
       const stmt = this.db.prepare(
-        `INSERT INTO demos (id, email, ip_address, cliente_nombre, servex_username, servex_password, estado)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO demos (id, email, user_id, ip_address, cliente_nombre, servex_username, servex_password, estado)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
       );
 
       stmt.run(
         demoId,
         email,
+        userId || null,
         ipAddress,
         nombre,
         clienteServex.username,

@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, Wallet } from "lucide-react";
 import { Plan } from "../../../types";
 import { CHECKOUT_SECTIONS } from "../constants";
 import { calcularPrecioFinal, calcularPrecioPorDia } from "../utils";
@@ -6,10 +6,12 @@ import { calcularPrecioFinal, calcularPrecioPorDia } from "../utils";
 interface PlanSummaryProps {
   plan: Plan;
   descuentoVisual: number;
+  saldoUsado?: number;
 }
 
-export const PlanSummary = ({ plan, descuentoVisual }: PlanSummaryProps) => {
-  const precioFinal = calcularPrecioFinal(plan, descuentoVisual);
+export const PlanSummary = ({ plan, descuentoVisual, saldoUsado = 0 }: PlanSummaryProps) => {
+  const precioConDescuento = calcularPrecioFinal(plan, descuentoVisual);
+  const precioFinal = Math.max(0, precioConDescuento - saldoUsado);
   const precioPorDia = calcularPrecioPorDia(precioFinal, plan.dias);
 
   return (
@@ -46,6 +48,16 @@ export const PlanSummary = ({ plan, descuentoVisual }: PlanSummaryProps) => {
           <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-400">
             <span>{CHECKOUT_SECTIONS.DISCOUNT}</span>
             <span>-${descuentoVisual.toLocaleString("es-AR")}</span>
+          </div>
+        )}
+
+        {saldoUsado > 0 && (
+          <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg text-green-400">
+            <span className="flex items-center gap-1">
+              <Wallet className="w-3 h-3" />
+              Saldo aplicado
+            </span>
+            <span>-${saldoUsado.toLocaleString("es-AR")}</span>
           </div>
         )}
 

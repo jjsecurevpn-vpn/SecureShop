@@ -91,6 +91,13 @@ export class DatabaseService {
       CREATE INDEX IF NOT EXISTS idx_pagos_email ON pagos(cliente_email);
     `);
 
+    // Agregar columna metadata si no existe (para saldo y referidos)
+    try {
+      this.db.exec(`ALTER TABLE pagos ADD COLUMN metadata TEXT`);
+    } catch {
+      // La columna ya existe, ignorar
+    }
+
     // Tabla de donaciones
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS donaciones (
@@ -320,6 +327,28 @@ export class DatabaseService {
       WHERE id = ?
     `);
     stmt.run(estado, mpPaymentId || null, pagoId);
+  }
+
+  actualizarMetadataPago(pagoId: string, metadata: Record<string, any>): void {
+    const stmt = this.db.prepare(`
+      UPDATE pagos
+      SET metadata = ?, fecha_actualizacion = datetime('now')
+      WHERE id = ?
+    `);
+    stmt.run(JSON.stringify(metadata), pagoId);
+  }
+
+  obtenerMetadataPago(pagoId: string): Record<string, any> | null {
+    const stmt = this.db.prepare("SELECT metadata FROM pagos WHERE id = ?");
+    const row = stmt.get(pagoId) as { metadata: string | null } | undefined;
+    if (row?.metadata) {
+      try {
+        return JSON.parse(row.metadata);
+      } catch {
+        return null;
+      }
+    }
+    return null;
   }
 
   guardarCuentaServex(

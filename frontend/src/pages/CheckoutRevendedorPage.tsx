@@ -238,14 +238,14 @@ const CheckoutRevendedorPage: React.FC = () => {
           {/* Right Column - Resumen (Sticky) */}
           <div className="md:sticky md:top-32 h-fit space-y-6">
             {/* Plan Card */}
-            <div className="bg-gradient-to-br from-slate-900/90 via-gray-900/90 to-slate-800/90 rounded-lg p-5 sm:p-6 lg:p-8 xl:p-10 space-y-6 text-white">
+            <div className="bg-gradient-to-br from-purple-100 via-purple-50 to-white border border-purple-200 rounded-lg p-5 sm:p-6 lg:p-8 xl:p-10 space-y-6">
               {/* Plan Info */}
               <div>
-                <div className="text-sm text-gray-400 mb-2">Plan seleccionado</div>
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-white mb-1">
+                <div className="text-sm text-purple-600 mb-2">Plan seleccionado</div>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-gray-900 mb-1">
                   {plan.nombre}
                 </h2>
-                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-400">
+                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
                   {plan.account_type === "credit"
                     ? `${plan.max_users} créditos`
                     : `${plan.max_users} usuarios`}
@@ -253,46 +253,46 @@ const CheckoutRevendedorPage: React.FC = () => {
               </div>
 
               {/* Divider */}
-              <div className="border-t border-white/20" />
+              <div className="border-t border-purple-200" />
 
               {/* Price Breakdown */}
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg">
-                  <span className="text-gray-400">Subtotal</span>
-                  <span className="text-white">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="text-gray-900">
                     ${plan.precio.toLocaleString("es-AR")}
                   </span>
                 </div>
 
                 {descuentoAplicado > 0 && (
-                  <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-400">
+                  <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-600">
                     <span>Descuento ({cuponData?.codigo})</span>
                     <span>-${descuentoAplicado.toLocaleString("es-AR")}</span>
                   </div>
                 )}
 
-                <div className="border-t border-white/20 pt-3 flex justify-between items-center">
-                  <span className="text-white font-medium">Total</span>
-                  <span className="text-3xl font-display font-bold text-indigo-400">
+                <div className="border-t border-purple-200 pt-3 flex justify-between items-center">
+                  <span className="text-gray-900 font-medium">Total</span>
+                  <span className="text-3xl font-display font-bold text-purple-600">
                     ${precioFinal.toLocaleString("es-AR")}
                   </span>
                 </div>
               </div>
 
               {/* Divider */}
-              <div className="border-t border-white/20" />
+              <div className="border-t border-purple-200" />
 
               {/* Plan Details */}
               <div className="space-y-3 text-sm">
                 <div className="flex items-start gap-3">
-                  <Check className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-400 flex-shrink-0 mt-0.5" />
+                  <Check className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-purple-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-medium text-white">
+                    <div className="font-medium text-gray-900">
                       {plan.account_type === "credit"
                         ? `${plan.max_users} créditos`
                         : `${plan.max_users} usuarios`}
                     </div>
-                    <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400">
+                    <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">
                       {plan.account_type === "credit"
                         ? "Créditos de acceso"
                         : "30 días de validez"}
@@ -301,12 +301,12 @@ const CheckoutRevendedorPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-400 flex-shrink-0 mt-0.5" />
+                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-purple-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <div className="font-medium text-white">
+                    <div className="font-medium text-gray-900">
                       Acceso inmediato
                     </div>
-                    <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400">
+                    <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">
                       Recibirás tus credenciales en el email
                     </div>
                   </div>
@@ -321,9 +321,9 @@ const CheckoutRevendedorPage: React.FC = () => {
             </div>
 
             {/* Security Badge */}
-            <div className="flex items-center justify-center gap-2 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-700 pt-4 border-t border-gray-200">
+            <div className="flex items-start gap-3 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-700 bg-purple-50 border border-purple-200 rounded-lg p-4">
               <svg
-                className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-600"
+                className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-purple-600 flex-shrink-0 mt-0.5"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -333,7 +333,7 @@ const CheckoutRevendedorPage: React.FC = () => {
                   clipRule="evenodd"
                 />
               </svg>
-              <span>Pago 100% seguro con MercadoPago</span>
+              <span>Pago 100% seguro con <span className="font-medium">MercadoPago</span></span>
             </div>
 
             {/* Back Button */}

@@ -16,7 +16,6 @@ import {
   Save,
   X,
   Shield,
-  Key,
   Wifi,
   ArrowRight,
   ChevronDown,
@@ -30,6 +29,7 @@ import { protonColors } from '../styles/colors';
 import { Title } from '../components/Title';
 import { Subtitle } from '../components/Subtitle';
 import { Button } from '../components/Button';
+import { ReferidosSection } from '../components/ReferidosSection';
 import { apiService, EstadoCuenta } from '../services/api.service';
 
 // Estado de cuenta expandido por compra
@@ -292,6 +292,16 @@ export default function ProfilePage() {
           )}
         </motion.div>
 
+        {/* Sección de Referidos */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mb-12"
+        >
+          <ReferidosSection userId={user.id} userEmail={user.email || ''} />
+        </motion.div>
+
         {/* Historial de Compras */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -356,22 +366,14 @@ export default function ProfilePage() {
                         </div>
                       </div>
 
-                      {/* Credenciales (si está aprobado) */}
+                      {/* Username (si está aprobado) - Contraseña solo disponible via soporte */}
                       {compra.estado === 'aprobado' && compra.servex_username && (
                         <div 
-                          className="flex items-center gap-4 px-4 py-2 rounded-lg"
+                          className="flex items-center gap-2 px-4 py-2 rounded-lg"
                           style={{ backgroundColor: protonColors.purple[50] }}
                         >
-                          <div className="flex items-center gap-2">
-                            <User className="w-4 h-4" style={{ color: protonColors.gray[500] }} />
-                            <span className="text-sm font-mono" style={{ color: protonColors.purple[700] }}>{compra.servex_username}</span>
-                          </div>
-                          {compra.servex_password && (
-                            <div className="flex items-center gap-2">
-                              <Key className="w-4 h-4" style={{ color: protonColors.gray[500] }} />
-                              <span className="text-sm font-mono" style={{ color: protonColors.purple[700] }}>{compra.servex_password}</span>
-                            </div>
-                          )}
+                          <User className="w-4 h-4" style={{ color: protonColors.gray[500] }} />
+                          <span className="text-sm font-mono" style={{ color: protonColors.purple[700] }}>{compra.servex_username}</span>
                         </div>
                       )}
 
@@ -520,54 +522,49 @@ export default function ProfilePage() {
                                     </div>
                                   </div>
 
-                                  {/* Para revendedores: créditos */}
+                                  {/* Para revendedores: distinguir entre crédito y validez */}
                                   {estadosCuenta[compra.servex_username]?.data?.tipo === 'revendedor' ? (
                                     <>
-                                      <div className="text-center p-3 rounded-lg bg-white">
-                                        <div className="flex items-center justify-center gap-1">
-                                          <Users className="w-4 h-4" style={{ color: protonColors.purple[500] }} />
-                                          <span className="text-2xl font-bold" style={{ color: protonColors.purple[500] }}>
-                                            {estadosCuenta[compra.servex_username]?.data?.creditosRestantes || 0}
-                                          </span>
+                                      {estadosCuenta[compra.servex_username]?.data?.tipoRevendedor === 'credit' ? (
+                                        /* Cuenta de crédito: solo muestra créditos disponibles */
+                                        <div className="text-center p-3 rounded-lg bg-white col-span-2">
+                                          <div className="flex items-center justify-center gap-1">
+                                            <Users className="w-4 h-4" style={{ color: protonColors.purple[500] }} />
+                                            <span className="text-2xl font-bold" style={{ color: protonColors.purple[500] }}>
+                                              {estadosCuenta[compra.servex_username]?.data?.creditos || 0}
+                                            </span>
+                                          </div>
+                                          <div className="text-xs" style={{ color: protonColors.gray[500] }}>
+                                            Créditos disponibles
+                                          </div>
                                         </div>
-                                        <div className="text-xs" style={{ color: protonColors.gray[500] }}>
-                                          Créditos disponibles
+                                      ) : (
+                                        /* Cuenta de validez: muestra usuarios actuales / máximos */
+                                        <div className="text-center p-3 rounded-lg bg-white col-span-2">
+                                          <div className="flex items-center justify-center gap-1">
+                                            <Users className="w-4 h-4" style={{ color: protonColors.purple[500] }} />
+                                            <span className="text-2xl font-bold" style={{ color: protonColors.purple[500] }}>
+                                              {estadosCuenta[compra.servex_username]?.data?.usuariosActuales || 0} / {estadosCuenta[compra.servex_username]?.data?.maxUsuarios || 0}
+                                            </span>
+                                          </div>
+                                          <div className="text-xs" style={{ color: protonColors.gray[500] }}>
+                                            Usuarios creados
+                                          </div>
                                         </div>
-                                      </div>
-                                      <div className="text-center p-3 rounded-lg bg-white">
-                                        <div className="text-sm font-semibold" style={{ color: protonColors.purple[700] }}>
-                                          {estadosCuenta[compra.servex_username]?.data?.usuariosActuales || 0} / {estadosCuenta[compra.servex_username]?.data?.maxUsuarios || 0}
-                                        </div>
-                                        <div className="text-xs" style={{ color: protonColors.gray[500] }}>
-                                          Usuarios creados
-                                        </div>
-                                      </div>
+                                      )}
                                     </>
                                   ) : (
                                     <>
-                                      {/* Para clientes: conexiones y estado online */}
-                                      <div className="text-center p-3 rounded-lg bg-white">
+                                      {/* Para clientes: conexiones */}
+                                      <div className="text-center p-3 rounded-lg bg-white col-span-2">
                                         <div className="flex items-center justify-center gap-1">
                                           <Wifi className="w-4 h-4" style={{ color: protonColors.purple[500] }} />
-                                          <span className="text-lg font-bold" style={{ color: protonColors.purple[500] }}>
+                                          <span className="text-2xl font-bold" style={{ color: protonColors.purple[500] }}>
                                             {estadosCuenta[compra.servex_username]?.data?.conexionesMaximas || 1}
                                           </span>
                                         </div>
                                         <div className="text-xs" style={{ color: protonColors.gray[500] }}>
                                           Conexiones máx.
-                                        </div>
-                                      </div>
-                                      <div className="text-center p-3 rounded-lg bg-white">
-                                        <div className={`flex items-center justify-center gap-1 text-sm font-semibold ${
-                                          estadosCuenta[compra.servex_username]?.data?.online ? 'text-green-600' : 'text-gray-400'
-                                        }`}>
-                                          <div className={`w-2 h-2 rounded-full ${
-                                            estadosCuenta[compra.servex_username]?.data?.online ? 'bg-green-500 animate-pulse' : 'bg-gray-300'
-                                          }`} />
-                                          {estadosCuenta[compra.servex_username]?.data?.online ? 'Online' : 'Offline'}
-                                        </div>
-                                        <div className="text-xs" style={{ color: protonColors.gray[500] }}>
-                                          Estado actual
                                         </div>
                                       </div>
                                     </>

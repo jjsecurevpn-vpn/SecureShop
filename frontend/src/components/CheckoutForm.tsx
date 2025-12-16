@@ -1,5 +1,5 @@
-import { forwardRef, useImperativeHandle, useRef } from "react";
-import { Mail, User, Shield } from "lucide-react";
+import { forwardRef, useImperativeHandle, useRef, useEffect } from "react";
+import { Mail, User, Shield, Check } from "lucide-react";
 import CuponInput from "./CuponInput";
 import { ValidacionCupon } from "../services/api.service";
 
@@ -16,6 +16,8 @@ interface CheckoutFormProps {
   planPrecio: number;
   loading?: boolean;
   onCuponChange?: (descuento: number) => void;
+  onEmailChange?: (email: string) => void;
+  userEmail?: string; // Email del usuario logueado
 }
 
 /**
@@ -24,7 +26,7 @@ interface CheckoutFormProps {
  * Los inputs mantienen su valor en el DOM, no en state.
  */
 const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
-  ({ planId, planPrecio, loading = false, onCuponChange }, ref) => {
+  ({ planId, planPrecio, loading = false, onCuponChange, onEmailChange, userEmail }, ref) => {
     const nombreInputRef = useRef<HTMLInputElement>(null);
     const emailInputRef = useRef<HTMLInputElement>(null);
     const errorNombreRef = useRef<HTMLParagraphElement>(null);
@@ -33,6 +35,15 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
     const descuentoRef = useRef(0);
 
     console.log("[CheckoutForm] RENDER - esto NO debería aparecer en cada keystroke");
+
+    // Pre-rellenar email si el usuario está logueado
+    useEffect(() => {
+      if (userEmail && emailInputRef.current) {
+        emailInputRef.current.value = userEmail;
+        // Notificar al padre para que cargue el saldo
+        onEmailChange?.(userEmail);
+      }
+    }, [userEmail]);
 
     // Exponer métodos al padre vía ref - acceden directamente al DOM
     useImperativeHandle(ref, () => ({
@@ -134,10 +145,24 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
               ref={emailInputRef}
               type="email"
               disabled={loading}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              readOnly={!!userEmail}
+              className={`w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
+                userEmail ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+              }`}
               placeholder="tu@email.com"
+              onChange={(e) => !userEmail && onEmailChange?.(e.target.value)}
+              onBlur={(e) => !userEmail && onEmailChange?.(e.target.value)}
             />
+            {userEmail && (
+              <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+            )}
           </div>
+          {userEmail && (
+            <p className="text-green-600 text-xs mt-1.5 flex items-center gap-1">
+              <span className="w-1 h-1 rounded-full bg-green-600 inline-block" />
+              Email de tu cuenta verificado
+            </p>
+          )}
           <p
             ref={errorEmailRef}
             className="text-rose-700 text-xs mt-1.5 gap-1"

@@ -29,6 +29,12 @@ export interface Profile {
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
+  // Campos de referidos
+  saldo?: number;
+  referral_code?: string | null;
+  referred_by?: string | null;
+  total_referrals?: number;
+  total_earned?: number;
 }
 
 export interface PurchaseHistory {

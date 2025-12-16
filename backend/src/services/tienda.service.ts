@@ -8,6 +8,7 @@ import { configService } from "./config.service";
 import emailService from "./email.service";
 import { cuponesService } from "./cupones.service";
 import { supabaseService } from "./supabase.service";
+import { referidosService } from "./referidos.service";
 import { Plan, Pago, CrearPagoInput, ClienteServex } from "../types";
 
 export class TiendaService {
@@ -115,7 +116,18 @@ export class TiendaService {
     linkPago: string;
     descuentoAplicado?: number;
     cuponAplicado?: any;
+    saldoUsado?: number;
+    pagoConSaldoCompleto?: boolean;
+    codigoReferidoUsado?: string;
+    cuentaVPN?: {
+      username: string;
+      password: string;
+      expiracion: string;
+      categoria: string;
+    };
   }> {
+    console.log("[Tienda] procesarCompra input:", JSON.stringify(input));
+    
     // 1. Validar que el plan existe
     let plan = this.db.obtenerPlanPorId(input.planId);
     if (!plan) {
@@ -131,6 +143,7 @@ export class TiendaService {
     let precioFinal = plan.precio;
     let descuentoAplicado = 0;
     let cuponAplicado = null;
+    let saldoUsado = 0;
 
     // 3. Validar y aplicar cupón si se proporciona
     if (input.codigoCupon) {
@@ -154,6 +167,48 @@ export class TiendaService {
       console.log(`[Tienda] Cupón aplicado: ${descuentoAplicado} de descuento, precio final: $${precioFinal}`);
     }
 
+    // 3.5. Validar y aplicar descuento por código de referido
+    if (input.codigoReferido) {
+      console.log(`[Tienda] ========================================`);
+      console.log(`[Tienda] Validando código de referido: ${input.codigoReferido}`);
+      console.log(`[Tienda] Email cliente: ${input.clienteEmail}`);
+      
+      const validacionReferido = await referidosService.validarCodigo(
+        input.codigoReferido, 
+        input.clienteEmail
+      );
+
+      console.log(`[Tienda] Resultado validación referido:`, JSON.stringify(validacionReferido));
+
+      if (validacionReferido.valido && validacionReferido.descuento) {
+        const descuentoReferido = Math.round(precioFinal * validacionReferido.descuento / 100);
+        console.log(`[Tienda] Descuento referido calculado: ${descuentoReferido} (${validacionReferido.descuento}% de ${precioFinal})`);
+        precioFinal = Math.max(0, precioFinal - descuentoReferido);
+        descuentoAplicado += descuentoReferido;
+        console.log(`[Tienda] ✅ Descuento por referido aplicado: ${descuentoReferido}, precio final: $${precioFinal}`);
+      } else {
+        console.log(`[Tienda] ⚠️ No se aplicó descuento. valido=${validacionReferido.valido}, descuento=${validacionReferido.descuento}`);
+      }
+      console.log(`[Tienda] ========================================`);
+    }
+
+    // 3.6. Validar y aplicar saldo si se proporciona
+    if (input.saldoUsado && input.saldoUsado > 0) {
+      console.log(`[Tienda] Validando saldo a usar: ${input.saldoUsado}`);
+      
+      const userData = await referidosService.getSaldoByEmail(input.clienteEmail);
+      const saldoDisponible = userData?.saldo || 0;
+      
+      if (saldoDisponible < input.saldoUsado) {
+        throw new Error(`Saldo insuficiente. Disponible: $${saldoDisponible}`);
+      }
+
+      saldoUsado = Math.min(input.saldoUsado, precioFinal); // No usar más saldo del necesario
+      precioFinal = Math.max(0, precioFinal - saldoUsado);
+      
+      console.log(`[Tienda] Saldo usado: ${saldoUsado}, precio final a pagar: $${precioFinal}`);
+    }
+
     console.log(`[Tienda] Plan ${plan.id} - Precio final: $${precioFinal}`);
 
     // 4. Crear registro de pago en la base de datos
@@ -162,8 +217,8 @@ export class TiendaService {
       id: pagoId,
       plan_id: plan.id,
       monto: precioFinal, // Usar precio con descuento aplicado
-      estado: "pendiente",
-      metodo_pago: "mercadopago",
+      estado: precioFinal === 0 ? "aprobado" : "pendiente", // Si el precio es 0, ya está aprobado
+      metodo_pago: precioFinal === 0 ? "saldo" : "mercadopago",
       cliente_email: input.clienteEmail,
       cliente_nombre: input.clienteNombre,
       cupon_id: cuponAplicado?.id,
@@ -172,7 +227,84 @@ export class TiendaService {
 
     console.log("[Tienda] Pago creado:", pagoId);
 
-    // 4. Crear preferencia en MercadoPago
+    // 4.5. Si el precio es 0 (pagado completamente con saldo), procesar inmediatamente
+    if (precioFinal === 0 && saldoUsado > 0) {
+      console.log("[Tienda] Pago completamente cubierto con saldo, procesando inmediatamente...");
+      
+      // Descontar el saldo usado
+      await referidosService.debitarSaldoPorEmail(
+        input.clienteEmail,
+        saldoUsado,
+        `Pago del plan ${plan.nombre}`
+      );
+
+      // Preparar info de referido para emails
+      let referidoInfo = null;
+      let referidorEmail = '';
+      let comisionReferidor = 0;
+      let descuentoReferido = 0;
+
+      // Procesar el referido si hay código
+      if (input.codigoReferido) {
+        // Obtener info del referidor antes de procesar
+        const validacionReferido = await referidosService.validarCodigo(input.codigoReferido, input.clienteEmail);
+        const settings = await referidosService.getSettings();
+        
+        if (validacionReferido.valido && validacionReferido.referrer_email && settings) {
+          referidorEmail = validacionReferido.referrer_email;
+          descuentoReferido = Math.round(plan.precio * (settings.porcentaje_descuento_referido || 0) / 100);
+          comisionReferidor = Math.round(plan.precio * (settings.porcentaje_recompensa || 0) / 100);
+          
+          referidoInfo = {
+            codigoUsado: input.codigoReferido,
+            referidorEmail: referidorEmail,
+            porcentajeDescuento: settings.porcentaje_descuento_referido || 0,
+            descuentoAplicado: descuentoReferido,
+            comisionReferidor: comisionReferidor,
+            saldoUsado: saldoUsado,
+            metodoPago: 'saldo' as const,
+          };
+        }
+
+        await referidosService.procesarReferidoPorEmail(
+          input.codigoReferido,
+          input.clienteEmail,
+          plan.precio, // Monto original para calcular comisión
+          pagoId
+        );
+      }
+
+      // Crear la cuenta VPN y obtener credenciales
+      let cuentaVPN = null;
+      try {
+        cuentaVPN = await this.crearCuentaVPNConRetorno(pago, plan, referidoInfo);
+        this.db.actualizarEstadoPago(pagoId, "aprobado");
+      } catch (error: any) {
+        console.error("[Tienda] Error creando cuenta VPN:", error);
+        // Reembolsar el saldo
+        await referidosService.acreditarSaldoPorEmail(
+          input.clienteEmail,
+          saldoUsado,
+          `Reembolso por error en compra`,
+          'reembolso'
+        );
+        this.db.actualizarEstadoPago(pagoId, "rechazado");
+        throw new Error(`Error creando cuenta VPN: ${error.message}`);
+      }
+
+      return {
+        pago: { ...pago, estado: "aprobado" as const },
+        linkPago: "", // No hay link porque ya está procesado
+        descuentoAplicado: descuentoAplicado > 0 ? descuentoAplicado : undefined,
+        cuponAplicado,
+        saldoUsado,
+        pagoConSaldoCompleto: true,
+        codigoReferidoUsado: input.codigoReferido || undefined,
+        cuentaVPN,
+      };
+    }
+
+    // 5. Crear preferencia en MercadoPago (si hay monto a pagar)
     try {
       const { id: preferenceId, initPoint } =
         await this.mercadopago.crearPreferencia(
@@ -185,11 +317,19 @@ export class TiendaService {
 
       console.log("[Tienda] Preferencia de MercadoPago creada:", preferenceId);
 
+      // Guardar metadata para procesar después del pago
+      this.db.actualizarMetadataPago(pagoId, {
+        saldoUsado,
+        codigoReferido: input.codigoReferido,
+        montoOriginal: plan.precio,
+      });
+
       return {
         pago,
         linkPago: initPoint,
         descuentoAplicado: descuentoAplicado > 0 ? descuentoAplicado : undefined,
-        cuponAplicado: cuponAplicado,
+        cuponAplicado,
+        saldoUsado: saldoUsado > 0 ? saldoUsado : undefined,
       };
     } catch (error: any) {
       // Si falla la creación de la preferencia, marcar el pago como rechazado
@@ -237,6 +377,118 @@ export class TiendaService {
         console.log("[Tienda] Pago marcado como rechazado");
       }
     }
+  }
+
+  /**
+   * Crea una cuenta VPN y retorna las credenciales
+   * Usado para pagos con saldo completo donde necesitamos mostrar las credenciales inmediatamente
+   */
+  private async crearCuentaVPNConRetorno(
+    pago: Pago, 
+    plan: Plan,
+    referidoInfo?: {
+      codigoUsado: string;
+      referidorEmail: string;
+      porcentajeDescuento: number;
+      descuentoAplicado: number;
+      comisionReferidor: number;
+      saldoUsado?: number;
+      metodoPago: 'mercadopago' | 'saldo' | 'mixto';
+    } | null
+  ): Promise<{ username: string; password: string; expiracion: string; categoria: string }> {
+    // 1. Generar credenciales usando el nombre del cliente
+    const { username, password } = this.servex.generarCredenciales(pago.cliente_nombre);
+    console.log(`[Tienda] Username generado: ${username} para cliente: ${pago.cliente_nombre}`);
+
+    // 2. Obtener categorías activas (no expiradas)
+    const categorias = await this.servex.obtenerCategoriasActivas();
+    if (categorias.length === 0) {
+      throw new Error("No hay categorías activas disponibles en Servex. Por favor contacte al administrador.");
+    }
+    const categoria = categorias[0];
+    console.log(`[Tienda] Usando categoría activa: ${categoria.name} (ID: ${categoria.id})`);
+
+    // 3. Crear cliente en Servex
+    const clienteData: ClienteServex = {
+      username,
+      password,
+      category_id: categoria.id,
+      connection_limit: plan.connection_limit,
+      duration: plan.dias,
+      type: "user",
+      observation: `Cliente: ${pago.cliente_nombre} - Email: ${pago.cliente_email} - Plan: ${plan.nombre}`,
+    };
+
+    const clienteCreado = await this.servex.crearCliente(clienteData);
+
+    // 4. Guardar información de la cuenta en la base de datos
+    this.db.guardarCuentaServex(
+      pago.id,
+      clienteCreado.id,
+      clienteCreado.username,
+      clienteCreado.password,
+      categoria.name,
+      clienteCreado.expiration_date,
+      clienteCreado.connection_limit
+    );
+
+    console.log("[Tienda] ✅ Cuenta VPN creada exitosamente:", clienteCreado.username);
+    const expiracionFormateada = new Date(clienteCreado.expiration_date).toLocaleDateString("es-AR");
+
+    // 5. Enviar credenciales por email con info de referido
+    try {
+      await emailService.enviarCredencialesCliente(pago.cliente_email, {
+        username: clienteCreado.username,
+        password: clienteCreado.password,
+        categoria: categoria.name,
+        expiracion: expiracionFormateada,
+        servidores: this.wsService.obtenerEstadisticas().map((s: any) => `${s.serverName} (${s.location})`),
+        referido: referidoInfo || undefined,
+      });
+      console.log("[Tienda] ✅ Email enviado a:", pago.cliente_email);
+    } catch (emailError: any) {
+      console.error("[Tienda] ⚠️ Error enviando email:", emailError.message);
+    }
+
+    // 6. Notificar al administrador con info de referido
+    try {
+      await emailService.notificarVentaAdmin("cliente", {
+        clienteNombre: pago.cliente_nombre,
+        clienteEmail: pago.cliente_email,
+        monto: pago.monto,
+        descripcion: `Plan: ${plan.nombre} (${plan.connection_limit} conexiones, ${plan.dias} días) - Pagado con SALDO`,
+        username: clienteCreado.username,
+        referido: referidoInfo || undefined,
+      });
+      console.log("[Tienda] ✅ Notificación enviada al administrador");
+    } catch (emailError: any) {
+      console.error("[Tienda] ⚠️ Error notificando al admin:", emailError.message);
+    }
+
+    // 7. Sincronizar con Supabase
+    try {
+      await supabaseService.syncApprovedPurchase({
+        email: pago.cliente_email,
+        planNombre: plan.nombre,
+        monto: pago.monto,
+        tipo: 'plan',
+        servexUsername: clienteCreado.username,
+        servexPassword: clienteCreado.password,
+        servexExpiracion: clienteCreado.expiration_date,
+        servexConnectionLimit: clienteCreado.connection_limit,
+        mpPaymentId: undefined,
+      });
+    } catch (supabaseError: any) {
+      console.error("[Tienda] ⚠️ Error sincronizando con Supabase:", supabaseError.message);
+    }
+
+    // Retornar las credenciales para mostrar en el frontend
+    return {
+      username: clienteCreado.username,
+      password: clienteCreado.password,
+      expiracion: expiracionFormateada,
+      categoria: categoria.name,
+    };
   }
 
   /**
@@ -418,6 +670,36 @@ export class TiendaService {
         });
       } catch (supabaseError: any) {
         console.error("[Tienda] ⚠️ Error sincronizando con Supabase:", supabaseError.message);
+        // No lanzamos error, la venta ya está procesada
+      }
+
+      // Procesar saldo y referidos si hay metadata
+      try {
+        const metadata = this.db.obtenerMetadataPago(pagoId);
+        if (metadata) {
+          // Descontar saldo usado
+          if (metadata.saldoUsado && metadata.saldoUsado > 0) {
+            await referidosService.debitarSaldoPorEmail(
+              pago.cliente_email,
+              metadata.saldoUsado,
+              `Pago del plan ${plan.nombre}`
+            );
+            console.log(`[Tienda] ✅ Saldo descontado: $${metadata.saldoUsado}`);
+          }
+
+          // Procesar referido (acreditar comisión al referidor)
+          if (metadata.codigoReferido) {
+            await referidosService.procesarReferidoPorEmail(
+              metadata.codigoReferido,
+              pago.cliente_email,
+              metadata.montoOriginal || plan.precio,
+              pagoId
+            );
+            console.log(`[Tienda] ✅ Referido procesado con código: ${metadata.codigoReferido}`);
+          }
+        }
+      } catch (referidoError: any) {
+        console.error("[Tienda] ⚠️ Error procesando saldo/referido:", referidoError.message);
         // No lanzamos error, la venta ya está procesada
       }
     } catch (error: any) {

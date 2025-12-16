@@ -12,6 +12,20 @@ export interface InformacionCupon {
 }
 
 // ============================================
+// TIPOS PARA REFERIDOS
+// ============================================
+
+export interface InformacionReferido {
+  codigoUsado: string;
+  referidorEmail: string;
+  porcentajeDescuento: number;
+  descuentoAplicado: number;
+  comisionReferidor: number;
+  saldoUsado?: number;
+  metodoPago: 'mercadopago' | 'saldo' | 'mixto';
+}
+
+// ============================================
 // TIPOS PARA PLANES
 // ============================================
 
@@ -104,6 +118,9 @@ export interface CrearPagoInput {
   clienteEmail: string;
   clienteNombre: string;
   codigoCupon?: string;
+  // Nuevos campos para referidos y saldo
+  codigoReferido?: string;
+  saldoUsado?: number;
 }
 
 export interface Donacion {
@@ -516,4 +533,71 @@ export interface ValidacionCupon {
   tipo_descuento?: 'porcentaje' | 'monto_fijo';
   mensaje_error?: string;
   cupon?: Cupon;
+}
+
+// ============================================
+// TIPOS PARA SALDO Y REFERIDOS
+// ============================================
+
+export interface SaldoTransaccion {
+  id: string;
+  user_id: string;
+  tipo: 'referido' | 'compra' | 'ajuste_admin' | 'bonus' | 'reembolso';
+  monto: number;
+  saldo_anterior: number;
+  saldo_nuevo: number;
+  descripcion: string | null;
+  referencia_id: string | null;
+  created_at: Date;
+}
+
+export interface Referido {
+  id: string;
+  referrer_id: string;
+  referred_id: string;
+  referral_code: string;
+  purchase_id: string | null;
+  purchase_amount: number;
+  reward_amount: number;
+  reward_percentage: number;
+  status: 'pending' | 'completed' | 'cancelled';
+  created_at: Date;
+  completed_at: Date | null;
+  referred_email?: string;
+  referred_nombre?: string;
+}
+
+export interface ReferralSettings {
+  id: number;
+  porcentaje_recompensa: number;
+  porcentaje_descuento_referido: number;
+  min_compra_requerida: number;
+  activo: boolean;
+  solo_primera_compra: boolean;
+  max_recompensa_por_referido: number | null;
+  mensaje_promocional: string;
+  updated_at: Date;
+}
+
+export interface ReferralStats {
+  total_referrals: number;
+  total_earned: number;
+  saldo_actual: number;
+  referral_code: string;
+  referidos: Referido[];
+}
+
+export interface ProcesarReferidoInput {
+  referral_code: string;
+  referred_user_id: string;
+  purchase_id: string;
+  purchase_amount: number;
+}
+
+export interface AcreditarSaldoInput {
+  user_id: string;
+  monto: number;
+  tipo: 'referido' | 'compra' | 'ajuste_admin' | 'bonus' | 'reembolso';
+  descripcion?: string;
+  referencia_id?: string;
 }
