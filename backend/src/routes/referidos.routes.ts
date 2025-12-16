@@ -62,6 +62,60 @@ router.get('/settings', async (_req: Request, res: Response) => {
   }
 });
 
+/**
+ * POST /api/referidos/procesar-registro
+ * Procesa el código de referido al registrarse un nuevo usuario
+ */
+router.post('/procesar-registro', async (req: Request, res: Response) => {
+  try {
+    const { email, codigoReferido } = req.body;
+
+    if (!email || !codigoReferido) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email y código de referido son requeridos' 
+      });
+    }
+
+    // Validar que el código existe y no es el del mismo usuario
+    const validacion = await referidosService.validarCodigo(codigoReferido, email);
+
+    if (!validacion.valido) {
+      return res.json({ 
+        success: false, 
+        error: validacion.mensaje || 'Código inválido' 
+      });
+    }
+
+    // Vincular el referido al nuevo usuario
+    const resultado = await referidosService.vincularReferidoAlRegistro(
+      email,
+      codigoReferido
+    );
+
+    if (!resultado.success) {
+      return res.json({ 
+        success: false, 
+        error: resultado.mensaje || 'Error procesando referido' 
+      });
+    }
+
+    console.log(`[Referidos] Nuevo usuario ${email} vinculado con referido ${codigoReferido}`);
+
+    return res.json({ 
+      success: true, 
+      message: 'Referido vinculado correctamente',
+      referidor: resultado.referidorEmail,
+    });
+  } catch (error: any) {
+    console.error('[Referidos Route] Error procesando registro:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Error procesando referido' 
+    });
+  }
+});
+
 // ============================================
 // RUTAS DE USUARIO (requieren email)
 // ============================================

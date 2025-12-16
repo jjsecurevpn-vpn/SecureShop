@@ -15,11 +15,12 @@ interface AuthContextType {
   profile: Profile | null;
   purchaseHistory: PurchaseHistory[];
   loading: boolean;
-  signUp: (email: string, password: string, nombre?: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, nombre?: string, referralCode?: string) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<Profile>) => Promise<{ error: Error | null }>;
+  refreshProfile: () => Promise<void>;
   refreshPurchaseHistory: () => Promise<void>;
 }
 
@@ -77,6 +78,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshPurchaseHistory = async () => {
     if (user) {
       await fetchPurchaseHistory(user.id);
+    }
+  };
+
+  // Refrescar perfil (útil para actualizar saldo después de compras)
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchProfile(user.id);
     }
   };
 
@@ -157,16 +165,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Registrar usuario
-  const signUp = async (email: string, password: string, nombre?: string) => {
+  const signUp = async (email: string, password: string, nombre?: string, referralCode?: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           nombre: nombre || '',
+          referral_code_used: referralCode || '', // Guardar código de referido usado
         },
       },
     });
+
+    // Si el registro fue exitoso y hay código de referido, procesarlo
+    if (!error && referralCode) {
+      try {
+        // Llamar al backend para procesar el referido
+        const API_URL = import.meta.env.VITE_API_URL || 'https://api.secureshop.com.ar';
+        await fetch(`${API_URL}/api/referidos/procesar-registro`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            codigoReferido: referralCode,
+          }),
+        });
+      } catch (e) {
+        console.error('Error procesando referido:', e);
+      }
+    }
 
     return { error };
   };
@@ -239,6 +266,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signInWithGoogle,
     signOut,
     updateProfile,
+    refreshProfile,
     refreshPurchaseHistory,
   };
 

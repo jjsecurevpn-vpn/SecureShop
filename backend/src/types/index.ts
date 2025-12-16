@@ -1,4 +1,54 @@
 // ============================================
+// TIPOS PARA AUTENTICACIÓN
+// ============================================
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  nombre?: string;
+  telefono?: string;
+  avatar_url?: string;
+  saldo: number;
+  referral_code: string | null;
+  referred_by: string | null;
+  total_referrals: number;
+  total_earned: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RegisterInput {
+  email: string;
+  password: string;
+  nombre?: string;
+  telefono?: string;
+  referralCode?: string;
+}
+
+export interface LoginInput {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  user?: AuthUser;
+  session?: {
+    access_token: string;
+    refresh_token: string;
+    expires_in: number;
+    expires_at?: number;
+  };
+  error?: string;
+}
+
+export interface ProfileUpdateInput {
+  nombre?: string;
+  telefono?: string;
+  avatar_url?: string;
+}
+
+// ============================================
 // TIPOS PARA CUPONES
 // ============================================
 

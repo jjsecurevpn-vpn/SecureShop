@@ -571,6 +571,90 @@ export class ReferidosService {
       return { success: false, reward_amount: 0, message: 'Error procesando referido' };
     }
   }
+
+  /**
+   * Vincular referido al momento del registro
+   * Esto permite que cuando el usuario haga su primera compra, se procese la comisión
+   */
+  async vincularReferidoAlRegistro(
+    emailNuevoUsuario: string,
+    codigoReferido: string
+  ): Promise<{ success: boolean; mensaje?: string; referidorEmail?: string }> {
+    if (!this.client) {
+      return { success: false, mensaje: 'Servicio no disponible' };
+    }
+
+    try {
+      // Buscar al referidor por su código
+      const { data: referidor, error: errorReferidor } = await this.client
+        .from('profiles')
+        .select('id, email')
+        .eq('referral_code', codigoReferido.toUpperCase())
+        .single();
+
+      if (errorReferidor || !referidor) {
+        return { success: false, mensaje: 'Código de referido no encontrado' };
+      }
+
+      // Verificar que no es el mismo usuario
+      if (referidor.email.toLowerCase() === emailNuevoUsuario.toLowerCase()) {
+        return { success: false, mensaje: 'No puedes usar tu propio código' };
+      }
+
+      // Buscar al nuevo usuario
+      const { data: nuevoUsuario, error: errorNuevo } = await this.client
+        .from('profiles')
+        .select('id, referred_by')
+        .eq('email', emailNuevoUsuario.toLowerCase())
+        .single();
+
+      if (errorNuevo || !nuevoUsuario) {
+        // El usuario aún no tiene perfil (puede que el trigger no haya terminado)
+        // Guardar la relación pendiente para procesarla después
+        console.log(`[Referidos] Usuario ${emailNuevoUsuario} aún no tiene perfil, se vinculará después`);
+        return { 
+          success: true, 
+          mensaje: 'Referido se vinculará cuando se complete el registro',
+          referidorEmail: referidor.email,
+        };
+      }
+
+      // Verificar que no tenga ya un referidor
+      if (nuevoUsuario.referred_by) {
+        return { success: false, mensaje: 'Ya tienes un referidor asignado' };
+      }
+
+      // Actualizar el perfil del nuevo usuario con el referidor
+      const { error: errorUpdate } = await this.client
+        .from('profiles')
+        .update({
+          referred_by: referidor.id,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', nuevoUsuario.id);
+
+      if (errorUpdate) {
+        console.error('[Referidos] Error vinculando referido:', errorUpdate);
+        return { success: false, mensaje: 'Error vinculando referido' };
+      }
+
+      // Incrementar contador de referidos del referidor
+      await this.client.rpc('increment_referral_count', {
+        user_id: referidor.id,
+      });
+
+      console.log(`[Referidos] ✅ Referido vinculado: ${emailNuevoUsuario} -> ${referidor.email}`);
+
+      return { 
+        success: true, 
+        mensaje: 'Referido vinculado correctamente',
+        referidorEmail: referidor.email,
+      };
+    } catch (error) {
+      console.error('[Referidos] Error vinculando referido al registro:', error);
+      return { success: false, mensaje: 'Error interno' };
+    }
+  }
 }
 
 // Singleton
