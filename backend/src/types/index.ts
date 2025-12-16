@@ -549,6 +549,7 @@ export interface Cupon {
   fecha_expiracion?: Date;
   activo?: boolean;
   planes_aplicables?: number[];
+  descripcion?: string;
   creado_en?: Date;
   actualizado_en?: Date;
 }
@@ -563,6 +564,7 @@ export interface CuponRow {
   fecha_expiracion: string | null;
   activo: number;
   planes_aplicables: string | null;
+  descripcion?: string | null;
   creado_en: string;
   actualizado_en: string;
 }
@@ -575,6 +577,7 @@ export interface CrearCuponInput {
   fecha_expiracion?: Date;
   planes_aplicables?: number[];
   activo?: boolean;
+  descripcion?: string;
 }
 
 export interface ValidacionCupon {

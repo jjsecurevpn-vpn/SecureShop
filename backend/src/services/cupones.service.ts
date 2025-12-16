@@ -1,14 +1,34 @@
 import Database from 'better-sqlite3';
 import { config } from '../config';
 import { Cupon, CuponRow, CrearCuponInput, ValidacionCupon } from '../types';
+import { cuponesSupabaseService } from './cupones-supabase.service';
 
+/**
+ * Servicio de Cupones Híbrido
+ * Usa Supabase si está disponible, con fallback a SQLite
+ */
 export class CuponesService {
   private db: Database.Database;
+  private useSupabase: boolean;
 
   constructor() {
     this.db = new Database(config.database.path);
+    this.useSupabase = cuponesSupabaseService.isEnabled();
+    
+    if (this.useSupabase) {
+      console.log('[Cupones] ✅ Usando Supabase como fuente principal');
+    } else {
+      console.log('[Cupones] ⚠️ Supabase no disponible, usando SQLite');
+    }
   }
+
   async crearCupon(input: CrearCuponInput): Promise<Cupon> {
+    // Si Supabase está habilitado, usar Supabase
+    if (this.useSupabase) {
+      return cuponesSupabaseService.crearCupon(input);
+    }
+
+    // Fallback a SQLite
     // Verificar que el código no exista
     const existente = await this.obtenerCuponPorCodigo(input.codigo);
     if (existente) {
@@ -52,6 +72,10 @@ export class CuponesService {
    * Obtiene un cupón por ID
    */
   async obtenerCuponPorId(id: number): Promise<Cupon | null> {
+    if (this.useSupabase) {
+      return cuponesSupabaseService.obtenerCuponPorId(id);
+    }
+
     const stmt = this.db.prepare('SELECT * FROM cupones WHERE id = ?');
     const row = stmt.get(id) as CuponRow | undefined;
 
@@ -64,6 +88,10 @@ export class CuponesService {
    * Obtiene un cupón por código
    */
   async obtenerCuponPorCodigo(codigo: string): Promise<Cupon | null> {
+    if (this.useSupabase) {
+      return cuponesSupabaseService.obtenerCuponPorCodigo(codigo);
+    }
+
     const stmt = this.db.prepare('SELECT * FROM cupones WHERE codigo = ?');
     const row = stmt.get(codigo.toUpperCase()) as CuponRow | undefined;
 
@@ -76,6 +104,10 @@ export class CuponesService {
    * Lista todos los cupones (para admin)
    */
   async listarCupones(): Promise<Cupon[]> {
+    if (this.useSupabase) {
+      return cuponesSupabaseService.listarCupones();
+    }
+
     const stmt = this.db.prepare('SELECT * FROM cupones ORDER BY creado_en DESC');
     const rows = stmt.all() as CuponRow[];
 
@@ -87,6 +119,10 @@ export class CuponesService {
    * ✅ MEJORADO: Ahora verifica abuso por usuario/email
    */
   async validarCupon(codigo: string, planId?: number, clienteEmail?: string): Promise<ValidacionCupon> {
+    if (this.useSupabase) {
+      return cuponesSupabaseService.validarCupon(codigo, planId, clienteEmail);
+    }
+
     try {
       const cupon = await this.obtenerCuponPorCodigo(codigo);
       if (!cupon) {
@@ -147,6 +183,10 @@ export class CuponesService {
    * Solo cuenta pagos aprobados
    */
   async contarUsosDelUsuario(cuponId: number, clienteEmail: string): Promise<number> {
+    if (this.useSupabase) {
+      return cuponesSupabaseService.contarUsosDelUsuario(cuponId, clienteEmail);
+    }
+
     try {
       const stmt = this.db.prepare(`
         SELECT COUNT(*) as total FROM pagos 
@@ -169,6 +209,15 @@ export class CuponesService {
     usos_aprobados: number;
     usos_totales: number;
   }>> {
+    if (this.useSupabase) {
+      const result = await cuponesSupabaseService.detectarAbusoCupon(cuponId);
+      return result.map(r => ({ 
+        cliente_email: r.cliente_email, 
+        usos_aprobados: r.usos, 
+        usos_totales: r.usos 
+      }));
+    }
+
     try {
       const stmt = this.db.prepare(`
         SELECT 
@@ -244,6 +293,10 @@ export class CuponesService {
    * Actualiza un cupón
    */
   async actualizarCupon(id: number, updates: Partial<CrearCuponInput & { activo: boolean }>): Promise<Cupon | null> {
+    if (this.useSupabase) {
+      return cuponesSupabaseService.actualizarCupon(id, updates);
+    }
+
     const campos: string[] = [];
     const valores: any[] = [];
 
@@ -302,6 +355,10 @@ export class CuponesService {
    * Desactiva un cupón
    */
   async desactivarCupon(id: number): Promise<void> {
+    if (this.useSupabase) {
+      return cuponesSupabaseService.desactivarCupon(id);
+    }
+
     const stmt = this.db.prepare(`
       UPDATE cupones SET activo = 0, actualizado_en = CURRENT_TIMESTAMP WHERE id = ?
     `);
@@ -312,6 +369,10 @@ export class CuponesService {
    * Elimina un cupón (sin importar si fue usado)
    */
   async eliminarCupon(id: number): Promise<void> {
+    if (this.useSupabase) {
+      return cuponesSupabaseService.eliminarCupon(id);
+    }
+
     try {
       const cupon = await this.obtenerCuponPorId(id);
       if (!cupon) {
@@ -357,6 +418,10 @@ export class CuponesService {
     usos_totales: number;
     cupones_expirados: number;
   }> {
+    if (this.useSupabase) {
+      return cuponesSupabaseService.obtenerEstadisticas();
+    }
+
     const stmt = this.db.prepare(`
       SELECT
         COUNT(*) as total_cupones,
@@ -384,6 +449,10 @@ export class CuponesService {
     errores: string[];
     existentes: number;
   }> {
+    if (this.useSupabase) {
+      return cuponesSupabaseService.cargarCuponesDesdeConfig();
+    }
+
     try {
       const fs = require('fs');
       const path = require('path');
