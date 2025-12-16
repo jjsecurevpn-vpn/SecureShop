@@ -793,7 +793,7 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
           return;
         }
 
-        const pago = tiendaService.obtenerPago(pagoId);
+        const pago = await tiendaService.obtenerPago(pagoId);
 
         if (!pago) {
           res.status(404).json({
@@ -869,7 +869,7 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
         return;
       }
 
-      const pagos = tiendaService.buscarPagosPorEmail(email);
+      const pagos = await tiendaService.buscarPagosPorEmail(email);
       console.log(`[Admin] Búsqueda de pagos para "${email}": ${pagos.length} resultados`);
 
       res.json({
@@ -892,7 +892,7 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
   router.get("/admin/pagos-pendientes", async (req: Request, res: Response) => {
     try {
       const limite = parseInt(req.query.limite as string) || 20;
-      const pagos = tiendaService.obtenerPagosPendientes(limite);
+      const pagos = await tiendaService.obtenerPagosPendientes(limite);
       
       console.log(`[Admin] Pagos pendientes: ${pagos.length} resultados`);
 
@@ -962,7 +962,7 @@ export function crearRutasTienda(tiendaService: TiendaService, wsService: WebSoc
         return;
       }
 
-      const pago = tiendaService.obtenerPago(pagoId);
+      const pago = await tiendaService.obtenerPago(pagoId);
 
       if (!pago) {
         res.status(404).json({

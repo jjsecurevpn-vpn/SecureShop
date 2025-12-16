@@ -9,10 +9,12 @@ import emailService from "./email.service";
 import { cuponesService } from "./cupones.service";
 import { supabaseService } from "./supabase.service";
 import { referidosService } from "./referidos.service";
+import { pagosSupabaseService } from "./pagos-supabase.service";
 import { Plan, Pago, CrearPagoInput, ClienteServex } from "../types";
 
 export class TiendaService {
   private demo: DemoService;
+  private useSupabase: boolean;
 
   constructor(
     private db: DatabaseService,
@@ -22,6 +24,14 @@ export class TiendaService {
   ) {
     // Inicializar DemoService con wsService también
     this.demo = new DemoService(this.db.getDatabase(), this.servex, this.wsService);
+    
+    // Usar Supabase para pagos si está habilitado
+    this.useSupabase = pagosSupabaseService.isEnabled();
+    if (this.useSupabase) {
+      console.log('[Tienda] ✅ Usando Supabase para pagos');
+    } else {
+      console.log('[Tienda] ⚠️ Usando SQLite para pagos (Supabase no disponible)');
+    }
   }
 
   /**
@@ -36,6 +46,79 @@ export class TiendaService {
    */
   getDemoService(): DemoService {
     return this.demo;
+  }
+
+  // ============================================
+  // MÉTODOS HÍBRIDOS PARA PAGOS
+  // ============================================
+
+  /**
+   * Obtener pago por ID (híbrido Supabase/SQLite)
+   */
+  private async obtenerPagoPorIdHibrido(pagoId: string): Promise<Pago | null> {
+    if (this.useSupabase) {
+      return pagosSupabaseService.obtenerPagoPorId(pagoId);
+    }
+    return this.db.obtenerPagoPorId(pagoId);
+  }
+
+  /**
+   * Actualizar estado de pago (híbrido)
+   */
+  private async actualizarEstadoPagoHibrido(
+    pagoId: string,
+    estado: 'pendiente' | 'aprobado' | 'rechazado' | 'cancelado',
+    mpPaymentId?: string
+  ): Promise<void> {
+    if (this.useSupabase) {
+      await pagosSupabaseService.actualizarEstadoPago(pagoId, estado, mpPaymentId);
+    } else {
+      this.db.actualizarEstadoPago(pagoId, estado, mpPaymentId);
+    }
+  }
+
+  /**
+   * Guardar cuenta Servex en pago (híbrido)
+   */
+  private async guardarCuentaServexHibrido(
+    pagoId: string,
+    cuentaId: number,
+    username: string,
+    password: string,
+    categoria: string,
+    expiracion: string,
+    connectionLimit: number
+  ): Promise<void> {
+    if (this.useSupabase) {
+      await pagosSupabaseService.actualizarDatosServex(pagoId, {
+        servex_cuenta_id: cuentaId,
+        servex_username: username,
+        servex_password: password,
+        servex_categoria: categoria,
+        servex_expiracion: expiracion,
+        servex_connection_limit: connectionLimit,
+      });
+    } else {
+      this.db.guardarCuentaServex(
+        pagoId,
+        cuentaId,
+        username,
+        password,
+        categoria,
+        expiracion,
+        connectionLimit
+      );
+    }
+  }
+
+  /**
+   * Obtener pagos pendientes (híbrido)
+   */
+  private async obtenerPagosPendientesHibrido(limite?: number): Promise<Pago[]> {
+    if (this.useSupabase) {
+      return pagosSupabaseService.obtenerPagosPendientes();
+    }
+    return this.db.obtenerPagosPendientes(limite);
   }
 
   /**
@@ -213,17 +296,38 @@ export class TiendaService {
 
     // 4. Crear registro de pago en la base de datos
     const pagoId = uuidv4();
-    const pago = this.db.crearPago({
-      id: pagoId,
-      plan_id: plan.id,
-      monto: precioFinal, // Usar precio con descuento aplicado
-      estado: precioFinal === 0 ? "aprobado" : "pendiente", // Si el precio es 0, ya está aprobado
-      metodo_pago: precioFinal === 0 ? "saldo" : "mercadopago",
-      cliente_email: input.clienteEmail,
-      cliente_nombre: input.clienteNombre,
-      cupon_id: cuponAplicado?.id,
-      descuento_aplicado: descuentoAplicado,
-    });
+    let pago: Pago;
+    
+    if (this.useSupabase) {
+      // Usar Supabase para pagos
+      pago = await pagosSupabaseService.crearPago({
+        id: pagoId,
+        plan_id: plan.id,
+        monto: precioFinal,
+        estado: precioFinal === 0 ? "aprobado" : "pendiente",
+        metodo_pago: precioFinal === 0 ? "saldo" : "mercadopago",
+        cliente_email: input.clienteEmail,
+        cliente_nombre: input.clienteNombre,
+        cupon_id: cuponAplicado?.id,
+        cupon_codigo: cuponAplicado?.codigo,
+        descuento_aplicado: descuentoAplicado,
+        referido_codigo: input.codigoReferido,
+        saldo_usado: saldoUsado,
+      });
+    } else {
+      // Fallback a SQLite
+      pago = this.db.crearPago({
+        id: pagoId,
+        plan_id: plan.id,
+        monto: precioFinal,
+        estado: precioFinal === 0 ? "aprobado" : "pendiente",
+        metodo_pago: precioFinal === 0 ? "saldo" : "mercadopago",
+        cliente_email: input.clienteEmail,
+        cliente_nombre: input.clienteNombre,
+        cupon_id: cuponAplicado?.id,
+        descuento_aplicado: descuentoAplicado,
+      });
+    }
 
     console.log("[Tienda] Pago creado:", pagoId);
 
@@ -278,7 +382,7 @@ export class TiendaService {
       let cuentaVPN = null;
       try {
         cuentaVPN = await this.crearCuentaVPNConRetorno(pago, plan, referidoInfo);
-        this.db.actualizarEstadoPago(pagoId, "aprobado");
+        await this.actualizarEstadoPagoHibrido(pagoId, "aprobado");
       } catch (error: any) {
         console.error("[Tienda] Error creando cuenta VPN:", error);
         // Reembolsar el saldo
@@ -288,7 +392,7 @@ export class TiendaService {
           `Reembolso por error en compra`,
           'reembolso'
         );
-        this.db.actualizarEstadoPago(pagoId, "rechazado");
+        await this.actualizarEstadoPagoHibrido(pagoId, "rechazado");
         throw new Error(`Error creando cuenta VPN: ${error.message}`);
       }
 
@@ -318,11 +422,19 @@ export class TiendaService {
       console.log("[Tienda] Preferencia de MercadoPago creada:", preferenceId);
 
       // Guardar metadata para procesar después del pago
-      this.db.actualizarMetadataPago(pagoId, {
-        saldoUsado,
-        codigoReferido: input.codigoReferido,
-        montoOriginal: plan.precio,
-      });
+      if (this.useSupabase) {
+        await pagosSupabaseService.actualizarMetadata(pagoId, {
+          saldoUsado,
+          codigoReferido: input.codigoReferido,
+          montoOriginal: plan.precio,
+        });
+      } else {
+        this.db.actualizarMetadataPago(pagoId, {
+          saldoUsado,
+          codigoReferido: input.codigoReferido,
+          montoOriginal: plan.precio,
+        });
+      }
 
       return {
         pago,
@@ -333,7 +445,7 @@ export class TiendaService {
       };
     } catch (error: any) {
       // Si falla la creación de la preferencia, marcar el pago como rechazado
-      this.db.actualizarEstadoPago(pagoId, "rechazado");
+      await this.actualizarEstadoPagoHibrido(pagoId, "rechazado");
       throw new Error(`Error creando link de pago: ${error.message}`);
     }
   }
@@ -354,7 +466,7 @@ export class TiendaService {
     const { pagoId, mpPaymentId, estado } = resultado;
 
     // Obtener el pago de nuestra base de datos
-    const pago = this.db.obtenerPagoPorId(pagoId);
+    const pago = await this.obtenerPagoPorIdHibrido(pagoId);
     if (!pago) {
       console.error("[Tienda] Pago no encontrado:", pagoId);
       return;
@@ -373,7 +485,7 @@ export class TiendaService {
     } else if (estado === "rejected" || estado === "cancelled") {
       // Solo marcar como rechazado si aún está pendiente
       if (pago.estado === "pendiente") {
-        this.db.actualizarEstadoPago(pagoId, "rechazado", mpPaymentId);
+        await this.actualizarEstadoPagoHibrido(pagoId, "rechazado", mpPaymentId);
         console.log("[Tienda] Pago marcado como rechazado");
       }
     }
@@ -422,7 +534,7 @@ export class TiendaService {
     const clienteCreado = await this.servex.crearCliente(clienteData);
 
     // 4. Guardar información de la cuenta en la base de datos
-    this.db.guardarCuentaServex(
+    await this.guardarCuentaServexHibrido(
       pago.id,
       clienteCreado.id,
       clienteCreado.username,
@@ -502,7 +614,7 @@ export class TiendaService {
     console.log("[Tienda] Confirmando pago y creando cuenta VPN:", pagoId);
 
     // Obtener pago y plan
-    let pago = this.db.obtenerPagoPorId(pagoId);
+    let pago = await this.obtenerPagoPorIdHibrido(pagoId);
     if (!pago) {
       throw new Error("Pago no encontrado");
     }
@@ -536,7 +648,7 @@ export class TiendaService {
     try {
       // 1. Marcar estado como "aprobado" INMEDIATAMENTE para evitar race condition
       // Esto protege contra múltiples webhooks simultáneos
-      this.db.actualizarEstadoPago(pagoId, "aprobado", mpPaymentId);
+      await this.actualizarEstadoPagoHibrido(pagoId, "aprobado", mpPaymentId);
       console.log(
         "[Tienda] ✅ Estado marcado como aprobado (bloqueo de duplicados)"
       );
@@ -575,7 +687,7 @@ export class TiendaService {
       const clienteCreado = await this.servex.crearCliente(clienteData);
 
       // 5. Guardar información de la cuenta en la base de datos
-      this.db.guardarCuentaServex(
+      await this.guardarCuentaServexHibrido(
         pagoId,
         clienteCreado.id,
         clienteCreado.username,
@@ -585,7 +697,7 @@ export class TiendaService {
         clienteCreado.connection_limit
       );
 
-      // ✅ IMPORTANTE: Pequeño delay para asegurar que SQLite escribió los datos
+      // ✅ IMPORTANTE: Pequeño delay para asegurar que la DB escribió los datos
       // Esto previene race conditions cuando el cliente consulta inmediatamente
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -705,7 +817,7 @@ export class TiendaService {
     } catch (error: any) {
       console.error("[Tienda] ❌ Error creando cuenta VPN:", error.message);
       // Revertir el estado del pago si falla la creación de la cuenta
-      this.db.actualizarEstadoPago(pagoId, "pendiente");
+      await this.actualizarEstadoPagoHibrido(pagoId, "pendiente");
       throw error;
     }
   }
@@ -713,8 +825,8 @@ export class TiendaService {
   /**
    * Obtiene información de un pago
    */
-  obtenerPago(pagoId: string): Pago | null {
-    return this.db.obtenerPagoPorId(pagoId);
+  async obtenerPago(pagoId: string): Promise<Pago | null> {
+    return this.obtenerPagoPorIdHibrido(pagoId);
   }
 
   /**
@@ -726,7 +838,7 @@ export class TiendaService {
     const timestamp = new Date().toISOString();
     console.log(`[${timestamp}] 🔍 VERIFICAR Y PROCESAR PAGO: ${pagoId}`);
 
-    const pago = this.db.obtenerPagoPorId(pagoId);
+    const pago = await this.obtenerPagoPorIdHibrido(pagoId);
     if (!pago) {
       console.log(`[${timestamp}] ❌ Pago NO ENCONTRADO en BD`);
       return null;
@@ -761,13 +873,13 @@ export class TiendaService {
           // Si el pago estaba rechazado, primero lo volvemos a pendiente
           if (pago.estado === "rechazado") {
             console.log(`[${timestamp}] 🔄 Pago rechazado tiene nuevo pago aprobado, reseteando a pendiente...`);
-            this.db.actualizarEstadoPago(pagoId, "pendiente");
+            await this.actualizarEstadoPagoHibrido(pagoId, "pendiente");
           }
           
           // Confirmar el pago y crear la cuenta
           await this.confirmarPagoYCrearCuenta(pagoId, pagoMP.id);
           // Devolver el pago actualizado
-          const pagoActualizado = this.db.obtenerPagoPorId(pagoId);
+          const pagoActualizado = await this.obtenerPagoPorIdHibrido(pagoId);
           console.log(
             `[${timestamp}] ✅ PROCESAMIENTO COMPLETADO. Estado final: "${pagoActualizado?.estado}"`
           );
@@ -802,7 +914,7 @@ export class TiendaService {
     console.log(`[Tienda ADMIN] 🔧 Aprobando pago manualmente: ${pagoId}`);
     console.log(`[Tienda ADMIN] Motivo: ${adminMotivo}`);
 
-    const pago = this.db.obtenerPagoPorId(pagoId);
+    const pago = await this.obtenerPagoPorIdHibrido(pagoId);
     if (!pago) {
       throw new Error(`Pago no encontrado: ${pagoId}`);
     }
@@ -818,7 +930,7 @@ export class TiendaService {
     await this.confirmarPagoYCrearCuenta(pagoId, fakePaymentId);
 
     // Devolver el pago actualizado
-    const pagoActualizado = this.db.obtenerPagoPorId(pagoId);
+    const pagoActualizado = await this.obtenerPagoPorIdHibrido(pagoId);
     if (!pagoActualizado) {
       throw new Error('Error: pago no encontrado después de aprobar');
     }
@@ -830,14 +942,17 @@ export class TiendaService {
   /**
    * ADMIN: Buscar pagos por email
    */
-  buscarPagosPorEmail(email: string): Pago[] {
+  async buscarPagosPorEmail(email: string): Promise<Pago[]> {
+    if (this.useSupabase) {
+      return pagosSupabaseService.obtenerPagosPorEmail(email);
+    }
     return this.db.buscarPagosPorEmail(email);
   }
 
   /**
    * ADMIN: Obtener últimos pagos pendientes
    */
-  obtenerPagosPendientes(limite: number = 20): Pago[] {
-    return this.db.obtenerPagosPendientes(limite);
+  async obtenerPagosPendientes(limite: number = 20): Promise<Pago[]> {
+    return this.obtenerPagosPendientesHibrido(limite);
   }
 }
