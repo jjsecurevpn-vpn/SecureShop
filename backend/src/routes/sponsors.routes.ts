@@ -4,9 +4,9 @@ import { SponsorsService } from "../services/sponsors.service";
 export function crearRutasSponsors(sponsorsService: SponsorsService) {
   const router = express.Router();
 
-  router.get("/", (_req: Request, res: Response) => {
+  router.get("/", async (_req: Request, res: Response) => {
     try {
-      const sponsors = sponsorsService.listar();
+      const sponsors = await sponsorsService.listar();
       return res.status(200).json({ success: true, data: sponsors });
     } catch (error) {
       return res.status(500).json({
@@ -17,9 +17,9 @@ export function crearRutasSponsors(sponsorsService: SponsorsService) {
     }
   });
 
-  router.post("/", (req: Request, res: Response) => {
+  router.post("/", async (req: Request, res: Response) => {
     try {
-      const sponsor = sponsorsService.crear(req.body);
+      const sponsor = await sponsorsService.crear(req.body);
       return res.status(201).json({ success: true, data: sponsor });
     } catch (error) {
       const status =
@@ -34,7 +34,7 @@ export function crearRutasSponsors(sponsorsService: SponsorsService) {
     }
   });
 
-  router.put("/:id", (req: Request, res: Response) => {
+  router.put("/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id, 10);
       if (Number.isNaN(id)) {
@@ -43,7 +43,7 @@ export function crearRutasSponsors(sponsorsService: SponsorsService) {
           error: "ID inválido",
         });
       }
-      const sponsor = sponsorsService.actualizar(id, req.body);
+      const sponsor = await sponsorsService.actualizar(id, req.body);
       return res.status(200).json({ success: true, data: sponsor });
     } catch (error) {
       let status = 500;
@@ -64,7 +64,7 @@ export function crearRutasSponsors(sponsorsService: SponsorsService) {
     }
   });
 
-  router.delete("/:id", (req: Request, res: Response) => {
+  router.delete("/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id, 10);
       if (Number.isNaN(id)) {
@@ -73,7 +73,7 @@ export function crearRutasSponsors(sponsorsService: SponsorsService) {
           error: "ID inválido",
         });
       }
-      sponsorsService.eliminar(id);
+      await sponsorsService.eliminar(id);
       return res.status(204).send();
     } catch (error) {
       return res.status(500).json({
