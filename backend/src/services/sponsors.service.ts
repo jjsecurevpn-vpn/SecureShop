@@ -1,4 +1,3 @@
-import { DatabaseService } from "./database.service";
 import { sponsorsSupabaseService } from "./sponsors-supabase.service";
 import {
   Sponsor,
@@ -7,87 +6,67 @@ import {
 } from "../types";
 
 export class SponsorsService {
-  constructor(private readonly database: DatabaseService) {}
-
-  // Flag para usar Supabase (modo híbrido)
-  private get useSupabase(): boolean {
-    return sponsorsSupabaseService.isEnabled();
-  }
+  constructor() {}
 
   async listar(): Promise<Sponsor[]> {
-    if (this.useSupabase) {
-      const sponsors = await sponsorsSupabaseService.obtenerSponsors();
-      if (sponsors.length > 0) {
-        // Mapear campos de Supabase a formato esperado
-        return sponsors.map(s => this.mapearSponsorDesdeSupabase(s));
-      }
-    }
-    return this.database.obtenerSponsors();
+    const sponsors = await sponsorsSupabaseService.obtenerSponsors();
+    return sponsors.map(s => this.mapearSponsorDesdeSupabase(s));
   }
 
   async crear(input: CrearSponsorInput): Promise<Sponsor> {
     const payload = this.normalizarCrear(input);
     this.validarCrear(payload);
     
-    if (this.useSupabase) {
-      const sponsor = await sponsorsSupabaseService.crearSponsor({
-        nombre: payload.name,
-        categoria: payload.category as 'empresa' | 'persona',
-        rol: payload.role,
-        mensaje: payload.message,
-        avatar_initials: payload.avatarInitials,
-        avatar_class: payload.avatarClass,
-        avatar_url: payload.avatarUrl,
-        destacado: payload.highlight,
-        link: payload.link,
-        orden: payload.order
-      });
-      if (sponsor) {
-        console.log('[Sponsors] ✅ Sponsor creado en Supabase:', sponsor.id);
-        return this.mapearSponsorDesdeSupabase(sponsor);
-      }
-      console.warn('[Sponsors] ⚠️ Falló Supabase, usando SQLite fallback');
+    const sponsor = await sponsorsSupabaseService.crearSponsor({
+      nombre: payload.name,
+      categoria: payload.category as 'empresa' | 'persona',
+      rol: payload.role,
+      mensaje: payload.message,
+      avatar_initials: payload.avatarInitials,
+      avatar_class: payload.avatarClass,
+      avatar_url: payload.avatarUrl,
+      destacado: payload.highlight,
+      link: payload.link,
+      orden: payload.order
+    });
+    
+    if (!sponsor) {
+      throw new Error("Error al crear sponsor en Supabase");
     }
     
-    return this.database.crearSponsor(payload);
+    console.log('[Sponsors] ✅ Sponsor creado:', sponsor.id);
+    return this.mapearSponsorDesdeSupabase(sponsor);
   }
 
   async actualizar(id: number, input: ActualizarSponsorInput): Promise<Sponsor> {
     const payload = this.normalizarActualizar(input);
     this.validarActualizar(payload);
     
-    if (this.useSupabase) {
-      const updateData: any = {};
-      if (payload.name !== undefined) updateData.nombre = payload.name;
-      if (payload.category !== undefined) updateData.categoria = payload.category;
-      if (payload.role !== undefined) updateData.rol = payload.role;
-      if (payload.message !== undefined) updateData.mensaje = payload.message;
-      if (payload.avatarInitials !== undefined) updateData.avatar_initials = payload.avatarInitials;
-      if (payload.avatarClass !== undefined) updateData.avatar_class = payload.avatarClass;
-      if (payload.avatarUrl !== undefined) updateData.avatar_url = payload.avatarUrl;
-      if (payload.highlight !== undefined) updateData.destacado = payload.highlight;
-      if (payload.link !== undefined) updateData.link = payload.link;
-      if (payload.order !== undefined) updateData.orden = payload.order;
+    const updateData: any = {};
+    if (payload.name !== undefined) updateData.nombre = payload.name;
+    if (payload.category !== undefined) updateData.categoria = payload.category;
+    if (payload.role !== undefined) updateData.rol = payload.role;
+    if (payload.message !== undefined) updateData.mensaje = payload.message;
+    if (payload.avatarInitials !== undefined) updateData.avatar_initials = payload.avatarInitials;
+    if (payload.avatarClass !== undefined) updateData.avatar_class = payload.avatarClass;
+    if (payload.avatarUrl !== undefined) updateData.avatar_url = payload.avatarUrl;
+    if (payload.highlight !== undefined) updateData.destacado = payload.highlight;
+    if (payload.link !== undefined) updateData.link = payload.link;
+    if (payload.order !== undefined) updateData.orden = payload.order;
 
-      const sponsor = await sponsorsSupabaseService.actualizarSponsor(id, updateData);
-      if (sponsor) {
-        console.log('[Sponsors] ✅ Sponsor actualizado en Supabase:', sponsor.id);
-        return this.mapearSponsorDesdeSupabase(sponsor);
-      }
-    }
+    const sponsor = await sponsorsSupabaseService.actualizarSponsor(id, updateData);
     
-    const actualizado = this.database.actualizarSponsor(id, payload);
-    if (!actualizado) {
+    if (!sponsor) {
       throw new Error("Sponsor no encontrado");
     }
-    return actualizado;
+    
+    console.log('[Sponsors] ✅ Sponsor actualizado:', sponsor.id);
+    return this.mapearSponsorDesdeSupabase(sponsor);
   }
 
   async eliminar(id: number): Promise<void> {
-    if (this.useSupabase) {
-      await sponsorsSupabaseService.eliminarSponsor(id);
-    }
-    this.database.eliminarSponsor(id);
+    await sponsorsSupabaseService.eliminarSponsor(id);
+    console.log('[Sponsors] ✅ Sponsor eliminado:', id);
   }
 
   private mapearSponsorDesdeSupabase(s: any): Sponsor {

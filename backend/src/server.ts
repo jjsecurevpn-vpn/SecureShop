@@ -69,8 +69,8 @@ class Server {
     this.db = new DatabaseService(config.database.path);
     console.log("[Server] ✅ Base de datos inicializada");
 
-  this.sponsorsService = new SponsorsService(this.db);
-  console.log("[Server] ✅ Servicio de sponsors inicializado");
+  this.sponsorsService = new SponsorsService();
+  console.log("[Server] ✅ Servicio de sponsors inicializado (Supabase)");
 
   this.planesService = new PlanesService(this.db);
   console.log("[Server] ✅ Servicio de planes inicializado");
@@ -129,8 +129,8 @@ class Server {
     console.log("[Server] ✅ Servicio MercadoPago inicializado");
 
   // Inicializar servicio de donaciones
-  this.donacionesService = new DonacionesService(this.db, mercadopago);
-  console.log("[Server] ✅ Servicio de donaciones inicializado");
+  this.donacionesService = new DonacionesService(mercadopago);
+  console.log("[Server] ✅ Servicio de donaciones inicializado (Supabase)");
 
     // Inicializar WebSocket para estadísticas en tiempo real (ANTES de tienda)
     this.wsService = new WebSocketService();
@@ -157,7 +157,7 @@ class Server {
 
     // Inicializar servicio de renovaciones
     this.renovacionService = new RenovacionService(this.db, servex, mercadopago);
-    console.log("[Server] ✅ Servicio de renovaciones inicializado");
+    console.log("[Server] ✅ Servicio de renovaciones inicializado (Supabase para renovaciones)");
       this.renovacionService.iniciarAutoRevisionesPendientes(config.renovaciones);
 
     // Inicializar servicio de verificación automática de pagos pendientes

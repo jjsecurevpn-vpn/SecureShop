@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from "uuid";
-import { DatabaseService } from "./database.service";
 import { MercadoPagoService } from "./mercadopago.service";
 import emailService from "./email.service";
 import { donacionesSupabaseService } from "./donaciones-supabase.service";
@@ -10,80 +9,43 @@ import {
 
 export class DonacionesService {
   constructor(
-    private db: DatabaseService,
     private mercadopago: MercadoPagoService
   ) {}
 
-  // Flag para usar Supabase (modo híbrido)
-  private get useSupabase(): boolean {
-    return donacionesSupabaseService.isEnabled();
-  }
-
   // ============================================
-  // MÉTODOS HÍBRIDOS
+  // MÉTODOS SUPABASE (sin fallback SQLite)
   // ============================================
 
-  private async crearDonacionHibrido(data: any): Promise<any> {
-    if (this.useSupabase) {
-      const donacion = await donacionesSupabaseService.crearDonacion(data);
-      if (donacion) {
-        console.log(`[Donaciones] ✅ Donación creada en Supabase: ${donacion.id}`);
-        return donacion;
-      }
-      console.warn('[Donaciones] ⚠️ Falló Supabase, usando SQLite fallback');
+  private async crearDonacionDB(data: any): Promise<any> {
+    const donacion = await donacionesSupabaseService.crearDonacion(data);
+    if (!donacion) {
+      throw new Error("Error al crear donación en Supabase");
     }
-    return this.db.crearDonacion(data);
+    console.log(`[Donaciones] ✅ Donación creada: ${donacion.id}`);
+    return donacion;
   }
 
-  private async obtenerDonacionPorIdHibrido(id: string): Promise<any | null> {
-    if (this.useSupabase) {
-      const donacion = await donacionesSupabaseService.obtenerDonacionPorId(id);
-      if (donacion) return donacion;
-    }
-    return this.db.obtenerDonacionPorId(id);
+  private async obtenerDonacionPorId(id: string): Promise<any | null> {
+    return await donacionesSupabaseService.obtenerDonacionPorId(id);
   }
 
-  private async actualizarEstadoDonacionHibrido(
+  private async actualizarEstadoDonacion(
     id: string, 
     estado: 'pendiente' | 'aprobado' | 'rechazado' | 'cancelado',
     mpPaymentId?: string
   ): Promise<boolean> {
-    if (this.useSupabase) {
-      await donacionesSupabaseService.actualizarEstadoDonacion(id, estado, mpPaymentId);
-    }
-    try {
-      this.db.actualizarEstadoDonacion(id, estado, mpPaymentId);
-      return true;
-    } catch (error) {
-      console.error('[Donaciones] Error actualizando estado en SQLite:', error);
-      return false;
-    }
+    await donacionesSupabaseService.actualizarEstadoDonacion(id, estado, mpPaymentId);
+    return true;
   }
 
-  private async actualizarPreferenciaDonacionHibrido(id: string, preferenceId: string): Promise<boolean> {
-    if (this.useSupabase) {
-      await donacionesSupabaseService.actualizarPreferenciaDonacion(id, preferenceId);
-    }
-    try {
-      this.db.actualizarPreferenciaDonacion(id, preferenceId);
-      return true;
-    } catch (error) {
-      console.error('[Donaciones] Error actualizando preferencia en SQLite:', error);
-      return false;
-    }
+  private async actualizarPreferenciaDonacion(id: string, preferenceId: string): Promise<boolean> {
+    await donacionesSupabaseService.actualizarPreferenciaDonacion(id, preferenceId);
+    return true;
   }
 
-  private async marcarAgradecimientoEnviadoHibrido(id: string): Promise<boolean> {
-    if (this.useSupabase) {
-      await donacionesSupabaseService.marcarAgradecimientoEnviado(id);
-    }
-    try {
-      this.db.marcarAgradecimientoEnviado(id);
-      return true;
-    } catch (error) {
-      console.error('[Donaciones] Error marcando agradecimiento en SQLite:', error);
-      return false;
-    }
+  private async marcarAgradecimientoEnviadoDB(id: string): Promise<boolean> {
+    await donacionesSupabaseService.marcarAgradecimientoEnviado(id);
+    return true;
   }
 
   async crearDonacion(input: CrearDonacionInput): Promise<{
@@ -105,7 +67,7 @@ export class DonacionesService {
     }
 
     const id = uuidv4();
-    const donacion = await this.crearDonacionHibrido({
+    const donacion = await this.crearDonacionDB({
       id,
       monto,
       estado: "pendiente",
@@ -132,9 +94,9 @@ export class DonacionesService {
         "donacion"
       );
 
-    await this.actualizarPreferenciaDonacionHibrido(donacion.id, preferenceId);
+    await this.actualizarPreferenciaDonacion(donacion.id, preferenceId);
 
-    const donacionActualizada = await this.obtenerDonacionPorIdHibrido(donacion.id);
+    const donacionActualizada = await this.obtenerDonacionPorId(donacion.id);
     return {
       donacion: donacionActualizada!,
       linkPago: initPoint,
@@ -143,11 +105,11 @@ export class DonacionesService {
   }
 
   async obtenerDonacion(id: string): Promise<Donacion | null> {
-    return await this.obtenerDonacionPorIdHibrido(id);
+    return await this.obtenerDonacionPorId(id);
   }
 
   async verificarYProcesarDonacion(id: string): Promise<Donacion | null> {
-    const donacion = await this.obtenerDonacionPorIdHibrido(id);
+    const donacion = await this.obtenerDonacionPorId(id);
     if (!donacion) {
       return null;
     }
@@ -162,7 +124,7 @@ export class DonacionesService {
       const pagoMP = await this.mercadopago.verificarPagoPorReferencia(id);
       if (pagoMP && pagoMP.status === "approved") {
         await this.confirmarDonacion(id, pagoMP.id);
-        return await this.obtenerDonacionPorIdHibrido(id);
+        return await this.obtenerDonacionPorId(id);
       }
     }
 
@@ -176,7 +138,7 @@ export class DonacionesService {
       return;
     }
 
-    const donacion = await this.obtenerDonacionPorIdHibrido(resultado.pagoId);
+    const donacion = await this.obtenerDonacionPorId(resultado.pagoId);
     if (!donacion) {
       console.warn(
         `[Donaciones] Donación no encontrada para pago ${resultado.pagoId}`
@@ -187,12 +149,12 @@ export class DonacionesService {
     if (resultado.estado === "approved") {
       await this.confirmarDonacion(donacion.id, resultado.mpPaymentId);
     } else if (resultado.estado === "rejected" || resultado.estado === "cancelled") {
-      await this.actualizarEstadoDonacionHibrido(donacion.id, "rechazado", resultado.mpPaymentId);
+      await this.actualizarEstadoDonacion(donacion.id, "rechazado", resultado.mpPaymentId);
     }
   }
 
   private async confirmarDonacion(id: string, mpPaymentId?: string): Promise<void> {
-    const donacion = await this.obtenerDonacionPorIdHibrido(id);
+    const donacion = await this.obtenerDonacionPorId(id);
     if (!donacion) {
       throw new Error("Donación no encontrada");
     }
@@ -202,8 +164,8 @@ export class DonacionesService {
       return;
     }
 
-    await this.actualizarEstadoDonacionHibrido(id, "aprobado", mpPaymentId);
-    const actualizada = await this.obtenerDonacionPorIdHibrido(id);
+    await this.actualizarEstadoDonacion(id, "aprobado", mpPaymentId);
+    const actualizada = await this.obtenerDonacionPorId(id);
     if (!actualizada) {
       return;
     }
@@ -258,7 +220,7 @@ export class DonacionesService {
     }
 
     if (notificado) {
-      await this.marcarAgradecimientoEnviadoHibrido(donacion.id);
+      await this.marcarAgradecimientoEnviadoDB(donacion.id);
     }
   }
 

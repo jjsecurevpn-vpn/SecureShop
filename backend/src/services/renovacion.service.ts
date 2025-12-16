@@ -1,4 +1,4 @@
-import { DatabaseService } from './database.service';
+﻿import { DatabaseService } from './database.service';
 import { ServexService } from './servex.service';
 import { MercadoPagoService } from './mercadopago.service';
 import { configService } from './config.service';
@@ -19,107 +19,67 @@ export class RenovacionService {
   private autoRetryRunning = false;
   private autoRetryAttempts = new Map<number, number>();
 
-  // Flag para usar Supabase (modo híbrido)
-  private get useSupabase(): boolean {
-    return renovacionesSupabaseService.isEnabled();
-  }
-
   // ============================================
-  // MÉTODOS HÍBRIDOS (Supabase con fallback SQLite)
+  // MÃ‰TODOS SUPABASE (sin fallback SQLite)
   // ============================================
 
   /**
-   * Crear renovación (híbrido)
+   * Crear renovaciÃ³n
    */
-  private async crearRenovacionHibrido(data: any): Promise<any> {
-    if (this.useSupabase) {
-      const renovacion = await renovacionesSupabaseService.crearRenovacion(data);
-      if (renovacion) {
-        console.log(`[Renovacion] ✅ Renovación creada en Supabase: ${renovacion.id}`);
-        return renovacion;
-      }
-      console.warn('[Renovacion] ⚠️ Falló Supabase, usando SQLite fallback');
+  private async crearRenovacionDB(data: any): Promise<any> {
+    const renovacion = await renovacionesSupabaseService.crearRenovacion(data);
+    if (!renovacion) {
+      throw new Error("Error al crear renovaciÃ³n en Supabase");
     }
-    return this.db.crearRenovacion(data);
+    console.log(`[Renovacion] âœ… RenovaciÃ³n creada: ${renovacion.id}`);
+    return renovacion;
   }
 
   /**
-   * Obtener renovación por ID (híbrido)
+   * Obtener renovación por ID
    */
-  private async obtenerRenovacionPorIdHibrido(id: number): Promise<any | null> {
-    if (this.useSupabase) {
-      const renovacion = await renovacionesSupabaseService.obtenerRenovacionPorId(id);
-      if (renovacion) return renovacion;
-    }
-    return this.db.obtenerRenovacionPorId(id);
+  async obtenerRenovacionPorId(id: number): Promise<any | null> {
+    return await renovacionesSupabaseService.obtenerRenovacionPorId(id);
   }
 
   /**
-   * Actualizar estado de renovación (híbrido)
+   * Actualizar estado de renovaciÃ³n
    */
-  private async actualizarEstadoRenovacionHibrido(
+  private async actualizarEstadoRenovacion(
     id: number, 
     estado: 'pendiente' | 'aprobado' | 'rechazado' | 'cancelado',
     mpPaymentId?: string
   ): Promise<boolean> {
-    let supabaseOk = false;
-    
-    if (this.useSupabase) {
-      supabaseOk = await renovacionesSupabaseService.actualizarEstadoRenovacion(id, estado, mpPaymentId);
-      if (supabaseOk) {
-        console.log(`[Renovacion] ✅ Estado actualizado en Supabase: ${id} -> ${estado}`);
-      }
+    const ok = await renovacionesSupabaseService.actualizarEstadoRenovacion(id, estado, mpPaymentId);
+    if (ok) {
+      console.log(`[Renovacion] âœ… Estado actualizado: ${id} -> ${estado}`);
     }
-    
-    // Siempre actualizar SQLite por ahora (dual-write)
-    try {
-      this.db.actualizarEstadoRenovacion(id, estado, mpPaymentId);
-      return true;
-    } catch (error) {
-      console.error('[Renovacion] Error actualizando estado en SQLite:', error);
-      return supabaseOk;
-    }
+    return ok;
   }
 
   /**
-   * Refrescar timestamp de renovación (híbrido)
+   * Refrescar timestamp de renovaciÃ³n
    */
-  private async refrescarTimestampRenovacionHibrido(id: number): Promise<boolean> {
-    if (this.useSupabase) {
-      await renovacionesSupabaseService.refrescarTimestampRenovacion(id);
-    }
-    try {
-      this.db.refrescarTimestampRenovacion(id);
-      return true;
-    } catch (error) {
-      console.error('[Renovacion] Error refrescando timestamp en SQLite:', error);
-      return false;
-    }
+  private async refrescarTimestampRenovacion(id: number): Promise<boolean> {
+    await renovacionesSupabaseService.refrescarTimestampRenovacion(id);
+    return true;
   }
 
   /**
-   * Obtener renovaciones pendientes (híbrido)
+   * Obtener renovaciones pendientes
    */
-  private async obtenerRenovacionesPendientesHibrido(opts: { updatedBeforeMinutes?: number; limit?: number }): Promise<any[]> {
-    if (this.useSupabase) {
-      const renovaciones = await renovacionesSupabaseService.obtenerRenovacionesPendientes(
-        opts.updatedBeforeMinutes || 5,
-        opts.limit || 10
-      );
-      if (renovaciones.length > 0) return renovaciones;
-    }
-    return this.db.obtenerRenovacionesPendientes(opts);
+  private async obtenerRenovacionesPendientes(opts: { updatedBeforeMinutes?: number; limit?: number }): Promise<any[]> {
+    return await renovacionesSupabaseService.obtenerRenovacionesPendientes(
+      opts.updatedBeforeMinutes || 5,
+      opts.limit || 10
+    );
   }
 
   /**
-   * Buscar renovaciones por email (híbrido)
+   * Buscar renovaciones por email
    */
-  private async buscarRenovacionesPorEmailHibrido(email: string): Promise<any[]> {
-    if (this.useSupabase) {
-      const renovaciones = await renovacionesSupabaseService.buscarRenovacionesPorEmail(email);
-      if (renovaciones.length > 0) return renovaciones;
-    }
-    return this.db.buscarRenovacionesPorEmail(email);
+  async buscarRenovacionesPorEmail(email: string): Promise<any[]> {
+    return await renovacionesSupabaseService.buscarRenovacionesPorEmail(email);
   }
 
   /**
@@ -131,7 +91,7 @@ export class RenovacionService {
 
   iniciarAutoRevisionesPendientes(config: RenovacionAutoRetryConfig): void {
     if (!config.enabled) {
-      console.log('[Renovacion] Auto-revisión de pendientes deshabilitada por configuración');
+      console.log('[Renovacion] Auto-revisiÃ³n de pendientes deshabilitada por configuraciÃ³n');
       return;
     }
 
@@ -147,7 +107,7 @@ export class RenovacionService {
       this.autoRetryRunning = true;
 
       try {
-        const pendientes = await this.obtenerRenovacionesPendientesHibrido({
+        const pendientes = await this.obtenerRenovacionesPendientes({
           updatedBeforeMinutes: config.minPendingAgeMinutes,
           limit: config.batchSize,
         });
@@ -156,7 +116,7 @@ export class RenovacionService {
           return;
         }
 
-        console.log(`[Renovacion] 🔄 Revisando ${pendientes.length} renovaciones pendientes automaticamente`);
+        console.log(`[Renovacion] ðŸ”„ Revisando ${pendientes.length} renovaciones pendientes automaticamente`);
 
         for (const pendiente of pendientes) {
           const renovacionId = Number(pendiente.id);
@@ -168,9 +128,9 @@ export class RenovacionService {
             const intentosPrevios = this.autoRetryAttempts.get(renovacionId) ?? 0;
             if (intentosPrevios >= config.maxAttempts) {
               console.warn(
-                `[Renovacion] ⚠️ Renovación ${renovacionId} alcanzó el máximo de reintentos automáticos (${config.maxAttempts})`
+                `[Renovacion] âš ï¸ RenovaciÃ³n ${renovacionId} alcanzÃ³ el mÃ¡ximo de reintentos automÃ¡ticos (${config.maxAttempts})`
               );
-              await this.refrescarTimestampRenovacionHibrido(renovacionId);
+              await this.refrescarTimestampRenovacion(renovacionId);
               continue;
             }
           }
@@ -180,19 +140,19 @@ export class RenovacionService {
 
             if (resultado && resultado.estado === 'aprobado') {
               this.autoRetryAttempts.delete(renovacionId);
-              console.log(`[Renovacion] ✅ Renovación ${renovacionId} aprobada mediante auto-revisión`);
+              console.log(`[Renovacion] âœ… RenovaciÃ³n ${renovacionId} aprobada mediante auto-revisiÃ³n`);
             } else {
               const intentosPrevios = this.autoRetryAttempts.get(renovacionId) ?? 0;
               this.autoRetryAttempts.set(renovacionId, intentosPrevios + 1);
-              await this.refrescarTimestampRenovacionHibrido(renovacionId);
-              console.log(`[Renovacion] ⏳ Renovación ${renovacionId} sigue pendiente tras auto-revisión`);
+              await this.refrescarTimestampRenovacion(renovacionId);
+              console.log(`[Renovacion] â³ RenovaciÃ³n ${renovacionId} sigue pendiente tras auto-revisiÃ³n`);
             }
           } catch (error: any) {
             console.error(
-              `[Renovacion] ❌ Error en auto-revisión de renovación ${renovacionId}:`,
+              `[Renovacion] âŒ Error en auto-revisiÃ³n de renovaciÃ³n ${renovacionId}:`,
               error?.message || error
             );
-            await this.refrescarTimestampRenovacionHibrido(renovacionId);
+            await this.refrescarTimestampRenovacion(renovacionId);
           }
         }
       } finally {
@@ -204,7 +164,7 @@ export class RenovacionService {
       const intervalo = Math.max(config.intervalMs, 60_000);
       this.autoRetryTimer = setInterval(() => {
         revisarPendientes().catch((error) =>
-          console.error('[Renovacion] ❌ Error inesperado en auto-revisión programada:', error?.message || error)
+          console.error('[Renovacion] âŒ Error inesperado en auto-revisiÃ³n programada:', error?.message || error)
         );
       }, intervalo);
     };
@@ -213,7 +173,7 @@ export class RenovacionService {
     setTimeout(() => {
       revisarPendientes()
         .catch((error) =>
-          console.error('[Renovacion] ❌ Error inesperado en auto-revisión inicial:', error?.message || error)
+          console.error('[Renovacion] âŒ Error inesperado en auto-revisiÃ³n inicial:', error?.message || error)
         )
         .finally(programarIntervalo);
     }, delayInicial);
@@ -230,13 +190,13 @@ export class RenovacionService {
     tipo?: 'cliente' | 'revendedor';
     datos?: any;
   }> {
-    console.log(`[Renovacion] 🔍 Buscando cuenta: "${busqueda}", soloClientes: ${soloClientes}, soloRevendedores: ${soloRevendedores}`);
+    console.log(`[Renovacion] ðŸ” Buscando cuenta: "${busqueda}", soloClientes: ${soloClientes}, soloRevendedores: ${soloRevendedores}`);
 
     // Primero buscar en la base de datos local (compras anteriores)
     if (!soloRevendedores) {
       const clienteDB = this.db.buscarClientePorUsername(busqueda);
       if (clienteDB) {
-        console.log(`[Renovacion] ✅ Cliente encontrado en DB local: ${clienteDB.servex_username} (ID: ${clienteDB.servex_cuenta_id})`);
+        console.log(`[Renovacion] âœ… Cliente encontrado en DB local: ${clienteDB.servex_username} (ID: ${clienteDB.servex_cuenta_id})`);
         return {
           encontrado: true,
           tipo: 'cliente',
@@ -258,25 +218,25 @@ export class RenovacionService {
         const maxUsersDb =
           revendedorDB.servex_max_users ?? revendedorDB.max_users ?? 0;
         
-        // 🔧 AUTO-REPARACIÓN: Si el ID es 0 o null, intentar obtenerlo de Servex
+        // ðŸ”§ AUTO-REPARACIÃ“N: Si el ID es 0 o null, intentar obtenerlo de Servex
         if (!servexId || servexId === 0) {
-          console.warn(`[Renovacion] ⚠️ Revendedor ${revendedorDB.servex_username} tiene ID inválido (${servexId}), intentando reparar...`);
+          console.warn(`[Renovacion] âš ï¸ Revendedor ${revendedorDB.servex_username} tiene ID invÃ¡lido (${servexId}), intentando reparar...`);
           try {
             const revendedorServex = await this.servex.buscarRevendedorPorUsername(revendedorDB.servex_username);
             if (revendedorServex && revendedorServex.id) {
               servexId = revendedorServex.id;
               // Actualizar la DB con el ID correcto
               this.db.actualizarServexIdRevendedor(revendedorDB.servex_username, servexId);
-              console.log(`[Renovacion] ✅ ID reparado automáticamente: ${revendedorDB.servex_username} -> ID: ${servexId}`);
+              console.log(`[Renovacion] âœ… ID reparado automÃ¡ticamente: ${revendedorDB.servex_username} -> ID: ${servexId}`);
             } else {
-              console.error(`[Renovacion] ❌ No se pudo encontrar el revendedor ${revendedorDB.servex_username} en Servex para reparar`);
+              console.error(`[Renovacion] âŒ No se pudo encontrar el revendedor ${revendedorDB.servex_username} en Servex para reparar`);
             }
           } catch (repairError: any) {
-            console.error(`[Renovacion] ❌ Error reparando ID del revendedor:`, repairError.message);
+            console.error(`[Renovacion] âŒ Error reparando ID del revendedor:`, repairError.message);
           }
         }
         
-        console.log(`[Renovacion] ✅ Revendedor encontrado en DB local: ${revendedorDB.servex_username} (ID: ${servexId}, max_users: ${maxUsersDb})`);
+        console.log(`[Renovacion] âœ… Revendedor encontrado en DB local: ${revendedorDB.servex_username} (ID: ${servexId}, max_users: ${maxUsersDb})`);
         return {
           encontrado: true,
           tipo: 'revendedor',
@@ -294,13 +254,13 @@ export class RenovacionService {
       }
     }
 
-    // Si no está en la DB, buscar directamente en Servex por username
+    // Si no estÃ¡ en la DB, buscar directamente en Servex por username
     try {
-      console.log(`[Renovacion] 🔍 Buscando en Servex API...`);
+      console.log(`[Renovacion] ðŸ” Buscando en Servex API...`);
       if (!soloRevendedores) {
         const clienteServex = await this.servex.buscarClientePorUsername(busqueda);
         if (clienteServex) {
-          console.log(`[Renovacion] ✅ Cliente encontrado en Servex: ${clienteServex.username} (ID: ${clienteServex.id})`);
+          console.log(`[Renovacion] âœ… Cliente encontrado en Servex: ${clienteServex.username} (ID: ${clienteServex.id})`);
           return {
             encontrado: true,
             tipo: 'cliente',
@@ -318,7 +278,7 @@ export class RenovacionService {
       if (!soloClientes) {
         const revendedorServex = await this.servex.buscarRevendedorPorUsername(busqueda);
         if (revendedorServex) {
-          console.log(`[Renovacion] ✅ Revendedor encontrado en Servex: ${revendedorServex.username} (ID: ${revendedorServex.id}, max_users: ${revendedorServex.max_users})`);
+          console.log(`[Renovacion] âœ… Revendedor encontrado en Servex: ${revendedorServex.username} (ID: ${revendedorServex.id}, max_users: ${revendedorServex.max_users})`);
           return {
             encontrado: true,
             tipo: 'revendedor',
@@ -335,15 +295,15 @@ export class RenovacionService {
         }
       }
     } catch (error: any) {
-      console.error('[Renovacion] ❌ Error buscando en Servex:', error.message);
+      console.error('[Renovacion] âŒ Error buscando en Servex:', error.message);
     }
 
-    console.log(`[Renovacion] ❌ Cuenta no encontrada: "${busqueda}"`);
+    console.log(`[Renovacion] âŒ Cuenta no encontrada: "${busqueda}"`);
     return { encontrado: false };
   }
 
   /**
-   * Procesa una renovación de cliente
+   * Procesa una renovaciÃ³n de cliente
    */
   async procesarRenovacionCliente(input: {
     busqueda: string;
@@ -358,7 +318,7 @@ export class RenovacionService {
     descuentoAplicado?: number;
     planId?: number;
   }): Promise<{ renovacion: any; linkPago: string; descuentoAplicado?: number; cuponAplicado?: any }> {
-    console.log(`[Renovacion] 🚀 Iniciando procesamiento de renovación de cliente: ${input.busqueda} (${input.dias} días)`);
+    console.log(`[Renovacion] ðŸš€ Iniciando procesamiento de renovaciÃ³n de cliente: ${input.busqueda} (${input.dias} dÃ­as)`);
     console.log('[Renovacion] Input recibido:', JSON.stringify(input, null, 2));
     
     // 1. Buscar cliente existente
@@ -376,7 +336,7 @@ export class RenovacionService {
     const hayCambioDispositivos = connectionLimitNuevo !== connectionLimitActual;
     const operacion = hayCambioDispositivos ? 'upgrade' : 'renovacion';
     
-    console.log(`[Renovacion] Límite actual: ${connectionLimitActual}, Nuevo límite: ${connectionLimitNuevo}, Hay cambio: ${hayCambioDispositivos}`);
+    console.log(`[Renovacion] LÃ­mite actual: ${connectionLimitActual}, Nuevo lÃ­mite: ${connectionLimitNuevo}, Hay cambio: ${hayCambioDispositivos}`);
 
     // 3. Calcular precio base considerando overrides actuales
     const precioBaseCalculado = this.calcularPrecioBaseRenovacion(input.dias, connectionLimitNuevo);
@@ -385,7 +345,7 @@ export class RenovacionService {
     if (input.precioOriginal && input.precioOriginal > 0) {
       if (Math.abs(input.precioOriginal - precioBaseCalculado) > 1) {
         console.log(
-          `[Renovacion] ⚠️ Precio original recibido (${input.precioOriginal}) difiere del calculado (${precioBaseCalculado}). Usando recibido.`
+          `[Renovacion] âš ï¸ Precio original recibido (${input.precioOriginal}) difiere del calculado (${precioBaseCalculado}). Usando recibido.`
         );
       }
       precioBase = Math.round(input.precioOriginal);
@@ -396,7 +356,7 @@ export class RenovacionService {
 
     if (input.codigoCupon) {
       const codigoNormalizado = input.codigoCupon.trim().toUpperCase();
-      console.log(`[Renovacion] Validando cupón ${codigoNormalizado} para renovación`);
+      console.log(`[Renovacion] Validando cupÃ³n ${codigoNormalizado} para renovaciÃ³n`);
 
       const validacion = await cuponesService.validarCupon(
         codigoNormalizado,
@@ -405,13 +365,13 @@ export class RenovacionService {
       );
 
       if (!validacion.valido || !validacion.cupon) {
-        throw new Error(validacion.mensaje_error || 'Cupón inválido');
+        throw new Error(validacion.mensaje_error || 'CupÃ³n invÃ¡lido');
       }
 
       cuponAplicado = validacion.cupon;
       if (input.cuponId && cuponAplicado.id && input.cuponId !== cuponAplicado.id) {
         console.warn(
-          `[Renovacion] ⚠️ ID de cupón recibido (${input.cuponId}) difiere del validado (${cuponAplicado.id})`
+          `[Renovacion] âš ï¸ ID de cupÃ³n recibido (${input.cuponId}) difiere del validado (${cuponAplicado.id})`
         );
       }
 
@@ -421,26 +381,26 @@ export class RenovacionService {
       );
 
       console.log(
-        `[Renovacion] Cupón ${cuponAplicado.codigo} válido. Descuento: $${descuentoAplicado}. Precio base: $${precioBase}`
+        `[Renovacion] CupÃ³n ${cuponAplicado.codigo} vÃ¡lido. Descuento: $${descuentoAplicado}. Precio base: $${precioBase}`
       );
     }
 
     let monto = Math.max(0, Math.round(precioBase - descuentoAplicado));
 
     if (!monto || monto <= 0) {
-      throw new Error('El total a pagar con el cupón debe ser mayor a 0');
+      throw new Error('El total a pagar con el cupÃ³n debe ser mayor a 0');
     }
 
     if (input.precio && Math.abs(input.precio - monto) > 1) {
       console.log(
-        `[Renovacion] ⚠️ Diferencia entre precio recibido (${input.precio}) y calculado (${monto}). Se usará el calculado.`
+        `[Renovacion] âš ï¸ Diferencia entre precio recibido (${input.precio}) y calculado (${monto}). Se usarÃ¡ el calculado.`
       );
     }
 
-    console.log(`[Renovacion] ${hayCambioDispositivos ? 'Upgrade' : 'Renovación'}: ${connectionLimitActual} -> ${connectionLimitNuevo} dispositivos`);
+    console.log(`[Renovacion] ${hayCambioDispositivos ? 'Upgrade' : 'RenovaciÃ³n'}: ${connectionLimitActual} -> ${connectionLimitNuevo} dispositivos`);
     console.log(`[Renovacion] Precio base: $${precioBase}. Descuento aplicado: $${descuentoAplicado}. Monto final: $${monto}`);
 
-    // 4. Crear registro de renovación
+    // 4. Crear registro de renovaciÃ³n
     const renovacionData: any = {
       tipo: 'cliente',
       servex_id: clienteExistente.servex_cuenta_id,
@@ -462,16 +422,16 @@ export class RenovacionService {
       renovacionData.datos_nuevos = { connection_limit: connectionLimitNuevo };
     }
 
-    const renovacion = await this.crearRenovacionHibrido(renovacionData);
+    const renovacion = await this.crearRenovacionDB(renovacionData);
     const renovacionId = renovacion.id;
 
-    console.log('[Renovacion] Renovación creada:', renovacionId);
+    console.log('[Renovacion] RenovaciÃ³n creada:', renovacionId);
 
     // 5. Crear preferencia en MercadoPago
     try {
       const descripcion = hayCambioDispositivos
-        ? `${operacion === 'upgrade' ? 'Upgrade' : 'Cambio'} a ${connectionLimitNuevo} disp. + ${input.dias} días - ${clienteExistente.servex_username}`
-        : `Renovación ${input.dias} días - ${clienteExistente.servex_username}`;
+        ? `${operacion === 'upgrade' ? 'Upgrade' : 'Cambio'} a ${connectionLimitNuevo} disp. + ${input.dias} dÃ­as - ${clienteExistente.servex_username}`
+        : `RenovaciÃ³n ${input.dias} dÃ­as - ${clienteExistente.servex_username}`;
 
       const { id: preferenceId, initPoint } = await this.mercadopago.crearPreferencia(
         renovacionId.toString(),
@@ -484,7 +444,7 @@ export class RenovacionService {
 
       console.log('[Renovacion] Preferencia de MercadoPago creada:', preferenceId);
 
-      console.log(`[Renovacion] ✅ Renovación de cliente procesada exitosamente: ID ${renovacionId}, link: ${initPoint}`);
+      console.log(`[Renovacion] âœ… RenovaciÃ³n de cliente procesada exitosamente: ID ${renovacionId}, link: ${initPoint}`);
       return {
         renovacion,
         linkPago: initPoint,
@@ -492,7 +452,7 @@ export class RenovacionService {
         cuponAplicado: cuponAplicado
       };
     } catch (error: any) {
-      await this.actualizarEstadoRenovacionHibrido(renovacionId, 'rechazado');
+      await this.actualizarEstadoRenovacion(renovacionId, 'rechazado');
       throw new Error(`Error creando link de pago: ${error.message}`);
     }
   }
@@ -516,7 +476,7 @@ export class RenovacionService {
       return Math.round(planCoincidente.precio);
     }
 
-    // Fallback: tomar plan de 30 días con el mismo límite para estimar precio diario
+    // Fallback: tomar plan de 30 dÃ­as con el mismo lÃ­mite para estimar precio diario
     const planReferencia = planesConOverrides.find(
       (plan: any) => plan.dias === 30 && plan.connection_limit === connectionLimit
     );
@@ -548,7 +508,7 @@ export class RenovacionService {
   }
 
   /**
-   * Procesa una renovación de revendedor
+   * Procesa una renovaciÃ³n de revendedor
    */
   async procesarRenovacionRevendedor(input: {
     busqueda: string;
@@ -564,7 +524,7 @@ export class RenovacionService {
     descuentoAplicado?: number;
     planId?: number;
   }): Promise<{ renovacion: any; linkPago: string; descuentoAplicado?: number; cuponAplicado?: any }> {
-    console.log(`[Renovacion] 🚀 Iniciando procesamiento de renovación de revendedor: ${input.busqueda} (${input.dias} días, tipo: ${input.tipoRenovacion})`);
+    console.log(`[Renovacion] ðŸš€ Iniciando procesamiento de renovaciÃ³n de revendedor: ${input.busqueda} (${input.dias} dÃ­as, tipo: ${input.tipoRenovacion})`);
     console.log('[Renovacion] Input recibido:', JSON.stringify(input, null, 2));
     const resultado = await this.buscarCliente(input.busqueda, false);
     
@@ -574,21 +534,21 @@ export class RenovacionService {
 
     const revendedorExistente = resultado.datos;
 
-    // 2. Obtener planes de revendedores con overrides de configuración aplicados
+    // 2. Obtener planes de revendedores con overrides de configuraciÃ³n aplicados
     const planesBase = this.db.obtenerPlanesRevendedores();
-    console.log(`[Renovacion] 📊 Planes base obtenidos: ${planesBase.length} planes`);
+    console.log(`[Renovacion] ðŸ“Š Planes base obtenidos: ${planesBase.length} planes`);
     const planesConOverrides =
       configService.aceptarOverridesAListaPlanesRevendedor(planesBase, {
         forNewCustomers: false,
       });
-    console.log(`[Renovacion] 📊 Planes con overrides: ${planesConOverrides.length} planes`);
+    console.log(`[Renovacion] ðŸ“Š Planes con overrides: ${planesConOverrides.length} planes`);
     
-    // 3. Calcular precio según el plan seleccionado
+    // 3. Calcular precio segÃºn el plan seleccionado
     const tipoRenovacion = input.tipoRenovacion || 'validity';
     const cantidad = input.cantidadSeleccionada || 5;
     
-    console.log(`[Renovacion] 🔍 Buscando plan con: tipo=${tipoRenovacion}, cantidad=${cantidad}`);
-    console.log(`[Renovacion] 📋 Planes disponibles: ${JSON.stringify(planesConOverrides.map((p: any) => ({id: p.id, max_users: p.max_users, account_type: p.account_type, precio: p.precio})))}`);
+    console.log(`[Renovacion] ðŸ” Buscando plan con: tipo=${tipoRenovacion}, cantidad=${cantidad}`);
+    console.log(`[Renovacion] ðŸ“‹ Planes disponibles: ${JSON.stringify(planesConOverrides.map((p: any) => ({id: p.id, max_users: p.max_users, account_type: p.account_type, precio: p.precio})))}`);
 
     let planSeleccionado: any = null;
 
@@ -603,7 +563,7 @@ export class RenovacionService {
     }
 
     if (!planSeleccionado) {
-      console.warn(`[Renovacion] ⚠️ No se encontró un plan exacto para tipo=${tipoRenovacion}, cantidad=${cantidad}. Usando defaults.`);
+      console.warn(`[Renovacion] âš ï¸ No se encontrÃ³ un plan exacto para tipo=${tipoRenovacion}, cantidad=${cantidad}. Usando defaults.`);
     }
 
     let precioBase = planSeleccionado?.precio ? Math.round(Number(planSeleccionado.precio)) : 0;
@@ -615,7 +575,7 @@ export class RenovacionService {
     if (input.precioOriginal && input.precioOriginal > 0) {
       if (Math.abs(input.precioOriginal - precioBase) > 1) {
         console.warn(
-          `[Renovacion] ⚠️ Precio original recibido (${input.precioOriginal}) difiere del calculado (${precioBase}). Usando recibido.`
+          `[Renovacion] âš ï¸ Precio original recibido (${input.precioOriginal}) difiere del calculado (${precioBase}). Usando recibido.`
         );
       }
       precioBase = Math.round(input.precioOriginal);
@@ -626,7 +586,7 @@ export class RenovacionService {
 
     if (input.codigoCupon) {
       const codigoNormalizado = input.codigoCupon.trim().toUpperCase();
-      console.log(`[Renovacion] Validando cupón ${codigoNormalizado} para renovación de revendedor`);
+      console.log(`[Renovacion] Validando cupÃ³n ${codigoNormalizado} para renovaciÃ³n de revendedor`);
 
       const validacion = await cuponesService.validarCupon(
         codigoNormalizado,
@@ -635,14 +595,14 @@ export class RenovacionService {
       );
 
       if (!validacion.valido || !validacion.cupon) {
-        throw new Error(validacion.mensaje_error || 'Cupón inválido');
+        throw new Error(validacion.mensaje_error || 'CupÃ³n invÃ¡lido');
       }
 
       cuponAplicado = validacion.cupon;
 
       if (input.cuponId && cuponAplicado.id && input.cuponId !== cuponAplicado.id) {
         console.warn(
-          `[Renovacion] ⚠️ ID de cupón recibido (${input.cuponId}) difiere del validado (${cuponAplicado.id})`
+          `[Renovacion] âš ï¸ ID de cupÃ³n recibido (${input.cuponId}) difiere del validado (${cuponAplicado.id})`
         );
       }
 
@@ -651,18 +611,18 @@ export class RenovacionService {
         Math.round(cuponesService.calcularDescuento(cuponAplicado, precioBase))
       );
 
-      console.log(`[Renovacion] Cupón ${cuponAplicado.codigo} aplicado. Descuento: $${descuentoAplicado}. Precio base: $${precioBase}`);
+      console.log(`[Renovacion] CupÃ³n ${cuponAplicado.codigo} aplicado. Descuento: $${descuentoAplicado}. Precio base: $${precioBase}`);
     }
 
     if (!input.codigoCupon && input.descuentoAplicado) {
       console.warn(
-        `[Renovacion] ⚠️ Se recibió descuento aplicado (${input.descuentoAplicado}) sin código de cupón. Ignorando valor recibido.`
+        `[Renovacion] âš ï¸ Se recibiÃ³ descuento aplicado (${input.descuentoAplicado}) sin cÃ³digo de cupÃ³n. Ignorando valor recibido.`
       );
     }
 
     if (input.descuentoAplicado && Math.abs(input.descuentoAplicado - descuentoAplicado) > 1) {
       console.warn(
-        `[Renovacion] ⚠️ Diferencia entre descuento recibido (${input.descuentoAplicado}) y calculado (${descuentoAplicado}). Se utilizará el calculado.`
+        `[Renovacion] âš ï¸ Diferencia entre descuento recibido (${input.descuentoAplicado}) y calculado (${descuentoAplicado}). Se utilizarÃ¡ el calculado.`
       );
     }
 
@@ -670,12 +630,12 @@ export class RenovacionService {
 
     if (input.precio && Math.abs(input.precio - montoCalculado) > 1) {
       console.warn(
-        `[Renovacion] ⚠️ Diferencia entre precio recibido (${input.precio}) y calculado (${montoCalculado}). Se usará el calculado.`
+        `[Renovacion] âš ï¸ Diferencia entre precio recibido (${input.precio}) y calculado (${montoCalculado}). Se usarÃ¡ el calculado.`
       );
     }
 
     if (!montoCalculado || montoCalculado <= 0) {
-      throw new Error('El total a pagar con el cupón debe ser mayor a 0');
+      throw new Error('El total a pagar con el cupÃ³n debe ser mayor a 0');
     }
 
     const datosNuevos: any = {
@@ -698,8 +658,8 @@ export class RenovacionService {
       datosNuevos.descuento_aplicado = descuentoAplicado;
     }
 
-    // 5. Crear registro de renovación
-    const renovacion = await this.crearRenovacionHibrido({
+    // 5. Crear registro de renovaciÃ³n
+    const renovacion = await this.crearRenovacionDB({
       tipo: 'revendedor',
       servex_id: revendedorExistente.servex_revendedor_id,
       servex_username: revendedorExistente.servex_username,
@@ -717,12 +677,12 @@ export class RenovacionService {
     });
 
     const renovacionId = renovacion.id;
-    console.log('[Renovacion] Renovación de revendedor creada:', renovacionId);
+    console.log('[Renovacion] RenovaciÃ³n de revendedor creada:', renovacionId);
 
     // 6. Crear preferencia en MercadoPago
     const descripcion = tipoRenovacion === 'validity' 
-      ? `Renovación 30 días - ${cantidad} usuarios - ${revendedorExistente.servex_username}`
-      : `Recarga ${cantidad} créditos - ${revendedorExistente.servex_username}`;
+      ? `RenovaciÃ³n 30 dÃ­as - ${cantidad} usuarios - ${revendedorExistente.servex_username}`
+      : `Recarga ${cantidad} crÃ©ditos - ${revendedorExistente.servex_username}`;
 
     try {
       const { id: preferenceId, initPoint } = await this.mercadopago.crearPreferencia(
@@ -736,7 +696,7 @@ export class RenovacionService {
 
       console.log('[Renovacion] Preferencia de MercadoPago creada:', preferenceId);
 
-      console.log(`[Renovacion] ✅ Renovación de revendedor procesada exitosamente: ID ${renovacionId}, link: ${initPoint}`);
+      console.log(`[Renovacion] âœ… RenovaciÃ³n de revendedor procesada exitosamente: ID ${renovacionId}, link: ${initPoint}`);
       return {
         renovacion,
         linkPago: initPoint,
@@ -744,31 +704,31 @@ export class RenovacionService {
         cuponAplicado
       };
     } catch (error: any) {
-      await this.actualizarEstadoRenovacionHibrido(renovacionId, 'rechazado');
+      await this.actualizarEstadoRenovacion(renovacionId, 'rechazado');
       throw new Error(`Error creando link de pago: ${error.message}`);
     }
   }
 
   /**
-   * Confirma una renovación y ejecuta la renovación en Servex
+   * Confirma una renovaciÃ³n y ejecuta la renovaciÃ³n en Servex
    */
   async confirmarRenovacion(renovacionId: number, mpPaymentId: string | null): Promise<void> {
-    console.log('[Renovacion] Confirmando renovación:', renovacionId);
+    console.log('[Renovacion] Confirmando renovaciÃ³n:', renovacionId);
 
     if (!mpPaymentId || (typeof mpPaymentId === 'string' && mpPaymentId.trim() === '')) {
-      throw new Error('No se puede confirmar renovación sin ID de pago válido');
+      throw new Error('No se puede confirmar renovaciÃ³n sin ID de pago vÃ¡lido');
     }
 
-    const renovacion = await this.obtenerRenovacionPorIdHibrido(renovacionId);
+    const renovacion = await this.obtenerRenovacionPorId(renovacionId);
     if (!renovacion) {
-      throw new Error('Renovación no encontrada');
+      throw new Error('RenovaciÃ³n no encontrada');
     }
 
     const estadoPrevio = renovacion.estado;
 
     try {
       // 1. Actualizar estado a aprobado
-      await this.actualizarEstadoRenovacionHibrido(renovacionId, 'aprobado', mpPaymentId);
+      await this.actualizarEstadoRenovacion(renovacionId, 'aprobado', mpPaymentId);
 
       // 2. Si es un upgrade (cambio de dispositivos), actualizar primero el connection_limit
       if (renovacion.operacion === 'upgrade' && renovacion.tipo === 'cliente' && renovacion.datos_nuevos) {
@@ -790,7 +750,7 @@ export class RenovacionService {
               username: clienteActual.username,
               password: clienteActual.password,
               category_id: clienteActual.category_id,
-              connection_limit: datosNuevos.connection_limit, // El nuevo límite
+              connection_limit: datosNuevos.connection_limit, // El nuevo lÃ­mite
               type: clienteActual.type,
               ...(clienteActual.observation && { observation: clienteActual.observation }),
               ...(clienteActual.v2ray_uuid && { v2ray_uuid: clienteActual.v2ray_uuid })
@@ -798,7 +758,7 @@ export class RenovacionService {
             
             console.log(`[Renovacion] Actualizando cliente ID ${renovacion.servex_id} con payload:`, JSON.stringify(payload));
             await this.servex.actualizarCliente(renovacion.servex_id, payload);
-            console.log('[Renovacion] ✅ Connection limit actualizado exitosamente');
+            console.log('[Renovacion] âœ… Connection limit actualizado exitosamente');
           }
         } catch (parseError) {
           console.error('[Renovacion] Error actualizando connection_limit:', parseError);
@@ -806,7 +766,7 @@ export class RenovacionService {
         }
       }
 
-      // 3. Procesar renovación de revendedor si tiene datos_nuevos
+      // 3. Procesar renovaciÃ³n de revendedor si tiene datos_nuevos
       if (renovacion.tipo === 'revendedor' && renovacion.datos_nuevos) {
         try {
           const datosNuevos = typeof renovacion.datos_nuevos === 'string'
@@ -819,17 +779,17 @@ export class RenovacionService {
           console.log(`[Renovacion] servex_id: ${renovacion.servex_id}, dias_agregados: ${renovacion.dias_agregados}`);
 
           if (tipoRenovacion === 'validity') {
-            // Renovación de validez: Siempre 30 días fijos + REEMPLAZAR max_users
-            console.log(`[Renovacion] Validity: Agregando 30 días fijos y estableciendo límite a ${cantidad} usuarios`);
+            // RenovaciÃ³n de validez: Siempre 30 dÃ­as fijos + REEMPLAZAR max_users
+            console.log(`[Renovacion] Validity: Agregando 30 dÃ­as fijos y estableciendo lÃ­mite a ${cantidad} usuarios`);
             
-            // Calcular nueva fecha de vencimiento (hoy + 30 días)
+            // Calcular nueva fecha de vencimiento (hoy + 30 dÃ­as)
             const fechaVencimiento = new Date();
             fechaVencimiento.setDate(fechaVencimiento.getDate() + 30);
             const expirationDate = fechaVencimiento.toISOString().split('T')[0]; // Formato YYYY-MM-DD
             
             console.log(`[Renovacion] Nueva fecha de vencimiento: ${expirationDate}`);
             
-            // Actualizar: cambiar a validity, establecer límite de usuarios y fecha de vencimiento
+            // Actualizar: cambiar a validity, establecer lÃ­mite de usuarios y fecha de vencimiento
             await this.servex.actualizarRevendedor(renovacion.servex_id, {
               max_users: cantidad,
               account_type: 'validity',
@@ -843,24 +803,24 @@ export class RenovacionService {
               accountType: 'validity'
             });
           } else if (tipoRenovacion === 'credit') {
-            // Recarga de créditos: Agregar días según plan + SUMAR créditos
-            console.log(`[Renovacion] Credit: Agregando ${renovacion.dias_agregados} días y sumando ${cantidad} créditos`);
+            // Recarga de crÃ©ditos: Agregar dÃ­as segÃºn plan + SUMAR crÃ©ditos
+            console.log(`[Renovacion] Credit: Agregando ${renovacion.dias_agregados} dÃ­as y sumando ${cantidad} crÃ©ditos`);
             
             // Obtener datos actuales del revendedor
             const revendedorActual = await this.servex.buscarRevendedorPorUsername(renovacion.servex_username);
             const creditosActuales = revendedorActual?.max_users || 0;
             const creditosTotales = creditosActuales + cantidad;
             
-            console.log(`[Renovacion] Créditos actuales: ${creditosActuales}, sumando: ${cantidad}, total: ${creditosTotales}`);
+            console.log(`[Renovacion] CrÃ©ditos actuales: ${creditosActuales}, sumando: ${cantidad}, total: ${creditosTotales}`);
             
-            // Calcular nueva fecha de vencimiento (fecha actual + días del plan)
+            // Calcular nueva fecha de vencimiento (fecha actual + dÃ­as del plan)
             const fechaActual = revendedorActual?.expiration_date ? new Date(revendedorActual.expiration_date) : new Date();
             fechaActual.setDate(fechaActual.getDate() + renovacion.dias_agregados);
             const expirationDate = fechaActual.toISOString().split('T')[0]; // Formato YYYY-MM-DD
             
             console.log(`[Renovacion] Nueva fecha de vencimiento: ${expirationDate}`);
             
-            // Actualizar: mantener account_type credit, sumar créditos y establecer nueva fecha
+            // Actualizar: mantener account_type credit, sumar crÃ©ditos y establecer nueva fecha
             await this.servex.actualizarRevendedor(renovacion.servex_id, {
               max_users: creditosTotales,
               account_type: 'credit',
@@ -875,29 +835,36 @@ export class RenovacionService {
             });
           }
           
-          console.log('[Renovacion] ✅ Revendedor actualizado exitosamente');
+          console.log('[Renovacion] âœ… Revendedor actualizado exitosamente');
         } catch (error) {
           console.error('[Renovacion] Error procesando datos de revendedor:', error);
           throw error;
         }
       } else {
-        // 4. Ejecutar renovación simple de días en Servex
+        // 4. Ejecutar renovaciÃ³n simple de dÃ­as en Servex
         if (renovacion.tipo === 'cliente') {
           await this.servex.renovarCliente(renovacion.servex_id, renovacion.dias_agregados);
         } else if (renovacion.tipo === 'revendedor') {
           await this.servex.renovarRevendedor(renovacion.servex_id, renovacion.dias_agregados);
         }
 
-        console.log(`[Renovacion] ✅ ${renovacion.tipo} renovado exitosamente`);
+        console.log(`[Renovacion] âœ… ${renovacion.tipo} renovado exitosamente`);
       }
 
       // Aplicar cupón si corresponde
       if (renovacion.cupon_id && estadoPrevio !== 'aprobado') {
         try {
-          await cuponesService.aplicarCupon(renovacion.cupon_id);
+          const descuentoAplicado = renovacion.descuento_aplicado || 0;
+          await cuponesService.aplicarCupon(
+            renovacion.cupon_id,
+            renovacion.cliente_email || '',
+            String(renovacion.id),
+            renovacion.monto_original || renovacion.monto || 0,
+            descuentoAplicado
+          );
           console.log(`[Renovacion] ✅ Cupón ${renovacion.cupon_id} marcado como utilizado`);
         } catch (cuponError: any) {
-          console.error('[Renovacion] ⚠️ Error aplicando cupón:', cuponError.message);
+          console.error('[Renovacion] âš ï¸ Error aplicando cupÃ³n:', cuponError.message);
         }
       }
 
@@ -909,20 +876,20 @@ export class RenovacionService {
         if (renovacion.tipo === 'cliente') {
           if (renovacion.operacion === 'upgrade') {
             const datosNuevos = JSON.parse(renovacion.datos_nuevos || '{}');
-            descripcion = `Upgrade cliente: ${renovacion.dias_agregados} días, ${datosNuevos.connection_limit} conexiones`;
+            descripcion = `Upgrade cliente: ${renovacion.dias_agregados} dÃ­as, ${datosNuevos.connection_limit} conexiones`;
           } else {
-            descripcion = `Renovación cliente: ${renovacion.dias_agregados} días`;
+            descripcion = `RenovaciÃ³n cliente: ${renovacion.dias_agregados} dÃ­as`;
           }
         } else {
           if (renovacion.datos_nuevos) {
             const datosNuevos = JSON.parse(renovacion.datos_nuevos);
             if (datosNuevos.tipo_renovacion === 'validity') {
-              descripcion = `Renovación revendedor: 30 días, ${datosNuevos.cantidad} usuarios`;
+              descripcion = `RenovaciÃ³n revendedor: 30 dÃ­as, ${datosNuevos.cantidad} usuarios`;
             } else {
-              descripcion = `Recarga revendedor: ${renovacion.dias_agregados} días, +${datosNuevos.cantidad} créditos`;
+              descripcion = `Recarga revendedor: ${renovacion.dias_agregados} dÃ­as, +${datosNuevos.cantidad} crÃ©ditos`;
             }
           } else {
-            descripcion = `Renovación revendedor: ${renovacion.dias_agregados} días`;
+            descripcion = `RenovaciÃ³n revendedor: ${renovacion.dias_agregados} dÃ­as`;
           }
         }
 
@@ -933,30 +900,30 @@ export class RenovacionService {
           descripcion,
           username: renovacion.servex_username
         });
-        console.log('[Renovacion] ✅ Notificación enviada al administrador');
+        console.log('[Renovacion] âœ… NotificaciÃ³n enviada al administrador');
       } catch (emailError: any) {
-        console.error('[Renovacion] ⚠️ Error notificando al admin:', emailError.message);
-        // No lanzamos error, la renovación ya está procesada
+        console.error('[Renovacion] âš ï¸ Error notificando al admin:', emailError.message);
+        // No lanzamos error, la renovaciÃ³n ya estÃ¡ procesada
       }
 
       // Sincronizar con Supabase (historial de usuario)
       try {
         await supabaseService.syncApprovedPurchase({
           email: renovacion.cliente_email,
-          planNombre: renovacion.operacion === 'upgrade' ? `Upgrade: ${renovacion.dias_agregados} días` : `Renovación: ${renovacion.dias_agregados} días`,
+          planNombre: renovacion.operacion === 'upgrade' ? `Upgrade: ${renovacion.dias_agregados} dÃ­as` : `RenovaciÃ³n: ${renovacion.dias_agregados} dÃ­as`,
           monto: renovacion.monto,
           tipo: 'renovacion',
           servexUsername: renovacion.servex_username,
           mpPaymentId: mpPaymentId || undefined,
         });
       } catch (supabaseError: any) {
-        console.error('[Renovacion] ⚠️ Error sincronizando con Supabase:', supabaseError.message);
-        // No lanzamos error, la renovación ya está procesada
+        console.error('[Renovacion] âš ï¸ Error sincronizando con Supabase:', supabaseError.message);
+        // No lanzamos error, la renovaciÃ³n ya estÃ¡ procesada
       }
 
-      // Enviar email de confirmación al cliente
+      // Enviar email de confirmaciÃ³n al cliente
       try {
-        // Obtener la nueva fecha de expiración
+        // Obtener la nueva fecha de expiraciÃ³n
         let nuevaExpiracion = '';
         let detallesExtra = '';
         
@@ -969,7 +936,7 @@ export class RenovacionService {
           }
           if (renovacion.operacion === 'upgrade') {
             const datosNuevos = JSON.parse(renovacion.datos_nuevos || '{}');
-            detallesExtra = `Nuevo límite: ${datosNuevos.connection_limit} dispositivos`;
+            detallesExtra = `Nuevo lÃ­mite: ${datosNuevos.connection_limit} dispositivos`;
           }
         } else if (renovacion.tipo === 'revendedor') {
           const revendedorActualizado = await this.servex.buscarRevendedorPorUsername(renovacion.servex_username);
@@ -981,9 +948,9 @@ export class RenovacionService {
           if (renovacion.datos_nuevos) {
             const datosNuevos = JSON.parse(renovacion.datos_nuevos);
             if (datosNuevos.tipo_renovacion === 'validity') {
-              detallesExtra = `${datosNuevos.cantidad} usuarios máx`;
+              detallesExtra = `${datosNuevos.cantidad} usuarios mÃ¡x`;
             } else if (datosNuevos.tipo_renovacion === 'credit') {
-              detallesExtra = `+${datosNuevos.cantidad} créditos`;
+              detallesExtra = `+${datosNuevos.cantidad} crÃ©ditos`;
             }
           }
         }
@@ -997,15 +964,15 @@ export class RenovacionService {
           operacion: renovacion.operacion || (renovacion.datos_nuevos ? JSON.parse(renovacion.datos_nuevos).tipo_renovacion : undefined),
           detallesExtra: detallesExtra || undefined,
         });
-        console.log(`[Renovacion] ✅ Email de confirmación enviado a ${renovacion.cliente_email}`);
+        console.log(`[Renovacion] âœ… Email de confirmaciÃ³n enviado a ${renovacion.cliente_email}`);
       } catch (emailClienteError: any) {
-        console.error('[Renovacion] ⚠️ Error enviando email de confirmación al cliente:', emailClienteError.message);
-        // No lanzamos error, la renovación ya está procesada
+        console.error('[Renovacion] âš ï¸ Error enviando email de confirmaciÃ³n al cliente:', emailClienteError.message);
+        // No lanzamos error, la renovaciÃ³n ya estÃ¡ procesada
       }
 
     } catch (error: any) {
-      console.error('[Renovacion] ❌ Error ejecutando renovación:', error.message);
-      await this.actualizarEstadoRenovacionHibrido(renovacionId, 'pendiente');
+      console.error('[Renovacion] âŒ Error ejecutando renovaciÃ³n:', error.message);
+      await this.actualizarEstadoRenovacion(renovacionId, 'pendiente');
       throw error;
     }
   }
@@ -1025,104 +992,90 @@ export class RenovacionService {
 
     const { pagoId, mpPaymentId, estado } = resultado;
 
-    // Convertir pagoId a número (el ID de renovación es un número autoincremental)
+    // Convertir pagoId a nÃºmero (el ID de renovaciÃ³n es un nÃºmero autoincremental)
     const renovacionId = parseInt(pagoId, 10);
     if (isNaN(renovacionId)) {
-      console.error('[Renovacion] ID de renovación inválido:', pagoId);
+      console.error('[Renovacion] ID de renovaciÃ³n invÃ¡lido:', pagoId);
       return;
     }
 
-    const renovacion = await this.obtenerRenovacionPorIdHibrido(renovacionId);
+    const renovacion = await this.obtenerRenovacionPorId(renovacionId);
     if (!renovacion) {
-      console.error('[Renovacion] Renovación no encontrada:', renovacionId);
+      console.error('[Renovacion] RenovaciÃ³n no encontrada:', renovacionId);
       return;
     }
 
-    console.log(`[Renovacion] 🔔 Webhook: renovación ${renovacionId}, estado: ${estado}, mpPaymentId: ${mpPaymentId}`);
+    console.log(`[Renovacion] ðŸ”” Webhook: renovaciÃ³n ${renovacionId}, estado: ${estado}, mpPaymentId: ${mpPaymentId}`);
 
     if (estado === 'approved') {
       if (renovacion.estado === 'pendiente' || renovacion.estado === 'rechazado') {
-        // Validar que tenemos un ID de pago válido
+        // Validar que tenemos un ID de pago vÃ¡lido
         if (!mpPaymentId || (typeof mpPaymentId === 'string' && mpPaymentId.trim() === '')) {
-          console.warn(`[Renovacion] ⚠️ Webhook indica pago aprobado pero sin mpPaymentId válido. ID: ${pagoId}`);
-          // No procesar sin ID de pago válido
+          console.warn(`[Renovacion] âš ï¸ Webhook indica pago aprobado pero sin mpPaymentId vÃ¡lido. ID: ${pagoId}`);
+          // No procesar sin ID de pago vÃ¡lido
           return;
         }
         
-        console.log(`[Renovacion] ✅ Confirmando renovación desde webhook: ${renovacionId}`);
+        console.log(`[Renovacion] âœ… Confirmando renovaciÃ³n desde webhook: ${renovacionId}`);
         await this.confirmarRenovacion(renovacionId, mpPaymentId);
       }
     } else if (estado === 'rejected' || estado === 'cancelled') {
       if (renovacion.estado === 'pendiente') {
-        await this.actualizarEstadoRenovacionHibrido(renovacionId, 'rechazado', mpPaymentId);
-        console.log('[Renovacion] ❌ Renovación marcada como rechazada por webhook');
+        await this.actualizarEstadoRenovacion(renovacionId, 'rechazado', mpPaymentId);
+        console.log('[Renovacion] âŒ RenovaciÃ³n marcada como rechazada por webhook');
       }
     } else if (estado === 'pending') {
-      console.log('[Renovacion] ⏳ Webhook: pago aún pendiente');
+      console.log('[Renovacion] â³ Webhook: pago aÃºn pendiente');
     }
   }
 
   /**
-   * Verifica y procesa una renovación manualmente (para cuando el cliente vuelve de MP)
+   * Verifica y procesa una renovaciÃ³n manualmente (para cuando el cliente vuelve de MP)
    */
   async verificarYProcesarRenovacion(renovacionId: number, forzarReproceso: boolean = false): Promise<any | null> {
-    const renovacion = await this.obtenerRenovacionPorIdHibrido(renovacionId);
+    const renovacion = await this.obtenerRenovacionPorId(renovacionId);
     if (!renovacion) {
       return null;
     }
 
     console.log(`[Renovacion] verificarYProcesarRenovacion: ${renovacionId}, forzarReproceso=${forzarReproceso}, estado=${renovacion.estado}, mp_payment_id=${renovacion.mp_payment_id}`);
 
-    // Si está aprobada y se fuerza reproceso, ejecutar de nuevo
+    // Si estÃ¡ aprobada y se fuerza reproceso, ejecutar de nuevo
     if (renovacion.estado === 'aprobado' && forzarReproceso && renovacion.mp_payment_id) {
-      console.log(`[Renovacion] 🔄 Reprocesando renovación aprobada: ${renovacionId}`);
+      console.log(`[Renovacion] ðŸ”„ Reprocesando renovaciÃ³n aprobada: ${renovacionId}`);
       await this.confirmarRenovacion(renovacionId, renovacion.mp_payment_id);
-      return await this.obtenerRenovacionPorIdHibrido(renovacionId);
+      return await this.obtenerRenovacionPorId(renovacionId);
     }
 
-    // Si la renovación ya está aprobada, solo devolver la información
+    // Si la renovaciÃ³n ya estÃ¡ aprobada, solo devolver la informaciÃ³n
     if (renovacion.estado === 'aprobado') {
       return renovacion;
     }
 
-    // Si está pendiente, verificar en MercadoPago
+    // Si estÃ¡ pendiente, verificar en MercadoPago
     if (renovacion.estado === 'pendiente') {
       const pagoMP = await this.mercadopago.verificarPagoPorReferencia(renovacionId.toString());
 
       if (pagoMP && pagoMP.status === 'approved') {
-        console.log(`[Renovacion] ✅ Pago encontrado en MercadoPago: ${pagoMP.id}, status: ${pagoMP.status}`);
+        console.log(`[Renovacion] âœ… Pago encontrado en MercadoPago: ${pagoMP.id}, status: ${pagoMP.status}`);
         
-        // Confirmar la renovación con el ID de pago de MercadoPago
+        // Confirmar la renovaciÃ³n con el ID de pago de MercadoPago
         if (!pagoMP.id) {
-          console.error(`[Renovacion] ⚠️ Pago aprobado pero sin ID de pago`);
-          throw new Error('Pago aprobado pero sin ID de pago válido');
+          console.error(`[Renovacion] âš ï¸ Pago aprobado pero sin ID de pago`);
+          throw new Error('Pago aprobado pero sin ID de pago vÃ¡lido');
         }
         
         await this.confirmarRenovacion(renovacionId, pagoMP.id);
-        // Devolver la renovación actualizada
-        return await this.obtenerRenovacionPorIdHibrido(renovacionId);
+        // Devolver la renovaciÃ³n actualizada
+        return await this.obtenerRenovacionPorId(renovacionId);
       } else if (pagoMP && pagoMP.status !== 'approved') {
-        console.log(`[Renovacion] ⏳ Pago encontrado pero aún no aprobado. Estado: ${pagoMP.status}`);
+        console.log(`[Renovacion] â³ Pago encontrado pero aÃºn no aprobado. Estado: ${pagoMP.status}`);
       } else {
-        console.warn(`[Renovacion] ⚠️ No se encontró pago en MercadoPago para renovación ${renovacionId}`);
+        console.warn(`[Renovacion] âš ï¸ No se encontrÃ³ pago en MercadoPago para renovaciÃ³n ${renovacionId}`);
       }
     }
 
     return renovacion;
-  }
-
-  /**
-   * Obtiene una renovación por ID (ahora async para híbrido)
-   */
-  async obtenerRenovacionPorId(renovacionId: number): Promise<any | null> {
-    return await this.obtenerRenovacionPorIdHibrido(renovacionId);
-  }
-
-  /**
-   * Busca renovaciones por email del cliente (ahora async para híbrido)
-   */
-  async buscarRenovacionesPorEmail(email: string): Promise<any[]> {
-    return await this.buscarRenovacionesPorEmailHibrido(email);
   }
 
   /**

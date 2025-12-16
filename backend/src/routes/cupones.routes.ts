@@ -92,6 +92,7 @@ router.post('/validar', async (req, res) => {
 router.post('/aplicar/:cuponId', async (req, res) => {
   try {
     const cuponId = parseInt(req.params.cuponId);
+    const { clienteEmail, pagoId, montoOriginal, descuentoAplicado } = req.body;
 
     if (isNaN(cuponId)) {
       return res.status(400).json({
@@ -100,7 +101,20 @@ router.post('/aplicar/:cuponId', async (req, res) => {
       });
     }
 
-    await cuponesService.aplicarCupon(cuponId);
+    if (!clienteEmail || !pagoId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Se requieren clienteEmail y pagoId'
+      });
+    }
+
+    await cuponesService.aplicarCupon(
+      cuponId,
+      clienteEmail,
+      pagoId,
+      montoOriginal || 0,
+      descuentoAplicado || 0
+    );
 
     return res.json({
       success: true,

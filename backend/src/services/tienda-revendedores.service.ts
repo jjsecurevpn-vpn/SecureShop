@@ -441,7 +441,14 @@ export class TiendaRevendedoresService {
       // Aplicar cupón si se usó uno
       if (pago.cupon_id) {
         try {
-          await cuponesService.aplicarCupon(pago.cupon_id);
+          const descuentoAplicado = pago.descuento_aplicado || 0;
+          await cuponesService.aplicarCupon(
+            pago.cupon_id,
+            pago.cliente_email,
+            pago.id,
+            plan.precio,
+            descuentoAplicado
+          );
           console.log(`[TiendaRevendedores] ✅ Cupón ${pago.cupon_id} aplicado (uso incrementado)`);
         } catch (cuponError: any) {
           console.error(`[TiendaRevendedores] ⚠️ Error aplicando cupón ${pago.cupon_id}:`, cuponError.message);
