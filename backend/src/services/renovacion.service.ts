@@ -5,6 +5,7 @@ import { configService } from './config.service';
 import emailService from './email.service';
 import { cuponesService } from './cupones.service';
 import { supabaseService } from './supabase.service';
+import { renovacionesSupabaseService } from './renovaciones-supabase.service';
 import { RenovacionAutoRetryConfig } from '../types';
 
 export class RenovacionService {
@@ -17,6 +18,109 @@ export class RenovacionService {
   private autoRetryTimer: NodeJS.Timeout | null = null;
   private autoRetryRunning = false;
   private autoRetryAttempts = new Map<number, number>();
+
+  // Flag para usar Supabase (modo híbrido)
+  private get useSupabase(): boolean {
+    return renovacionesSupabaseService.isEnabled();
+  }
+
+  // ============================================
+  // MÉTODOS HÍBRIDOS (Supabase con fallback SQLite)
+  // ============================================
+
+  /**
+   * Crear renovación (híbrido)
+   */
+  private async crearRenovacionHibrido(data: any): Promise<any> {
+    if (this.useSupabase) {
+      const renovacion = await renovacionesSupabaseService.crearRenovacion(data);
+      if (renovacion) {
+        console.log(`[Renovacion] ✅ Renovación creada en Supabase: ${renovacion.id}`);
+        return renovacion;
+      }
+      console.warn('[Renovacion] ⚠️ Falló Supabase, usando SQLite fallback');
+    }
+    return this.db.crearRenovacion(data);
+  }
+
+  /**
+   * Obtener renovación por ID (híbrido)
+   */
+  private async obtenerRenovacionPorIdHibrido(id: number): Promise<any | null> {
+    if (this.useSupabase) {
+      const renovacion = await renovacionesSupabaseService.obtenerRenovacionPorId(id);
+      if (renovacion) return renovacion;
+    }
+    return this.db.obtenerRenovacionPorId(id);
+  }
+
+  /**
+   * Actualizar estado de renovación (híbrido)
+   */
+  private async actualizarEstadoRenovacionHibrido(
+    id: number, 
+    estado: 'pendiente' | 'aprobado' | 'rechazado' | 'cancelado',
+    mpPaymentId?: string
+  ): Promise<boolean> {
+    let supabaseOk = false;
+    
+    if (this.useSupabase) {
+      supabaseOk = await renovacionesSupabaseService.actualizarEstadoRenovacion(id, estado, mpPaymentId);
+      if (supabaseOk) {
+        console.log(`[Renovacion] ✅ Estado actualizado en Supabase: ${id} -> ${estado}`);
+      }
+    }
+    
+    // Siempre actualizar SQLite por ahora (dual-write)
+    try {
+      this.db.actualizarEstadoRenovacion(id, estado, mpPaymentId);
+      return true;
+    } catch (error) {
+      console.error('[Renovacion] Error actualizando estado en SQLite:', error);
+      return supabaseOk;
+    }
+  }
+
+  /**
+   * Refrescar timestamp de renovación (híbrido)
+   */
+  private async refrescarTimestampRenovacionHibrido(id: number): Promise<boolean> {
+    if (this.useSupabase) {
+      await renovacionesSupabaseService.refrescarTimestampRenovacion(id);
+    }
+    try {
+      this.db.refrescarTimestampRenovacion(id);
+      return true;
+    } catch (error) {
+      console.error('[Renovacion] Error refrescando timestamp en SQLite:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Obtener renovaciones pendientes (híbrido)
+   */
+  private async obtenerRenovacionesPendientesHibrido(opts: { updatedBeforeMinutes?: number; limit?: number }): Promise<any[]> {
+    if (this.useSupabase) {
+      const renovaciones = await renovacionesSupabaseService.obtenerRenovacionesPendientes(
+        opts.updatedBeforeMinutes || 5,
+        opts.limit || 10
+      );
+      if (renovaciones.length > 0) return renovaciones;
+    }
+    return this.db.obtenerRenovacionesPendientes(opts);
+  }
+
+  /**
+   * Buscar renovaciones por email (híbrido)
+   */
+  private async buscarRenovacionesPorEmailHibrido(email: string): Promise<any[]> {
+    if (this.useSupabase) {
+      const renovaciones = await renovacionesSupabaseService.buscarRenovacionesPorEmail(email);
+      if (renovaciones.length > 0) return renovaciones;
+    }
+    return this.db.buscarRenovacionesPorEmail(email);
+  }
 
   /**
    * Getter para acceder al servicio de Servex desde las rutas
@@ -43,7 +147,7 @@ export class RenovacionService {
       this.autoRetryRunning = true;
 
       try {
-        const pendientes = this.db.obtenerRenovacionesPendientes({
+        const pendientes = await this.obtenerRenovacionesPendientesHibrido({
           updatedBeforeMinutes: config.minPendingAgeMinutes,
           limit: config.batchSize,
         });
@@ -66,7 +170,7 @@ export class RenovacionService {
               console.warn(
                 `[Renovacion] ⚠️ Renovación ${renovacionId} alcanzó el máximo de reintentos automáticos (${config.maxAttempts})`
               );
-              this.db.refrescarTimestampRenovacion(renovacionId);
+              await this.refrescarTimestampRenovacionHibrido(renovacionId);
               continue;
             }
           }
@@ -80,7 +184,7 @@ export class RenovacionService {
             } else {
               const intentosPrevios = this.autoRetryAttempts.get(renovacionId) ?? 0;
               this.autoRetryAttempts.set(renovacionId, intentosPrevios + 1);
-              this.db.refrescarTimestampRenovacion(renovacionId);
+              await this.refrescarTimestampRenovacionHibrido(renovacionId);
               console.log(`[Renovacion] ⏳ Renovación ${renovacionId} sigue pendiente tras auto-revisión`);
             }
           } catch (error: any) {
@@ -88,7 +192,7 @@ export class RenovacionService {
               `[Renovacion] ❌ Error en auto-revisión de renovación ${renovacionId}:`,
               error?.message || error
             );
-            this.db.refrescarTimestampRenovacion(renovacionId);
+            await this.refrescarTimestampRenovacionHibrido(renovacionId);
           }
         }
       } finally {
@@ -349,15 +453,16 @@ export class RenovacionService {
       cliente_nombre: input.clienteNombre,
       estado: 'pendiente',
       cupon_id: cuponAplicado?.id || null,
+      cupon_codigo: cuponAplicado?.codigo || null,
       descuento_aplicado: descuentoAplicado
     };
 
     if (hayCambioDispositivos) {
-      renovacionData.datos_anteriores = JSON.stringify({ connection_limit: connectionLimitActual });
-      renovacionData.datos_nuevos = JSON.stringify({ connection_limit: connectionLimitNuevo });
+      renovacionData.datos_anteriores = { connection_limit: connectionLimitActual };
+      renovacionData.datos_nuevos = { connection_limit: connectionLimitNuevo };
     }
 
-    const renovacion = this.db.crearRenovacion(renovacionData);
+    const renovacion = await this.crearRenovacionHibrido(renovacionData);
     const renovacionId = renovacion.id;
 
     console.log('[Renovacion] Renovación creada:', renovacionId);
@@ -387,7 +492,7 @@ export class RenovacionService {
         cuponAplicado: cuponAplicado
       };
     } catch (error: any) {
-      this.db.actualizarEstadoRenovacion(renovacionId, 'rechazado');
+      await this.actualizarEstadoRenovacionHibrido(renovacionId, 'rechazado');
       throw new Error(`Error creando link de pago: ${error.message}`);
     }
   }
@@ -594,19 +699,20 @@ export class RenovacionService {
     }
 
     // 5. Crear registro de renovación
-    const renovacion = this.db.crearRenovacion({
+    const renovacion = await this.crearRenovacionHibrido({
       tipo: 'revendedor',
       servex_id: revendedorExistente.servex_revendedor_id,
       servex_username: revendedorExistente.servex_username,
       operacion: 'renovacion',
       dias_agregados: input.dias,
-      datos_nuevos: JSON.stringify(datosNuevos),
+      datos_nuevos: datosNuevos,
       monto: montoCalculado,
       metodo_pago: 'mercadopago',
       cliente_email: input.clienteEmail,
       cliente_nombre: input.clienteNombre,
       estado: 'pendiente',
       cupon_id: cuponAplicado?.id || null,
+      cupon_codigo: cuponAplicado?.codigo || null,
       descuento_aplicado: descuentoAplicado
     });
 
@@ -638,7 +744,7 @@ export class RenovacionService {
         cuponAplicado
       };
     } catch (error: any) {
-      this.db.actualizarEstadoRenovacion(renovacionId, 'rechazado');
+      await this.actualizarEstadoRenovacionHibrido(renovacionId, 'rechazado');
       throw new Error(`Error creando link de pago: ${error.message}`);
     }
   }
@@ -653,7 +759,7 @@ export class RenovacionService {
       throw new Error('No se puede confirmar renovación sin ID de pago válido');
     }
 
-    const renovacion = this.db.obtenerRenovacionPorId(renovacionId);
+    const renovacion = await this.obtenerRenovacionPorIdHibrido(renovacionId);
     if (!renovacion) {
       throw new Error('Renovación no encontrada');
     }
@@ -662,12 +768,14 @@ export class RenovacionService {
 
     try {
       // 1. Actualizar estado a aprobado
-      this.db.actualizarEstadoRenovacion(renovacionId, 'aprobado', mpPaymentId);
+      await this.actualizarEstadoRenovacionHibrido(renovacionId, 'aprobado', mpPaymentId);
 
       // 2. Si es un upgrade (cambio de dispositivos), actualizar primero el connection_limit
       if (renovacion.operacion === 'upgrade' && renovacion.tipo === 'cliente' && renovacion.datos_nuevos) {
         try {
-          const datosNuevos = JSON.parse(renovacion.datos_nuevos);
+          const datosNuevos = typeof renovacion.datos_nuevos === 'string' 
+            ? JSON.parse(renovacion.datos_nuevos) 
+            : renovacion.datos_nuevos;
           if (datosNuevos.connection_limit) {
             console.log(`[Renovacion] Actualizando connection_limit a ${datosNuevos.connection_limit} para usuario ${renovacion.servex_username}`);
             
@@ -701,7 +809,9 @@ export class RenovacionService {
       // 3. Procesar renovación de revendedor si tiene datos_nuevos
       if (renovacion.tipo === 'revendedor' && renovacion.datos_nuevos) {
         try {
-          const datosNuevos = JSON.parse(renovacion.datos_nuevos);
+          const datosNuevos = typeof renovacion.datos_nuevos === 'string'
+            ? JSON.parse(renovacion.datos_nuevos)
+            : renovacion.datos_nuevos;
           const tipoRenovacion = datosNuevos.tipo_renovacion;
           const cantidad = datosNuevos.cantidad;
           
@@ -895,7 +1005,7 @@ export class RenovacionService {
 
     } catch (error: any) {
       console.error('[Renovacion] ❌ Error ejecutando renovación:', error.message);
-      this.db.actualizarEstadoRenovacion(renovacionId, 'pendiente');
+      await this.actualizarEstadoRenovacionHibrido(renovacionId, 'pendiente');
       throw error;
     }
   }
@@ -922,7 +1032,7 @@ export class RenovacionService {
       return;
     }
 
-    const renovacion = this.db.obtenerRenovacionPorId(renovacionId);
+    const renovacion = await this.obtenerRenovacionPorIdHibrido(renovacionId);
     if (!renovacion) {
       console.error('[Renovacion] Renovación no encontrada:', renovacionId);
       return;
@@ -944,7 +1054,7 @@ export class RenovacionService {
       }
     } else if (estado === 'rejected' || estado === 'cancelled') {
       if (renovacion.estado === 'pendiente') {
-        this.db.actualizarEstadoRenovacion(renovacionId, 'rechazado', mpPaymentId);
+        await this.actualizarEstadoRenovacionHibrido(renovacionId, 'rechazado', mpPaymentId);
         console.log('[Renovacion] ❌ Renovación marcada como rechazada por webhook');
       }
     } else if (estado === 'pending') {
@@ -956,7 +1066,7 @@ export class RenovacionService {
    * Verifica y procesa una renovación manualmente (para cuando el cliente vuelve de MP)
    */
   async verificarYProcesarRenovacion(renovacionId: number, forzarReproceso: boolean = false): Promise<any | null> {
-    const renovacion = this.db.obtenerRenovacionPorId(renovacionId);
+    const renovacion = await this.obtenerRenovacionPorIdHibrido(renovacionId);
     if (!renovacion) {
       return null;
     }
@@ -967,7 +1077,7 @@ export class RenovacionService {
     if (renovacion.estado === 'aprobado' && forzarReproceso && renovacion.mp_payment_id) {
       console.log(`[Renovacion] 🔄 Reprocesando renovación aprobada: ${renovacionId}`);
       await this.confirmarRenovacion(renovacionId, renovacion.mp_payment_id);
-      return this.db.obtenerRenovacionPorId(renovacionId);
+      return await this.obtenerRenovacionPorIdHibrido(renovacionId);
     }
 
     // Si la renovación ya está aprobada, solo devolver la información
@@ -990,7 +1100,7 @@ export class RenovacionService {
         
         await this.confirmarRenovacion(renovacionId, pagoMP.id);
         // Devolver la renovación actualizada
-        return this.db.obtenerRenovacionPorId(renovacionId);
+        return await this.obtenerRenovacionPorIdHibrido(renovacionId);
       } else if (pagoMP && pagoMP.status !== 'approved') {
         console.log(`[Renovacion] ⏳ Pago encontrado pero aún no aprobado. Estado: ${pagoMP.status}`);
       } else {
@@ -1002,17 +1112,17 @@ export class RenovacionService {
   }
 
   /**
-   * Obtiene una renovación por ID
+   * Obtiene una renovación por ID (ahora async para híbrido)
    */
-  obtenerRenovacionPorId(renovacionId: number): any | null {
-    return this.db.obtenerRenovacionPorId(renovacionId);
+  async obtenerRenovacionPorId(renovacionId: number): Promise<any | null> {
+    return await this.obtenerRenovacionPorIdHibrido(renovacionId);
   }
 
   /**
-   * Busca renovaciones por email del cliente
+   * Busca renovaciones por email del cliente (ahora async para híbrido)
    */
-  buscarRenovacionesPorEmail(email: string): any[] {
-    return this.db.buscarRenovacionesPorEmail(email);
+  async buscarRenovacionesPorEmail(email: string): Promise<any[]> {
+    return await this.buscarRenovacionesPorEmailHibrido(email);
   }
 
   /**
