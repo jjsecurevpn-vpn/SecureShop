@@ -1,33 +1,61 @@
+import { motion } from "framer-motion";
 import { BENEFITS } from "../constants";
-import { Title } from "../../../components/Title";
+import { SectionTitle, LeadText, CardTitle, BodyText } from "../../../components/Typography";
+
+const benefitColors = [
+  { bg: "bg-white/95", border: "border-purple-100", icon: "bg-purple-100 text-purple-600" },
+  { bg: "bg-purple-50/60", border: "border-purple-100", icon: "bg-purple-100 text-purple-600" },
+  { bg: "bg-white/95", border: "border-purple-100", icon: "bg-purple-100 text-purple-600" },
+  { bg: "bg-purple-50/60", border: "border-purple-100", icon: "bg-purple-100 text-purple-600" },
+];
 
 export function BenefitsSection() {
   return (
-    <section id="section-beneficios" className="bg-white py-8 md:py-12 xl:py-16">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 xl:px-16">
-        <div className="mb-16 text-center">
-          <p className="text-xs sm:text-sm lg:text-base uppercase tracking-[0.3em] text-emerald-600 font-semibold">Beneficios</p>
-          <Title as="h2" center className="mt-3">
-            Lo que viene con cada plan
-          </Title>
-        </div>
+    <section id="section-beneficios" className="relative bg-gradient-to-b from-white to-gray-50/50 py-16 sm:py-20 lg:py-24 overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute top-20 right-0 w-72 h-72 bg-purple-100/30 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-20 left-0 w-96 h-96 bg-purple-100/20 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="grid gap-4 md:gap-6 md:grid-cols-2">
-          {BENEFITS.map((benefit) => {
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12 sm:mb-16"
+        >
+          <span className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-4 bg-purple-50 border border-purple-200/60 text-purple-700 text-xs font-semibold">
+            ✨ Beneficios incluidos
+          </span>
+          <SectionTitle as="h2" className="mb-4">Lo que viene con cada plan</SectionTitle>
+          <LeadText as="p" className="max-w-2xl mx-auto text-base sm:text-lg">
+            Todas las herramientas que necesitas para navegar seguro
+          </LeadText>
+        </motion.div>
+
+        {/* Benefits Grid */}
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
+          {BENEFITS.map((benefit, index) => {
             const Icon = benefit.icon;
+            const colors = benefitColors[index % benefitColors.length];
             return (
-              <article
+              <motion.article
                 key={benefit.title}
-                className="flex gap-4 rounded-xl bg-gradient-to-br from-white/60 to-white/40 backdrop-blur-sm p-5 md:p-6 xl:p-8 shadow-lg transition"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                className={`flex gap-4 rounded-2xl ${colors.bg} border ${colors.border} p-5 sm:p-6 lg:p-8 hover:shadow-lg transition-shadow duration-300`}
               >
-                <div className="flex h-10 w-10 md:h-12 md:w-12 xl:h-14 xl:w-14 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-600 flex-shrink-0">
-                  <Icon className="h-5 w-5 md:h-6 md:w-6 xl:h-7 xl:w-7" />
+                <div className={`flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl ${colors.icon} flex-shrink-0`}>
+                  <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
                 </div>
                 <div>
-                  <h3 className="text-sm md:text-base xl:text-lg font-semibold text-gray-900">{benefit.title}</h3>
-                  <p className="mt-1 text-xs md:text-sm xl:text-base text-gray-600">{benefit.description}</p>
+                  <CardTitle as="h3" className="text-base sm:text-lg mb-1">{benefit.title}</CardTitle>
+                  <BodyText className="text-sm sm:text-base">{benefit.description}</BodyText>
                 </div>
-              </article>
+              </motion.article>
             );
           })}
         </div>

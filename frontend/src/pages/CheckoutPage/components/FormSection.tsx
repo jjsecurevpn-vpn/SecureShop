@@ -1,4 +1,5 @@
 import { AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import CheckoutForm, { CheckoutFormRef } from "../../../components/CheckoutForm";
 
 interface FormSectionProps {
@@ -21,24 +22,43 @@ export const FormSection = ({
   userEmail
 }: FormSectionProps) => {
   return (
-    <div className="space-y-6">
+    <motion.div 
+      className="space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.1 }}
+    >
       {/* Error */}
-      {error && (
-        <div className="bg-rose-50 border border-rose-300 rounded-lg p-4 flex items-start gap-3">
-          <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-rose-700 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-rose-700">{error}</p>
-        </div>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3"
+          >
+            <div className="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center flex-shrink-0">
+              <AlertCircle className="w-4 h-4 text-rose-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-rose-700">Error</p>
+              <p className="text-sm text-rose-600">{error}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <CheckoutForm
-        ref={formRef}
-        planId={planId}
-        planPrecio={planPrecio}
-        loading={false}
-        onCuponChange={onCuponChange}
-        onEmailChange={onEmailChange}
-        userEmail={userEmail}
-      />
-    </div>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <CheckoutForm
+          ref={formRef}
+          planId={planId}
+          planPrecio={planPrecio}
+          loading={false}
+          onCuponChange={onCuponChange}
+          onEmailChange={onEmailChange}
+          userEmail={userEmail}
+        />
+      </div>
+    </motion.div>
   );
 };

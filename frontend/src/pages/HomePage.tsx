@@ -38,7 +38,7 @@ const HomePage = ({}: HomePageProps) => {
   };
 
   return (
-    <div className="bg-white text-neutral-900">
+    <div className="bg-white text-gray-900">
       {/* Main Content */}
       <main>
         {/* Hero Section */}

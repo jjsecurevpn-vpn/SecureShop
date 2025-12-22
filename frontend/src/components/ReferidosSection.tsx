@@ -462,49 +462,6 @@ Y aprovechá el descuento 🎁
           )}
         </AnimatePresence>
       </div>
-
-      {/* Cómo funciona */}
-      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-2xl p-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: protonColors.purple[800] }}>
-          <Gift className="w-5 h-5" />
-          ¿Cómo funciona?
-        </h3>
-        <div className="grid md:grid-cols-3 gap-4">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-              1
-            </div>
-            <div>
-              <div className="font-medium" style={{ color: protonColors.purple[800] }}>Comparte tu código</div>
-              <div className="text-sm" style={{ color: protonColors.gray[600] }}>
-                Envía tu link a amigos y familiares
-              </div>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-              2
-            </div>
-            <div>
-              <div className="font-medium" style={{ color: protonColors.purple[800] }}>Ellos compran</div>
-              <div className="text-sm" style={{ color: protonColors.gray[600] }}>
-                Obtienen {settings.porcentaje_descuento_referido}% de descuento
-              </div>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-              3
-            </div>
-            <div>
-              <div className="font-medium" style={{ color: protonColors.purple[800] }}>Ganas saldo</div>
-              <div className="text-sm" style={{ color: protonColors.gray[600] }}>
-                Recibes {settings.porcentaje_recompensa}% de su compra como saldo
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </motion.div>
   );
 }

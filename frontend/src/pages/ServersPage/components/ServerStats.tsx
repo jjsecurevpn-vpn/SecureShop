@@ -1,5 +1,16 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { BarChart2, MapPin, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Activity, 
+  ChevronDown, 
+  Clock, 
+  Cpu, 
+  HardDrive, 
+  MapPin, 
+  TrendingUp,
+  Users,
+  Wifi
+} from "lucide-react";
 import { useServerStats } from "../../../hooks/useServerStats";
 
 type Server = ReturnType<typeof useServerStats>["servers"][number];
@@ -12,141 +23,245 @@ const getCountryFlag = (location: string) => {
   return "🌍";
 };
 
-const getUtilizationColor = (value: number) => {
-  if (value > 80) return { text: "text-red-500", bar: "bg-red-500", bg: "bg-red-50" };
-  if (value > 60) return { text: "text-amber-500", bar: "bg-amber-500", bg: "bg-amber-50" };
-  if (value > 40) return { text: "text-blue-500", bar: "bg-blue-500", bg: "bg-blue-50" };
-  return { text: "text-green-500", bar: "bg-green-500", bg: "bg-green-50" };
+const getStatusConfig = (value: number) => {
+  if (value > 80) return { 
+    label: "Alto", 
+    color: "text-rose-600", 
+    bg: "bg-rose-50", 
+    border: "border-rose-200",
+    bar: "bg-gradient-to-r from-rose-400 to-rose-500"
+  };
+  if (value > 60) return { 
+    label: "Moderado", 
+    color: "text-amber-600", 
+    bg: "bg-amber-50", 
+    border: "border-amber-200",
+    bar: "bg-gradient-to-r from-amber-400 to-amber-500"
+  };
+  if (value > 40) return { 
+    label: "Normal", 
+    color: "text-blue-600", 
+    bg: "bg-blue-50", 
+    border: "border-blue-200",
+    bar: "bg-gradient-to-r from-blue-400 to-blue-500"
+  };
+  return { 
+    label: "Óptimo", 
+    color: "text-emerald-600", 
+    bg: "bg-emerald-50", 
+    border: "border-emerald-200",
+    bar: "bg-gradient-to-r from-emerald-400 to-emerald-500"
+  };
 };
 
-const ServerCard = ({ server, isExpanded, onToggle }: { server: Server; isExpanded: boolean; onToggle: () => void }) => {
+const ServerCard = ({ 
+  server, 
+  isExpanded, 
+  onToggle,
+  index 
+}: { 
+  server: Server; 
+  isExpanded: boolean; 
+  onToggle: () => void;
+  index: number;
+}) => {
   const utilization = ((server.cpuUsage ?? 0) + (server.memoryUsage ?? 0)) / 2;
-  const colors = getUtilizationColor(utilization);
+  const status = getStatusConfig(utilization);
   const isOnline = server.status === "online";
+  const userPercentage = (server.totalUsuarios ?? 0) > 0 
+    ? ((server.connectedUsers ?? 0) / (server.totalUsuarios ?? 1)) * 100 
+    : 0;
 
   return (
-    <div className="w-full rounded-xl sm:rounded-2xl border border-slate-700/60 bg-slate-900/95 text-white overflow-hidden shadow-xl">
-      {/* HEADER - siempre visible */}
-      <button
-        onClick={onToggle}
-        className="w-full p-4 sm:p-5 lg:p-6 text-left transition-all duration-300"
-      >
-        <div className="flex flex-col gap-4">
-          {/* Primera fila: bandera + nombre + ubicación + chevron */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-              <span className="text-3xl sm:text-4xl flex-shrink-0">{getCountryFlag(server.location)}</span>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+      className="group"
+    >
+      <div className={`
+        bg-white rounded-2xl border transition-all duration-300
+        ${isExpanded ? 'border-purple-200 shadow-lg shadow-purple-100/50' : 'border-gray-100 hover:border-gray-200 hover:shadow-md'}
+      `}>
+        {/* Header - Collapsible trigger */}
+        <button
+          onClick={onToggle}
+          className="w-full p-4 sm:p-5 text-left"
+        >
+          <div className="flex items-start justify-between gap-4">
+            {/* Left: Flag + Info */}
+            <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
+              {/* Flag with status indicator */}
+              <div className="relative flex-shrink-0">
+                <span className="text-3xl sm:text-4xl">{getCountryFlag(server.location)}</span>
+                <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
+                  isOnline ? "bg-emerald-500" : "bg-gray-400"
+                }`} />
+              </div>
               
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-serif font-medium text-lg sm:text-xl truncate">{server.serverName}</h3>
-                  <div className={`w-2 h-2 rounded-full ${isOnline ? "bg-green-400 animate-pulse" : "bg-gray-500"}`} />
+              {/* Server info */}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-semibold text-gray-900 text-base sm:text-lg truncate">
+                    {server.serverName}
+                  </h3>
+                  <span className={`
+                    inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
+                    ${status.bg} ${status.color} ${status.border} border
+                  `}>
+                    {status.label}
+                  </span>
                 </div>
-                <p className="text-sm text-gray-400 flex items-center gap-1.5 mt-0.5">
-                  <MapPin className="w-4 h-4" />
+                <p className="text-sm text-gray-500 flex items-center gap-1 mt-0.5">
+                  <MapPin className="w-3.5 h-3.5" />
                   {server.location}
                 </p>
               </div>
             </div>
 
-            <ChevronDown 
-              className={`w-6 h-6 text-gray-400 transition-transform duration-300 flex-shrink-0 ${isExpanded ? "rotate-180" : ""}`} 
-            />
-          </div>
-
-          {/* Segunda fila: barra de utilización + porcentaje grande (centrado en móvil) */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-400 whitespace-nowrap">Carga media</span>
-                <div className="flex-1 h-3 bg-slate-700/60 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full ${colors.bar} transition-all duration-700 rounded-full`}
-                    style={{ width: `${utilization}%` }}
-                  />
-                </div>
+            {/* Right: Usage + Chevron */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="text-right hidden sm:block">
+                <span className={`text-2xl font-bold ${status.color}`}>
+                  {utilization.toFixed(0)}%
+                </span>
+                <p className="text-xs text-gray-400">carga</p>
               </div>
-            </div>
-            <span className={`text-2xl sm:text-3xl font-bold ${colors.text} min-w-[60px] text-right`}>
-              {utilization.toFixed(0)}%
-            </span>
-          </div>
-
-          {/* Tercera fila: métricas rápidas (3 columnas, centradas en móvil) */}
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-xs text-gray-400">CPU</p>
-              <p className={`text-lg font-bold ${colors.text}`}>{(server.cpuUsage ?? 0).toFixed(0)}%</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-400">RAM</p>
-              <p className={`text-lg font-bold ${colors.text}`}>{(server.memoryUsage ?? 0).toFixed(0)}%</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-400">Usuarios</p>
-              <p className="text-lg font-bold text-white">
-                {server.connectedUsers ?? 0}<span className="text-gray-500">/{server.totalUsuarios ?? 0}</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      </button>
-
-      {/* CONTENIDO EXPANDIDO */}
-      {isExpanded && (
-        <div className="px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8 border-t border-slate-700/50 pt-5 space-y-6 animate-in fade-in slide-in-from-top-2 duration-400">
-          {/* Badge de estado */}
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
-            isOnline 
-              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" 
-              : "bg-gray-500/20 text-gray-400 border border-gray-500/40"
-          }`}>
-            <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? "bg-emerald-400 animate-pulse" : "bg-gray-500"}`} />
-            {isOnline ? "En línea" : "Desconectado"}
-          </div>
-
-          {/* Barra de usuarios conectados */}
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Usuarios conectados</span>
-              <span className="font-bold text-white">{server.connectedUsers}/{server.totalUsuarios}</span>
-            </div>
-            <div className="h-4 bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full transition-all duration-700"
-                style={{ width: `${(server.totalUsuarios ?? 0) > 0 ? ((server.connectedUsers ?? 0) / (server.totalUsuarios ?? 1)) * 100 : 0}%` }}
+              <ChevronDown 
+                className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${
+                  isExpanded ? "rotate-180" : ""
+                }`} 
               />
             </div>
           </div>
 
-          {/* Grid de detalles */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Quick stats bar - always visible */}
+          <div className="mt-4 grid grid-cols-3 gap-3">
             {[
-              { label: "Última actualización", value: new Date(server.lastUpdate).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) },
-              { label: "Tráfico ↑", value: `${(server.netSentMbps ?? 0).toFixed(1)} Mbps` },
-              { label: "Núcleos CPU", value: `${server.cpuCores} cores` },
-              { label: "RAM total", value: `${server.totalMemoryGb} GB` },
-            ].map((item) => (
-              <div key={item.label} className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
-                <p className="text-xs sm:text-sm text-gray-400">{item.label}</p>
-                <p className="text-lg sm:text-xl font-bold text-white mt-1">{item.value}</p>
+              { label: "CPU", value: `${(server.cpuUsage ?? 0).toFixed(0)}%`, icon: Cpu },
+              { label: "RAM", value: `${(server.memoryUsage ?? 0).toFixed(0)}%`, icon: HardDrive },
+              { label: "Usuarios", value: `${server.connectedUsers ?? 0}`, icon: Users },
+            ].map((stat) => (
+              <div 
+                key={stat.label}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100"
+              >
+                <stat.icon className="w-4 h-4 text-gray-400" />
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-400">{stat.label}</p>
+                  <p className="text-sm font-semibold text-gray-700 truncate">{stat.value}</p>
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Alerta de alto uso */}
-          {((server.cpuUsage ?? 0) > 70 || (server.memoryUsage ?? 0) > 70) && (
-            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-5 flex gap-4">
-              <div className="text-3xl">⚠️</div>
-              <div>
-                <p className="font-bold text-amber-300">Alto consumo de recursos</p>
-                <p className="text-sm text-amber-200 mt-1">Considera redistribuir carga o escalar el servidor</p>
-              </div>
+          {/* Progress bar */}
+          <div className="mt-3">
+            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <motion.div
+                className={`h-full ${status.bar} rounded-full`}
+                initial={{ width: 0 }}
+                animate={{ width: `${utilization}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              />
             </div>
+          </div>
+        </button>
+
+        {/* Expanded content */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="overflow-hidden"
+            >
+              <div className="px-4 sm:px-5 pb-5 border-t border-gray-100 pt-4">
+                {/* Status badge */}
+                <div className={`
+                  inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium mb-4
+                  ${isOnline ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-gray-100 text-gray-600 border border-gray-200"}
+                `}>
+                  <span className={`w-2 h-2 rounded-full ${isOnline ? "bg-emerald-500 animate-pulse" : "bg-gray-400"}`} />
+                  {isOnline ? "Servidor en línea" : "Servidor desconectado"}
+                </div>
+
+                {/* User capacity bar */}
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-600 flex items-center gap-1.5">
+                      <Wifi className="w-4 h-4" />
+                      Capacidad de usuarios
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">
+                      {server.connectedUsers}/{server.totalUsuarios}
+                    </span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-purple-400 to-indigo-500 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${userPercentage}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                    />
+                  </div>
+                </div>
+
+                {/* Details grid */}
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { 
+                      label: "Última actualización", 
+                      value: new Date(server.lastUpdate).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }),
+                      icon: Clock
+                    },
+                    { 
+                      label: "Tráfico de salida", 
+                      value: `${(server.netSentMbps ?? 0).toFixed(1)} Mbps`,
+                      icon: TrendingUp
+                    },
+                    { 
+                      label: "Núcleos CPU", 
+                      value: `${server.cpuCores} cores`,
+                      icon: Cpu
+                    },
+                    { 
+                      label: "Memoria total", 
+                      value: `${server.totalMemoryGb} GB`,
+                      icon: HardDrive
+                    },
+                  ].map((item) => (
+                    <div 
+                      key={item.label} 
+                      className="bg-gray-50 rounded-xl p-3 border border-gray-100"
+                    >
+                      <div className="flex items-center gap-1.5 text-gray-400 mb-1">
+                        <item.icon className="w-3.5 h-3.5" />
+                        <span className="text-xs">{item.label}</span>
+                      </div>
+                      <p className="text-base font-semibold text-gray-900">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* High usage warning */}
+                {((server.cpuUsage ?? 0) > 70 || (server.memoryUsage ?? 0) > 70) && (
+                  <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                    <Activity className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-amber-800 text-sm">Alto consumo detectado</p>
+                      <p className="text-xs text-amber-600 mt-0.5">El servidor está experimentando una carga elevada</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
           )}
-        </div>
-      )}
-    </div>
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 };
 
@@ -212,47 +327,63 @@ export function ServerStats() {
   if (loading || !displayServers.length) return null;
 
   return (
-    <section className="bg-indigo-950 py-4 sm:py-8 lg:py-12 xl:py-16 rounded-2xl sm:rounded-[3rem]">
-      <div className="w-full px-3 sm:px-4 lg:px-6 xl:px-8">
-        <div className="max-w-6xl mx-auto">
+    <section className="py-8 sm:py-12 lg:py-16 bg-gradient-to-b from-white to-gray-50/50">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
+        <div className="max-w-5xl mx-auto">
           {/* Header */}
-          <div className="mb-6 sm:mb-8 lg:mb-12 xl:mb-16">
-            <div className="flex items-start gap-2 sm:gap-3 mb-4 sm:mb-6">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0">
-                <BarChart2 className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-blue-400" />
-              </div>
+          <motion.div 
+            className="mb-8 sm:mb-10"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base font-semibold text-blue-400 uppercase tracking-widest">
-                  Monitoreo
+                <p className="text-xs font-semibold tracking-[0.2em] text-purple-600 uppercase mb-2">
+                  Infraestructura
                 </p>
-                <p className="text-sm sm:text-base lg:text-lg xl:text-xl font-light text-white mt-1 sm:mt-2">
-                  <span className="font-semibold text-green-400">{onlineCount}</span>
-                  <span className="text-gray-300"> de </span>
-                  <span className="font-semibold text-green-400">{displayServers.length}</span>
-                  <span className="text-gray-300"> servidores activos</span>
-                </p>
+                <h2 className="text-2xl sm:text-3xl font-serif font-medium text-gray-900">
+                  Estado de servidores
+                </h2>
+              </div>
+              
+              {/* Online counter badge */}
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-sm font-medium text-emerald-700">
+                  {onlineCount} de {displayServers.length} activos
+                </span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Servers list */}
-          <div className="space-y-2 sm:space-y-3">
-            {displayServers.map((server) => (
+          {/* Servers grid */}
+          <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
+            {displayServers.map((server, index) => (
               <ServerCard
                 key={server.serverName}
                 server={server}
+                index={index}
                 isExpanded={expandedServer === server.serverName}
                 onToggle={() => setExpandedServer(expandedServer === server.serverName ? null : server.serverName)}
               />
             ))}
           </div>
 
-          {/* Footer */}
-          <div className="mt-8 sm:mt-12 lg:mt-16 xl:mt-20 pt-4 sm:pt-6 lg:pt-8 xl:pt-10 border-t border-slate-700 text-center">
-            <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-400 font-light">
-              Actualización en tiempo real • JJSecure Panel
+          {/* Footer note */}
+          <motion.div 
+            className="mt-8 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <p className="text-xs text-gray-400 font-medium">
+              Los datos se actualizan automáticamente cada 6 segundos
             </p>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

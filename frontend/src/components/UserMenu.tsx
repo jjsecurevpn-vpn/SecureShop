@@ -54,12 +54,21 @@ export default function UserMenu() {
         onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[100]}
         onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
       >
-        <div 
-          className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-white"
-          style={{ backgroundColor: protonColors.purple[500] }}
-        >
-          {(profile?.nombre || user.email || 'U')[0].toUpperCase()}
-        </div>
+        {/* Avatar - Mostrar imagen de Google si está disponible */}
+        {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
+          <img
+            src={user.user_metadata?.avatar_url || user.user_metadata?.picture}
+            alt="Avatar"
+            className="w-7 h-7 rounded-full object-cover"
+          />
+        ) : (
+          <div 
+            className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-white"
+            style={{ backgroundColor: protonColors.purple[500] }}
+          >
+            {(profile?.nombre || user.user_metadata?.full_name || user.email || 'U')[0].toUpperCase()}
+          </div>
+        )}
         <span className="hidden sm:inline text-sm font-medium max-w-[100px] truncate">
           {profile?.nombre || user.email?.split('@')[0]}
         </span>

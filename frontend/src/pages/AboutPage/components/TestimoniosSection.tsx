@@ -1,6 +1,6 @@
-import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Button } from "../../../components/Button";
+import { motion } from "framer-motion";
 import { SectionTitle } from "./SectionTitle";
 
 const TESTIMONIALS = [
@@ -46,15 +46,14 @@ export function TestimoniosSection() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visibleCount, setVisibleCount] = useState(1);
 
-  // Detectar el tamaño de pantalla para ajustar visibleCount
   useEffect(() => {
     const updateVisibleCount = () => {
       if (window.innerWidth >= 1280) {
-        setVisibleCount(3); // xl: 3 testimonios
+        setVisibleCount(3);
       } else if (window.innerWidth >= 768) {
-        setVisibleCount(2); // md-lg: 2 testimonios
+        setVisibleCount(2);
       } else {
-        setVisibleCount(1); // sm y abajo: 1 testimonio
+        setVisibleCount(1);
       }
     };
 
@@ -79,72 +78,72 @@ export function TestimoniosSection() {
   const visibleTestimonials = TESTIMONIALS.slice(currentIndex, currentIndex + visibleCount);
 
   return (
-    <section id="testimonios" className="w-full px-4 md:px-8 xl:px-16 py-8 md:py-12 xl:py-16 scroll-mt-24">
-      <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
+    <section id="testimonios" className="w-full px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 scroll-mt-24">
+      <div className="max-w-7xl mx-auto space-y-8 sm:space-y-12">
         <SectionTitle
-          icon={<Star className="h-5 w-5" />}
+          icon={<MessageSquare className="h-5 w-5" />}
           title="Testimonios"
           subtitle="Feedback directo de la comunidad"
+          iconColor="text-amber-500"
         />
 
-        {/* Navegación arriba */}
+        {/* Navigation */}
         <div className="flex justify-center items-center gap-4">
-          <Button
-            variant="primary"
-            size="sm"
+          <button
             onClick={prevTestimonial}
             disabled={currentIndex === 0 && visibleCount >= TESTIMONIALS.length}
-            className="!p-2 !w-auto !h-auto"
+            className="p-2 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronLeft className="h-5 w-5" />
-          </Button>
+          </button>
 
-          {/* Indicadores */}
           <div className="flex gap-2">
             {Array.from({ length: Math.max(1, TESTIMONIALS.length - visibleCount + 1) }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentIndex(index)}
                 className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentIndex ? "bg-indigo-600" : "bg-gray-300"
+                  index === currentIndex ? "bg-purple-500" : "bg-gray-300"
                 }`}
                 aria-label={`Ir al grupo de testimonios ${index + 1}`}
               />
             ))}
           </div>
 
-          <Button
-            variant="primary"
-            size="sm"
+          <button
             onClick={nextTestimonial}
             disabled={currentIndex >= TESTIMONIALS.length - visibleCount}
-            className="!p-2 !w-auto !h-auto"
+            className="p-2 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <ChevronRight className="h-5 w-5" />
-          </Button>
+          </button>
         </div>
 
-        {/* Testimonios visibles */}
-        <div className={`grid gap-4 ${visibleCount === 1 ? 'max-w-2xl mx-auto' : visibleCount === 2 ? 'md:grid-cols-2 max-w-4xl mx-auto' : 'lg:grid-cols-2 xl:grid-cols-3 max-w-7xl mx-auto'}`}>
-          {visibleTestimonials.map((testimonial) => (
-            <article key={`${testimonial.name}-${currentIndex}`} className="rounded-lg bg-gradient-to-br from-white/60 to-white/40 backdrop-blur-sm p-3 md:p-4 xl:p-5 shadow-lg">
-              <div className="mb-3 flex gap-1">
-                {Array.from({ length: 5 }).map((_, index) => (
+        {/* Testimonials */}
+        <div className={`grid gap-4 sm:gap-6 ${visibleCount === 1 ? 'max-w-2xl mx-auto' : visibleCount === 2 ? 'md:grid-cols-2 max-w-4xl mx-auto' : 'lg:grid-cols-2 xl:grid-cols-3 max-w-7xl mx-auto'}`}>
+          {visibleTestimonials.map((testimonial, index) => (
+            <motion.article 
+              key={`${testimonial.name}-${currentIndex}`} 
+              className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 sm:p-8"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              <div className="mb-4 flex gap-1">
+                {Array.from({ length: 5 }).map((_, i) => (
                   <Star
-                    key={index}
-                    className={`h-3 w-3 sm:h-4 sm:w-4 ${
-                      index < testimonial.rating ? "text-emerald-600" : "text-gray-300"
-                    }`}
-                    fill={index < testimonial.rating ? "currentColor" : "none"}
+                    key={i}
+                    className={`h-4 w-4 ${i < testimonial.rating ? "text-amber-400" : "text-gray-200"}`}
+                    fill={i < testimonial.rating ? "currentColor" : "none"}
                   />
                 ))}
               </div>
-              <p className="text-xs sm:text-sm md:text-base text-gray-800">"{testimonial.message}"</p>
-              <div className="mt-3 flex items-center justify-between text-xs text-gray-700">
+              <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-4">"{testimonial.message}"</p>
+              <div className="flex items-center justify-between text-sm">
                 <span className="font-medium text-gray-900">{testimonial.name}</span>
-                <span>{testimonial.date}</span>
+                <span className="text-gray-400">{testimonial.date}</span>
               </div>
-            </article>
+            </motion.article>
           ))}
         </div>
       </div>

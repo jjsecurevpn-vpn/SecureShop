@@ -5,11 +5,12 @@ import {
   ArrowRight,
   Sparkles,
   ChevronDown,
+  Check,
 } from "lucide-react";
 import { PlanRevendedor } from "../../../types";
 import { PlanGroup } from "../types";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "../../../components/Button";
+import { BodyText, CardTitle, SectionTitle, SmallText } from "../../../components/Typography";
 
 interface PlanGroupsSectionProps {
   groups: PlanGroup[];
@@ -42,31 +43,36 @@ const PlanCard = ({
     <motion.div
       layout
       onClick={isConfirming ? undefined : onToggleConfirm}
-      className={`cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl transition-all duration-300 ${
-        isConfirming ? "ring-4 ring-purple-300 shadow-2xl" : "hover:shadow-2xl"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className={`cursor-pointer overflow-hidden rounded-2xl bg-white border transition-all duration-300 ${
+        isConfirming 
+          ? "ring-2 ring-purple-400 shadow-xl border-purple-200" 
+          : "border-gray-200 hover:border-purple-200 hover:shadow-lg"
       }`}
-      whileHover={!isConfirming ? { y: -6 } : {}}
-      whileTap={!isConfirming ? { scale: 0.985 } : {}}
+      whileHover={!isConfirming ? { y: -4 } : {}}
+      whileTap={!isConfirming ? { scale: 0.98 } : {}}
     >
       {/* Header responsive */}
-      <div className="p-4 sm:p-5 lg:p-6">
+      <div className="p-5 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-center sm:text-left">
-            <h3 className="text-base font-serif font-medium text-gray-900 sm:text-lg md:text-xl">
+            <CardTitle as="h3" className="text-lg sm:text-xl text-purple-800">
               {plan.nombre}
-            </h3>
-            <p className="mt-2 text-xs font-medium text-gray-600 sm:text-sm md:text-base">
+            </CardTitle>
+            <SmallText className="mt-1 text-sm">
               {plan.max_users.toLocaleString()} {unitLabel}
-            </p>
+            </SmallText>
           </div>
 
           <div className="text-center sm:text-right">
-            <div className="text-xl font-black text-gray-900 sm:text-2xl md:text-3xl">
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
               ${plan.precio.toLocaleString("es-AR")}
             </div>
-            <p className="mt-1 text-xs font-medium text-gray-500">
+            <SmallText className="mt-1 text-xs">
               {isCredits ? "pago único" : "por mes"}
-            </p>
+            </SmallText>
           </div>
         </div>
       </div>
@@ -79,9 +85,9 @@ const PlanCard = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="border-t border-gray-100 bg-gradient-to-b from-gray-50 to-white px-4 py-4 text-center sm:px-6 lg:px-8"
+            className="border-t px-5 py-4 text-center bg-purple-50/50 border-purple-100"
           >
-            <p className="text-sm font-semibold text-gray-500 sm:text-base">
+            <p className="text-sm font-medium text-purple-700">
               Haz clic para comprar →
             </p>
           </motion.div>
@@ -92,37 +98,34 @@ const PlanCard = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="border-t border-gray-100 bg-gradient-to-b from-gray-50 to-white px-4 py-6 sm:px-6 lg:px-8"
+            className="border-t border-gray-100 bg-gradient-to-b from-gray-50 to-white px-5 py-6"
           >
-            <p className="mb-6 text-center text-base font-bold text-gray-900 sm:text-lg">
+            <p className="mb-5 text-center text-base font-semibold text-gray-900">
               ¿Confirmar compra de <span className="text-purple-600">{plan.nombre}</span>?
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-sm mx-auto">
-              <Button
-                variant="secondary"
-                size="md"
+            <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
+              <button
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onToggleConfirm();
                 }}
+                className="px-4 py-2.5 rounded-xl bg-white border-2 border-gray-200 text-gray-700 font-medium text-sm hover:border-gray-300 transition-all"
               >
                 No, cancelar
-              </Button>
+              </button>
 
-              <Button
-                variant={isCredits ? "success" : "primary"}
-                size="md"
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleConfirm();
                   onToggleConfirm();
                 }}
-                className="flex items-center justify-center gap-2"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white font-medium text-sm transition-all bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900"
               >
                 Sí, ir al pago
-                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
+                <ArrowRight className="h-4 w-4" />
+              </button>
             </div>
           </motion.div>
         )}
@@ -151,44 +154,45 @@ export default function PlanGroupsSection({
   };
 
   return (
-    <div className="min-h-screen bg-white py-8 px-4">
-      <div className="mx-auto max-w-7xl">
+    <div className="bg-white py-8 sm:py-12 lg:py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* Grupos de planes */}
-        <div className="space-y-8 md:space-y-12 xl:space-y-16">
-          {groups.map((group) => (
-            <section key={group.id} className="scroll-mt-20">
-              <div className="text-center mb-8 sm:mb-10 lg:mb-12">
-                <div className="inline-flex items-center gap-3 rounded-full px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 text-sm sm:text-base font-bold uppercase tracking-wider">
-                  {group.id === "creditos" ? (
-                    <div className="bg-emerald-100 text-emerald-700">
-                      <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 inline mr-2" />
-                      Sistema de Créditos
-                    </div>
-                  ) : (
-                    <div className="bg-purple-100 text-purple-700">
-                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 inline mr-2" />
-                      Suscripción Mensual
-                    </div>
-                  )}
-                </div>
+        <div className="space-y-12 sm:space-y-16 lg:space-y-20">
+          {groups.map((group, groupIndex) => (
+            <motion.section
+              key={group.id}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: groupIndex * 0.1 }}
+              className="scroll-mt-20"
+            >
+              <div className="text-center mb-8 sm:mb-10">
+                {group.id === "creditos" ? (
+                  <span className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-4 bg-purple-50 border border-purple-200/60 text-purple-700 text-xs font-semibold">
+                    <CreditCard className="h-4 w-4" />
+                    Sistema de Créditos
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-4 bg-purple-50 border border-purple-200/60 text-purple-700 text-xs font-semibold">
+                    <Calendar className="h-4 w-4" />
+                    Suscripción Mensual
+                  </span>
+                )}
 
-                <h2 className="mt-4 sm:mt-6 lg:mt-8 text-xl sm:text-2xl lg:text-3xl font-serif font-normal text-gray-900">
-                  {group.title}
-                </h2>
-                <p className="mt-2 sm:mt-3 lg:mt-4 text-xs sm:text-sm lg:text-base text-gray-600 max-w-4xl mx-auto leading-relaxed">
-                  {group.subtitle}
-                </p>
+                <SectionTitle className="mb-3">{group.title}</SectionTitle>
+                <BodyText className="text-sm sm:text-base max-w-3xl mx-auto">{group.subtitle}</BodyText>
 
                 {group.recommended && (
-                  <div className="mt-4 sm:mt-6 lg:mt-8 inline-flex items-center gap-3 rounded-full bg-amber-100 px-6 sm:px-8 lg:px-10 py-3 sm:py-4 lg:py-5 text-base sm:text-lg lg:text-xl font-bold text-amber-900">
-                    <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
+                  <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-purple-50 border border-purple-200 px-4 py-2 text-sm font-semibold text-purple-700">
+                    <Sparkles className="h-4 w-4" />
                     Más elegido por revendedores
                   </div>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-4xl mx-auto">
                 {group.items.map((plan) => (
                   <PlanCard
                     key={plan.id}
@@ -203,154 +207,115 @@ export default function PlanGroupsSection({
                   />
                 ))}
               </div>
-            </section>
+            </motion.section>
           ))}
         </div>
 
         {/* TABLA DE COMPARACIÓN */}
-        <div className="mt-16 max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl border border-gray-100 p-6 overflow-x-auto">
-
-          <h3 className="text-center text-2xl font-serif font-normal text-gray-900 mb-8">
-            Comparación de sistemas
-          </h3>
-
-          <div className="border border-gray-200 rounded-lg overflow-x-auto">
-            <table className="w-full border-separate border-spacing-0 text-gray-700 min-w-[800px]">
-
-            {/* HEADERS */}
-            <thead>
-              <tr>
-                <th className="bg-white border-b border-gray-200 text-left px-6 py-5 text-xl font-bold text-gray-900">
-                  Característica
-                </th>
-                <th className="border-b border-l border-gray-200 px-6 py-5 text-center text-xl font-bold text-emerald-700">
-                  Sistema de Créditos
-                </th>
-                <th className="border-b border-l border-gray-200 px-6 py-5 text-center text-xl font-bold text-purple-700">
-                  Suscripción Mensual
-                </th>
-              </tr>
-            </thead>
-
-            {/* BODY */}
-            <tbody className="text-lg">
-
-              {/* Row */}
-              <tr>
-                <td className="border-b border-gray-200 px-6 py-6 font-medium">
-                  Tipo de pago
-                </td>
-                <td className="border-b border-l border-gray-200 px-6 py-6 text-center">
-                  Pago único por créditos
-                </td>
-                <td className="border-b border-l border-gray-200 px-6 py-6 text-center">
-                  Suscripción mensual
-                </td>
-              </tr>
-
-              <tr className="bg-gray-50">
-                <td className="border-b border-gray-200 px-6 py-6 font-medium">
-                  Expiración
-                </td>
-                <td className="border-b border-l border-gray-200 px-6 py-6 text-center">
-                  Créditos con fecha de vencimiento
-                </td>
-                <td className="border-b border-l border-gray-200 px-6 py-6 text-center">
-                  Cupos se liberan al finalizar el mes
-                </td>
-              </tr>
-
-              <tr>
-                <td className="border-b border-gray-200 px-6 py-6 font-medium">
-                  Renovación automática
-                </td>
-                <td className="border-b border-l border-gray-200 px-6 py-6 text-center text-red-600">
-                  ✗ No
-                </td>
-                <td className="border-b border-l border-gray-200 px-6 py-6 text-center text-red-600">
-                  ✗ No
-                </td>
-              </tr>
-
-              <tr className="bg-gray-50">
-                <td className="border-b border-gray-200 px-6 py-6 font-medium">
-                  Flexibilidad de duración
-                </td>
-                <td className="border-b border-l border-gray-200 px-6 py-6 text-center text-emerald-600">
-                  ✓ Alta (1 mes, 3 meses, 1 año…)
-                </td>
-                <td className="border-b border-l border-gray-200 px-6 py-6 text-center text-red-600">
-                  ✗ Solo mensual
-                </td>
-              </tr>
-
-              <tr>
-                <td className="border-b border-gray-200 px-6 py-6 font-medium">
-                  Costo por cuenta
-                </td>
-                <td className="border-b border-l border-gray-200 px-6 py-6 text-center">
-                  Variable según duración
-                </td>
-                <td className="border-b border-l border-gray-200 px-6 py-6 text-center">
-                  Fijo por mes
-                </td>
-              </tr>
-
-              <tr className="bg-gray-50">
-                <td className="border-b border-gray-200 px-6 py-6 font-medium">
-                  Ideal para
-                </td>
-                <td className="border-b border-l border-gray-200 px-6 py-6 text-center">
-                  Ventas de diferentes duraciones
-                </td>
-                <td className="border-b border-l border-gray-200 px-6 py-6 text-center">
-                  Clientes de 30 días con rotación
-                </td>
-              </tr>
-
-              <tr>
-                <td className="px-6 py-6 font-medium">
-                  Reutilización de cupos
-                </td>
-                <td className="border-l border-gray-200 px-6 py-6 text-center text-red-600">
-                  ✗ No aplica
-                </td>
-                <td className="border-l border-gray-200 px-6 py-6 text-center text-emerald-600">
-                  ✓ Ilimitada en el mes
-                </td>
-              </tr>
-
-            </tbody>
-          </table>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-16 sm:mt-20 max-w-5xl mx-auto"
+        >
+          <div className="text-center mb-8">
+            <span className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-4 bg-gray-100 border border-gray-200 text-gray-700 text-xs font-semibold">
+              📊 Comparativa
+            </span>
+            <CardTitle as="h3" className="text-2xl sm:text-3xl">Comparación de sistemas</CardTitle>
           </div>
-        </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full border-separate border-spacing-0 text-gray-700 min-w-[700px]">
+                <thead>
+                  <tr>
+                    <th className="bg-gray-50 border-b border-gray-200 text-left px-5 py-4 text-sm font-semibold text-gray-900">
+                      Característica
+                    </th>
+                    <th className="bg-purple-50/50 border-b border-l border-gray-200 px-5 py-4 text-center text-sm font-semibold text-purple-700">
+                      Sistema de Créditos
+                    </th>
+                    <th className="bg-purple-50/50 border-b border-l border-gray-200 px-5 py-4 text-center text-sm font-semibold text-purple-700">
+                      Suscripción Mensual
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm">
+                  <tr>
+                    <td className="border-b border-gray-100 px-5 py-4 font-medium">Tipo de pago</td>
+                    <td className="border-b border-l border-gray-100 px-5 py-4 text-center">Pago único por créditos</td>
+                    <td className="border-b border-l border-gray-100 px-5 py-4 text-center">Suscripción mensual</td>
+                  </tr>
+                  <tr className="bg-gray-50/50">
+                    <td className="border-b border-gray-100 px-5 py-4 font-medium">Expiración</td>
+                    <td className="border-b border-l border-gray-100 px-5 py-4 text-center">Créditos con fecha de vencimiento</td>
+                    <td className="border-b border-l border-gray-100 px-5 py-4 text-center">Cupos se liberan al finalizar el mes</td>
+                  </tr>
+                  <tr>
+                    <td className="border-b border-gray-100 px-5 py-4 font-medium">Flexibilidad de duración</td>
+                    <td className="border-b border-l border-gray-100 px-5 py-4 text-center">
+                      <span className="inline-flex items-center gap-1 text-purple-600">
+                        <Check className="w-4 h-4" /> Alta (1 mes, 3 meses, 1 año…)
+                      </span>
+                    </td>
+                    <td className="border-b border-l border-gray-100 px-5 py-4 text-center text-gray-500">Solo mensual</td>
+                  </tr>
+                  <tr className="bg-gray-50/50">
+                    <td className="border-b border-gray-100 px-5 py-4 font-medium">Ideal para</td>
+                    <td className="border-b border-l border-gray-100 px-5 py-4 text-center">Ventas de diferentes duraciones</td>
+                    <td className="border-b border-l border-gray-100 px-5 py-4 text-center">Clientes de 30 días con rotación</td>
+                  </tr>
+                  <tr>
+                    <td className="px-5 py-4 font-medium">Reutilización de cupos</td>
+                    <td className="border-l border-gray-100 px-5 py-4 text-center text-gray-500">No aplica</td>
+                    <td className="border-l border-gray-100 px-5 py-4 text-center">
+                      <span className="inline-flex items-center gap-1 text-purple-600">
+                        <Check className="w-4 h-4" /> Ilimitada en el mes
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </motion.div>
 
         {/* PREGUNTAS FRECUENTES */}
-        <div className="mt-16 sm:mt-20 lg:mt-24 max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl border border-gray-100 p-4 sm:p-6 lg:p-8">
-          <h3 className="text-center text-xl sm:text-2xl lg:text-3xl font-serif font-normal text-gray-900 mb-6 sm:mb-8 lg:mb-10">
-            Preguntas frecuentes
-          </h3>
-          <div className="space-y-4 sm:space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-16 sm:mt-20 max-w-3xl mx-auto"
+        >
+          <div className="text-center mb-8">
+            <span className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-4 bg-purple-50 border border-purple-200/60 text-purple-700 text-xs font-semibold">
+              ❓ FAQ
+            </span>
+            <CardTitle as="h3" className="text-2xl sm:text-3xl">Preguntas frecuentes</CardTitle>
+          </div>
+
+          <div className="space-y-3">
             {[
               { q: "¿Puedo usar ambos sistemas al mismo tiempo?", a: "¡Sí! La mayoría de revendedores combinan los dos según el tipo de cliente." },
               { q: "¿Los créditos caducan?", a: "Sí, los créditos tienen una fecha de expiración." },
               { q: "¿Puedo vender cuentas de 6 meses o 1 año?", a: "Sí, solo gastás los créditos correspondientes (6 o 12 créditos)." },
               { q: "¿La suscripción mensual se renueva sola?", a: "No, es manual. Tú decides cada mes si renovás o no." },
             ].map(({ q, a }) => (
-              <details key={q} className="group">
-                <summary className="flex cursor-pointer list-none items-center justify-between py-3 sm:py-4 lg:py-5">
-                  <span className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition">
+              <details key={q} className="group bg-white border border-gray-200 rounded-xl overflow-hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between px-5 py-4">
+                  <span className="text-sm font-semibold text-gray-900 group-hover:text-purple-600 transition">
                     {q}
                   </span>
-                  <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-gray-400 group-open:rotate-180 transition" />
+                  <ChevronDown className="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" />
                 </summary>
-                <p className="mt-2 sm:mt-3 lg:mt-4 text-xs sm:text-sm lg:text-base text-gray-600 pl-1 max-w-4xl">
+                <p className="px-5 pb-4 text-sm text-gray-600">
                   {a}
                 </p>
               </details>
             ))}
           </div>
-        </div>
+        </motion.div>
 
       </div>
     </div>

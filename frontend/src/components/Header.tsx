@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, Home, Users, CreditCard, Store, Heart, Star, Server, User, LogIn } from 'lucide-react';
+import { Menu, X, ChevronDown, Home, Users, CreditCard, Store, Heart, Star, LogIn, HelpCircle, Activity } from 'lucide-react';
 import ContactButton from "./ContactButton";
 import NoticiasPopover from "./NoticiasPopover";
 import CuponesPopover from "./CuponesPopover";
@@ -16,6 +16,13 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   
+  // Escuchar evento global para abrir modal de autenticación (usado por el chat)
+  useEffect(() => {
+    const handleOpenAuthModal = () => setShowAuthModal(true);
+    document.addEventListener('open-auth-modal', handleOpenAuthModal);
+    return () => document.removeEventListener('open-auth-modal', handleOpenAuthModal);
+  }, []);
+  
   // Bloquear scroll cuando el menú está abierto
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -31,8 +38,9 @@ const Header = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const navLinks = [
-    { path: "/planes", label: "Planes" },
     { path: "/", label: "Inicio" },
+    { path: "/planes", label: "Planes" },
+    { path: "/noticias", label: "Noticias" },
   ];
 
   return (
@@ -169,15 +177,30 @@ const Header = () => {
                       Sponsors
                     </Link>
                     <Link
-                      to="/servidores"
+                      to="/estado"
                       reloadDocument
                       className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
                       style={{ color: protonColors.purple[800], backgroundColor: 'transparent' }}
                       onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
                       onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
-                      <Server className="h-4 w-4" />
-                      Servidores
+                      <Activity className="h-4 w-4" />
+                      Estado del Sistema
+                    </Link>
+                    
+                    {/* Separador */}
+                    <div className="my-2 border-t border-gray-100" />
+                    
+                    <Link
+                      to="/ayuda"
+                      reloadDocument
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:opacity-80"
+                      style={{ color: protonColors.purple[800], backgroundColor: 'transparent' }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = protonColors.purple[50]}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <HelpCircle className="h-4 w-4" />
+                      Centro de Ayuda
                     </Link>
                   </div>
                 )}
@@ -243,10 +266,11 @@ const Header = () => {
                 { path: '/', label: 'Inicio', icon: Home },
                 { path: '/sobre-nosotros', label: 'Sobre Nosotros', icon: Users },
                 { path: '/planes', label: 'Planes VPN', icon: CreditCard },
+                { path: '/noticias', label: 'Noticias', icon: Star },
                 { path: '/revendedores', label: 'Revendedores', icon: Store },
                 { path: '/donaciones', label: 'Donaciones', icon: Heart },
                 { path: '/sponsors', label: 'Sponsors', icon: Star },
-                { path: '/servidores', label: 'Servidores', icon: Server },
+                { path: '/estado', label: 'Estado del Sistema', icon: Activity },
               ].map((item) => (
                 <Link
                   key={item.path}
@@ -276,8 +300,27 @@ const Header = () => {
                     backgroundColor: isActive('/perfil') ? protonColors.purple[50] : 'transparent'
                   }}
                 >
-                  <User className="h-5 w-5" />
-                  Mi Cuenta
+                  {/* Avatar - Mostrar imagen de Google si está disponible */}
+                  {user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
+                    <img
+                      src={user.user_metadata?.avatar_url || user.user_metadata?.picture}
+                      alt="Avatar"
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div 
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                      style={{ backgroundColor: protonColors.purple[500] }}
+                    >
+                      {(user.user_metadata?.full_name || user.email || 'U')[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex flex-col">
+                    <span className="font-medium">Mi Cuenta</span>
+                    <span className="text-xs opacity-70 truncate max-w-[180px]">
+                      {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                    </span>
+                  </div>
                 </Link>
               ) : (
                 <button

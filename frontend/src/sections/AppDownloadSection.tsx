@@ -1,101 +1,146 @@
-import { Download, Smartphone, Globe, Zap } from "lucide-react";
+import { motion } from "framer-motion";
+import { Download, Smartphone, Globe, Zap, Star, Clock } from "lucide-react";
 import { LinkButton } from "../components/Button";
-import { Title } from "../components/Title";
-import { Subtitle } from "../components/Subtitle";
+import { BodyText, CardTitle, LeadText, SectionTitle, SmallText } from "../components/Typography";
 
 export default function AppDownloadSection() {
   const features = [
     {
       icon: Smartphone,
       title: "Aplicación nativa",
-      description: "Diseñada específicamente para Android con máximo rendimiento",
+      description: "Diseñada para Android con máximo rendimiento y bajo consumo de batería",
+      color: "text-purple-700",
+      bg: "bg-purple-50",
+      border: "border-purple-100",
     },
     {
       icon: Zap,
-      title: "Velocidad ultra rápida",
-      description: "Conexión inmediata sin demoras ni buffers",
+      title: "Conexión instantánea",
+      description: "Un toque para conectar sin demoras, buffers ni interrupciones",
+      color: "text-purple-700",
+      bg: "bg-purple-50",
+      border: "border-purple-100",
     },
     {
       icon: Globe,
-      title: "Servidores globales",
-      description: "Acceso a nuestra red completa desde tu dispositivo",
+      title: "Red global",
+      description: "Acceso completo a todos nuestros servidores desde tu dispositivo",
+      color: "text-purple-700",
+      bg: "bg-purple-50",
+      border: "border-purple-100",
     },
   ];
 
+  const stats = [
+    { value: "100K+", label: "Descargas", icon: Download },
+    { value: "4.8★", label: "Calificación", icon: Star },
+    { value: "24/7", label: "Soporte", icon: Clock },
+  ];
+
   return (
-    <section className="bg-white py-8 sm:py-10 lg:py-12 xl:py-16">
+    <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-white via-purple-50/30 to-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8 sm:mb-10 lg:mb-12 text-center">
-          <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-gray-600 mb-3 sm:mb-4">Descarga la app</p>
-          <Title as="h2" className="mb-3 sm:mb-4">
-            JJSecure VPN en tu bolsillo
-          </Title>
-          <Subtitle className="max-w-3xl mx-auto">
-            Una aplicación completa, creada en Argentina, con toda la potencia de nuestra red VPN en tu dispositivo móvil.
-          </Subtitle>
-        </div>
+        <motion.div
+          className="text-center mb-12 sm:mb-14"
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200 rounded-full mb-4">
+            <Smartphone className="w-3.5 h-3.5 text-purple-700" />
+            <SmallText className="text-xs font-semibold text-purple-700 uppercase tracking-wide">
+              App móvil
+            </SmallText>
+          </div>
+          <SectionTitle className="mb-3">JJSecure VPN en tu bolsillo</SectionTitle>
+          <LeadText className="text-base sm:text-lg max-w-2xl mx-auto">
+            Una aplicación completa, creada en Argentina, con toda la potencia de nuestra red VPN
+          </LeadText>
+        </motion.div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10 lg:mb-12">
-          {features.map((feature) => {
-            const Icon = feature.icon;
-            return (
-              <div key={feature.title} className="text-center rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-4 sm:p-6 lg:p-8 hover:shadow-lg transition-all duration-300">
-                <div className="flex justify-center mb-3 sm:mb-4">
-                  <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-100 to-purple-100">
-                    <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
-                  </div>
-                </div>
-                <h3 className="text-sm sm:text-base lg:text-lg font-serif font-medium text-gray-900 mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-xs sm:text-sm lg:text-base text-gray-600">{feature.description}</p>
+        <div className="grid sm:grid-cols-3 gap-4 sm:gap-5 mb-12 sm:mb-14">
+          {features.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              className={`
+                bg-white rounded-2xl border ${feature.border} p-5 sm:p-6
+                hover:shadow-lg hover:-translate-y-1 transition-all duration-300
+              `}
+            >
+              <div className={`w-11 h-11 rounded-xl ${feature.bg} border ${feature.border} flex items-center justify-center mb-4`}>
+                <feature.icon className={`w-5 h-5 ${feature.color}`} />
               </div>
-            );
-          })}
+              <CardTitle as="h3" className="text-base sm:text-lg mb-2">{feature.title}</CardTitle>
+              <BodyText className="text-sm leading-relaxed">{feature.description}</BodyText>
+            </motion.div>
+          ))}
         </div>
 
-        {/* CTA Section */}
-        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg sm:rounded-xl p-5 sm:p-6 lg:p-8 text-center hover:shadow-lg transition-all duration-300">
-          <h3 className="text-base sm:text-lg lg:text-xl font-serif font-medium text-gray-900 mb-2">
-            Descarga gratis hoy
-          </h3>
-          <p className="text-sm sm:text-base text-gray-600 mb-5 sm:mb-6">
-            Disponible para Android 6.0 o superior
-          </p>
-          <LinkButton
-            href="https://play.google.com/store/apps/details?id=com.jjsecure.lite&hl=es_AR"
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="primary"
-            size="md"
-          >
-            <Download className="h-4 w-4" />
-            Descargar en Google Play
-          </LinkButton>
-        </div>
+        {/* CTA Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-600 via-purple-700 to-purple-900 p-8 sm:p-10 text-center text-white"
+        >
+          {/* Decorative elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-20 -right-20 w-60 h-60 bg-white/10 rounded-full blur-2xl" />
+            <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-white/10 rounded-full blur-2xl" />
+          </div>
+
+          <div className="relative">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 rounded-full mb-4">
+              <span className="text-xs font-medium">Descarga gratuita</span>
+            </div>
+            <CardTitle as="h3" className="text-xl sm:text-2xl text-white mb-2">Disponible en Google Play</CardTitle>
+            <BodyText className="text-white/80 text-sm sm:text-base mb-6 max-w-md mx-auto">
+              Compatible con Android 6.0 o superior. Instalación rápida y segura.
+            </BodyText>
+            <LinkButton
+              href="https://play.google.com/store/apps/details?id=com.jjsecure.lite&hl=es_AR"
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="secondary"
+              size="md"
+              className="bg-white text-purple-700 hover:bg-gray-100 border-white shadow-lg"
+            >
+              <Download className="h-4 w-4" />
+              Descargar ahora
+            </LinkButton>
+          </div>
+        </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-10 lg:mt-12 pt-8 sm:pt-10 lg:pt-12 border-t border-gray-200">
-          <div className="text-center rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-4 sm:p-5 lg:p-6 hover:shadow-lg transition-all duration-300">
-            <div className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-indigo-600 mb-1">
-              100K+
-            </div>
-            <p className="text-xs sm:text-sm text-gray-600">Descargas activas</p>
-          </div>
-          <div className="text-center rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-4 sm:p-5 lg:p-6 hover:shadow-lg transition-all duration-300">
-            <div className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-indigo-600 mb-1">
-              4.8★
-            </div>
-            <p className="text-xs sm:text-sm text-gray-600">Calificación en Play Store</p>
-          </div>
-          <div className="text-center rounded-lg sm:rounded-xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-4 sm:p-5 lg:p-6 hover:shadow-lg transition-all duration-300">
-            <div className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-indigo-600 mb-1">
-              24/7
-            </div>
-            <p className="text-xs sm:text-sm text-gray-600">Soporte en vivo</p>
-          </div>
+        <div className="grid grid-cols-3 gap-4 sm:gap-6 mt-10 sm:mt-12">
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              className="text-center bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+            >
+              <div className="flex justify-center mb-2">
+                <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-100 flex items-center justify-center">
+                  <stat.icon className="w-4 h-4 text-purple-600" />
+                </div>
+              </div>
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-purple-600 mb-1">
+                {stat.value}
+              </div>
+              <SmallText as="p" className="text-xs sm:text-sm font-medium">{stat.label}</SmallText>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>

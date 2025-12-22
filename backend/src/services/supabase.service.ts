@@ -26,6 +26,18 @@ export interface Profile {
   avatar_url?: string | null;
 }
 
+export interface SupportTicketRecord {
+  id: string;
+  user_id: string;
+  asunto: string;
+  descripcion?: string | null;
+  status?: string;
+  priority?: string;
+  created_at?: string;
+  updated_at?: string;
+  last_message_at?: string;
+}
+
 /**
  * Servicio de Supabase para el backend
  * Maneja la sincronización de compras al historial del usuario
@@ -60,6 +72,92 @@ export class SupabaseService {
    */
   isEnabled(): boolean {
     return this.enabled;
+  }
+
+  /**
+   * Devuelve el cliente de Supabase (service role) si está habilitado.
+   */
+  getClient(): SupabaseClient | null {
+    return this.client;
+  }
+
+  /**
+   * Obtiene el perfil (incluye email) por user_id.
+   */
+  async getProfileById(userId: string): Promise<Profile | null> {
+    if (!this.client || !this.enabled) return null;
+
+    try {
+      const { data, error } = await this.client
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        if (error.code !== 'PGRST116') {
+          console.error('[Supabase] Error obteniendo profile:', error);
+        }
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('[Supabase] Error obteniendo profile:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Verifica si un user_id es admin (reutiliza chat_admins).
+   */
+  async isChatAdmin(userId: string): Promise<boolean> {
+    if (!this.client || !this.enabled) return false;
+
+    try {
+      const { data, error } = await this.client
+        .from('chat_admins')
+        .select('user_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('[Supabase] Error verificando chat_admins:', error);
+        return false;
+      }
+
+      return Boolean(data?.user_id);
+    } catch (error) {
+      console.error('[Supabase] Error verificando chat_admins:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Obtiene un ticket de soporte por id.
+   */
+  async getSupportTicketById(ticketId: string): Promise<SupportTicketRecord | null> {
+    if (!this.client || !this.enabled) return null;
+
+    try {
+      const { data, error } = await this.client
+        .from('support_tickets')
+        .select('*')
+        .eq('id', ticketId)
+        .single();
+
+      if (error) {
+        if (error.code !== 'PGRST116') {
+          console.error('[Supabase] Error obteniendo support_ticket:', error);
+        }
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('[Supabase] Error obteniendo support_ticket:', error);
+      return null;
+    }
   }
 
   /**

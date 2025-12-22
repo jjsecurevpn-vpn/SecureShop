@@ -26,17 +26,38 @@ interface CredencialesRevendedor {
   panelUrl: string;
 }
 
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function sanitizeEmailSubject(input: string): string {
+  // Evita header injection por CRLF
+  return input.replace(/[\r\n]+/g, " ").trim();
+}
+
 class EmailService {
   private transporter: nodemailer.Transporter;
+  private fromAddress: string;
+  private debug: boolean;
 
   constructor() {
     // Usar configuración SMTP directa en lugar de servicio "gmail"
     const user = process.env.EMAIL_USER || process.env.SMTP_USER;
     const pass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || "").trim();
+
+    this.fromAddress = (process.env.EMAIL_FROM || user || "").trim();
+    this.debug = (process.env.EMAIL_DEBUG || "").toLowerCase() === "true";
     
     console.log("[Email] Configurando con usuario:", user);
-    console.log("[Email] Contraseña length:", pass.length, "bytes:", Buffer.byteLength(pass));
-    console.log("[Email] Contraseña SHA1:", require('crypto').createHash('sha1').update(pass).digest('hex').substring(0, 8) + "...");
+    if (this.debug) {
+      console.log("[Email] From address:", this.fromAddress);
+      console.log("[Email] Contraseña length:", pass.length, "bytes:", Buffer.byteLength(pass));
+    }
     
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.gmail.com",
@@ -68,11 +89,19 @@ class EmailService {
    */
   private async enviarEmail(options: EmailOptions): Promise<boolean> {
     try {
-      // TEMPORAL: Log para debuggear
-      console.log("[Email] Intentando enviar a:", options.to);
+      if (!this.fromAddress) {
+        console.error(
+          "[Email] ❌ EMAIL_FROM/EMAIL_USER/SMTP_USER no configurado; no se puede enviar email"
+        );
+        return false;
+      }
+
+      if (this.debug) {
+        console.log("[Email] Intentando enviar a:", options.to);
+      }
       
       await this.transporter.sendMail({
-        from: `"JJSecure VPN" <${process.env.EMAIL_USER}>`,
+        from: `"JJSecure VPN" <${this.fromAddress}>`,
         to: options.to,
         subject: options.subject,
         html: options.html,
@@ -85,10 +114,7 @@ class EmailService {
         `[Email] ❌ Error enviando email a ${options.to}:`,
         error.message
       );
-      // Aquí es donde falla - la contraseña no es válida
-      // Por ahora, devolver true para no bloquear el flujo de compra
-      // TODO: Corregir credenciales de Gmail
-      return true;
+      return false;
     }
   }
 
@@ -412,6 +438,332 @@ class EmailService {
     return this.enviarEmail({
       to: jazminEmail,
       subject: `🔔 ${tipoTexto[tipo]} - $${datos.monto}`,
+      html,
+    });
+  }
+
+  /**
+   * Notifica al admin cuando un usuario crea un ticket de soporte.
+   * Se dispara típicamente desde el webhook de Supabase (INSERT en support_tickets).
+   */
+  async notificarTicketSoporteAdmin(datos: {
+    ticketId: string;
+    userEmail: string;
+    userName?: string;
+    asunto: string;
+    descripcion?: string;
+    createdAt?: string;
+  }): Promise<boolean> {
+    const to =
+      process.env.SUPPORT_NOTIFY_EMAIL ||
+      process.env.ADMIN_EMAIL ||
+      "jazmincardozoh05@gmail.com";
+
+    const safeAsunto = datos.asunto || "(sin asunto)";
+    const safeDescripcion = datos.descripcion || "(sin descripción)";
+    
+    // Formatear fecha legible
+    let fechaLegible = "";
+    try {
+      const fecha = datos.createdAt ? new Date(datos.createdAt) : new Date();
+      fechaLegible = fecha.toLocaleString("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+    } catch {
+      fechaLegible = datos.createdAt || new Date().toISOString();
+    }
+
+    // Ticket ID corto (primeros 8 caracteres)
+    const ticketIdCorto = (datos.ticketId || "").substring(0, 8).toUpperCase();
+    const userEmailHtml = escapeHtml(datos.userEmail || "(sin email)");
+    const userNameHtml = escapeHtml(datos.userName || datos.userEmail || "");
+    const asuntoHtml = escapeHtml(safeAsunto);
+    const descripcionHtml = escapeHtml(safeDescripcion);
+    const fechaHtml = escapeHtml(fechaLegible);
+    const ticketIdHtml = escapeHtml(ticketIdCorto);
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 22px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 22px; border-radius: 0 0 10px 10px; }
+          .box { background: white; padding: 16px; border-radius: 8px; margin: 14px 0; border-left: 4px solid #2563eb; }
+          .row { margin: 8px 0; }
+          .label { font-weight: bold; color: #1d4ed8; }
+          .value { font-family: monospace; background: #f0f0f0; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+          .desc { white-space: pre-wrap; background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 8px; }
+          .footer { text-align: center; margin-top: 18px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>🎫 Nuevo ticket de soporte</h2>
+            <p>Se creó un ticket desde la web</p>
+          </div>
+          <div class="content">
+            <div class="box">
+              <div class="row"><span class="label">📌 Ticket:</span> <span class="value">#${ticketIdHtml}</span></div>
+              <div class="row"><span class="label">👤 Usuario:</span> ${userNameHtml}</div>
+              <div class="row"><span class="label">📧 Email:</span> <a href="mailto:${userEmailHtml}">${userEmailHtml}</a></div>
+              <div class="row"><span class="label">📅 Fecha:</span> ${fechaHtml}</div>
+              <div class="row"><span class="label">📝 Asunto:</span> <strong>${asuntoHtml}</strong></div>
+            </div>
+
+            <h3>📋 Descripción</h3>
+            <div class="desc">${descripcionHtml}</div>
+
+            <div class="footer">
+              <p>© 2025 JJSecure VPN - Notificación automática</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.enviarEmail({
+      to,
+      subject: sanitizeEmailSubject(`🎫 Nuevo ticket: ${safeAsunto}`),
+      html,
+    });
+  }
+
+  /**
+   * Confirmación al usuario cuando crea un ticket.
+   */
+  async enviarConfirmacionTicketSoporteUsuario(datos: {
+    to: string;
+    ticketId: string;
+    asunto: string;
+    descripcion?: string;
+    createdAt?: string;
+  }): Promise<boolean> {
+    const safeAsunto = datos.asunto || "(sin asunto)";
+    const safeDescripcion = datos.descripcion || "(sin descripción)";
+    
+    // Formatear fecha legible
+    let fechaLegible = "";
+    try {
+      const fecha = datos.createdAt ? new Date(datos.createdAt) : new Date();
+      fechaLegible = fecha.toLocaleString("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+    } catch {
+      fechaLegible = datos.createdAt || new Date().toISOString();
+    }
+
+    // Ticket ID corto
+    const ticketIdCorto = (datos.ticketId || "").substring(0, 8).toUpperCase();
+    const ticketIdHtml = escapeHtml(ticketIdCorto);
+    const asuntoHtml = escapeHtml(safeAsunto);
+    const descripcionHtml = escapeHtml(safeDescripcion);
+    const fechaHtml = escapeHtml(fechaLegible);
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: white; padding: 22px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 22px; border-radius: 0 0 10px 10px; }
+          .box { background: white; padding: 16px; border-radius: 8px; margin: 14px 0; border-left: 4px solid #16a34a; }
+          .row { margin: 8px 0; }
+          .label { font-weight: bold; color: #15803d; }
+          .value { font-family: monospace; background: #f0f0f0; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+          .desc { white-space: pre-wrap; background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 8px; }
+          .footer { text-align: center; margin-top: 18px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>✅ Recibimos tu ticket</h2>
+            <p>Te vamos a responder lo antes posible</p>
+          </div>
+          <div class="content">
+            <div class="box">
+              <div class="row"><span class="label">📌 Ticket:</span> <span class="value">#${ticketIdHtml}</span></div>
+              <div class="row"><span class="label">📅 Fecha:</span> ${fechaHtml}</div>
+              <div class="row"><span class="label">📝 Asunto:</span> <strong>${asuntoHtml}</strong></div>
+            </div>
+
+            <h3>📋 Tu mensaje</h3>
+            <div class="desc">${descripcionHtml}</div>
+
+            <div class="footer">
+              <p>© 2025 JJSecure VPN - Soporte</p>
+              <p>Este es un correo automático.</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.enviarEmail({
+      to: datos.to,
+      subject: sanitizeEmailSubject(`✅ Ticket recibido: ${safeAsunto}`),
+      html,
+    });
+  }
+
+  /**
+   * Notificación al usuario cuando un admin responde (mensaje no-interno).
+   */
+  async notificarRespuestaTicketSoporteUsuario(datos: {
+    to: string;
+    ticketId: string;
+    asunto: string;
+    content: string;
+    createdAt?: string;
+  }): Promise<boolean> {
+    const safeAsunto = datos.asunto || "(sin asunto)";
+    const safeCreatedAt = datos.createdAt || new Date().toISOString();
+    const safeContent = datos.content || "";
+
+    const ticketIdHtml = escapeHtml(String(datos.ticketId || ""));
+    const asuntoHtml = escapeHtml(safeAsunto);
+    const createdAtHtml = escapeHtml(safeCreatedAt);
+    const contentHtml = escapeHtml(safeContent);
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 22px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 22px; border-radius: 0 0 10px 10px; }
+          .box { background: white; padding: 16px; border-radius: 8px; margin: 14px 0; border-left: 4px solid #2563eb; }
+          .row { margin: 8px 0; }
+          .label { font-weight: bold; color: #1d4ed8; }
+          .value { font-family: monospace; background: #f0f0f0; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+          .msg { white-space: pre-wrap; background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 8px; }
+          .footer { text-align: center; margin-top: 18px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>📩 Respondimos tu ticket</h2>
+            <p>Asunto: ${asuntoHtml}</p>
+          </div>
+          <div class="content">
+            <div class="box">
+              <div class="row"><span class="label">Ticket:</span> <span class="value">${ticketIdHtml}</span></div>
+              <div class="row"><span class="label">Fecha:</span> <span class="value">${createdAtHtml}</span></div>
+            </div>
+
+            <h3>Respuesta</h3>
+            <div class="msg">${contentHtml}</div>
+
+            <div class="footer">
+              <p>© 2025 JJSecure VPN - Soporte</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.enviarEmail({
+      to: datos.to,
+      subject: sanitizeEmailSubject(`📩 Respuesta a tu ticket: ${safeAsunto}`),
+      html,
+    });
+  }
+
+  /**
+   * Notificación al admin cuando el usuario responde.
+   */
+  async notificarRespuestaTicketSoporteAdmin(datos: {
+    ticketId: string;
+    userId: string;
+    userEmail: string;
+    asunto: string;
+    content: string;
+    createdAt?: string;
+  }): Promise<boolean> {
+    const to =
+      process.env.SUPPORT_NOTIFY_EMAIL ||
+      process.env.ADMIN_EMAIL ||
+      "jazmincardozoh05@gmail.com";
+
+    const safeAsunto = datos.asunto || "(sin asunto)";
+    const safeCreatedAt = datos.createdAt || new Date().toISOString();
+    const safeContent = datos.content || "";
+
+    const ticketIdHtml = escapeHtml(String(datos.ticketId || ""));
+    const userIdHtml = escapeHtml(String(datos.userId || ""));
+    const userEmailHtml = escapeHtml(String(datos.userEmail || ""));
+    const asuntoHtml = escapeHtml(safeAsunto);
+    const createdAtHtml = escapeHtml(safeCreatedAt);
+    const contentHtml = escapeHtml(safeContent);
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 22px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 22px; border-radius: 0 0 10px 10px; }
+          .box { background: white; padding: 16px; border-radius: 8px; margin: 14px 0; border-left: 4px solid #f59e0b; }
+          .row { margin: 8px 0; }
+          .label { font-weight: bold; color: #b45309; }
+          .value { font-family: monospace; background: #f0f0f0; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+          .msg { white-space: pre-wrap; background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 8px; }
+          .footer { text-align: center; margin-top: 18px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>🔔 Nueva respuesta del usuario</h2>
+            <p>Ticket: ${asuntoHtml}</p>
+          </div>
+          <div class="content">
+            <div class="box">
+              <div class="row"><span class="label">Ticket:</span> <span class="value">${ticketIdHtml}</span></div>
+              <div class="row"><span class="label">Usuario:</span> <span class="value">${userIdHtml}</span></div>
+              <div class="row"><span class="label">Email:</span> <span class="value">${userEmailHtml}</span></div>
+              <div class="row"><span class="label">Fecha:</span> <span class="value">${createdAtHtml}</span></div>
+            </div>
+
+            <h3>Mensaje</h3>
+            <div class="msg">${contentHtml}</div>
+
+            <div class="footer">
+              <p>© 2025 JJSecure VPN - Notificación automática</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.enviarEmail({
+      to,
+      subject: sanitizeEmailSubject(`🔔 Respuesta en ticket: ${safeAsunto}`),
       html,
     });
   }
@@ -871,6 +1223,225 @@ class EmailService {
     return this.enviarEmail({
       to: email,
       subject: `🎁 Tu demostración gratuita de JJSecure VPN (${credenciales.horas_validas}hs) - Acceso ${credenciales.username}`,
+      html,
+    });
+  }
+
+  /**
+   * Envía email de confirmación de cuenta personalizado
+   * Usar esto en lugar del email por defecto de Supabase
+   */
+  async enviarConfirmacionCuenta(
+    email: string,
+    confirmationUrl: string
+  ): Promise<boolean> {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f4f4f4; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .header p { margin: 10px 0 0 0; opacity: 0.9; }
+          .content { background: white; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+          .welcome-icon { font-size: 60px; margin-bottom: 15px; }
+          .message { font-size: 16px; color: #555; margin-bottom: 30px; }
+          .button-container { text-align: center; margin: 35px 0; }
+          .button { 
+            display: inline-block; 
+            padding: 16px 40px; 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+            color: white !important; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 16px;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+            transition: transform 0.2s;
+          }
+          .button:hover { transform: translateY(-2px); }
+          .link-backup { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-top: 25px; 
+            font-size: 13px; 
+            word-break: break-all;
+            color: #666;
+          }
+          .link-backup a { color: #10b981; }
+          .features { 
+            display: flex; 
+            justify-content: space-around; 
+            margin: 30px 0; 
+            padding: 20px 0; 
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+          }
+          .feature { text-align: center; flex: 1; }
+          .feature-icon { font-size: 30px; margin-bottom: 8px; }
+          .feature-text { font-size: 12px; color: #666; }
+          .footer { text-align: center; margin-top: 30px; color: #999; font-size: 12px; }
+          .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 0 8px 8px 0; margin-top: 25px; font-size: 13px; color: #92400e; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="welcome-icon">🔐</div>
+            <h1>¡Bienvenido a JJSecure VPN!</h1>
+            <p>Tu seguridad en internet es nuestra prioridad</p>
+          </div>
+          <div class="content">
+            <p class="message">
+              ¡Hola! 👋<br><br>
+              Gracias por registrarte en <strong>JJSecure VPN</strong>. Estás a un paso de proteger tu navegación y disfrutar de internet sin límites.
+            </p>
+            
+            <p style="text-align: center; font-size: 16px; color: #333;">
+              Para activar tu cuenta, haz clic en el siguiente botón:
+            </p>
+            
+            <div class="button-container">
+              <a href="${confirmationUrl}" class="button">
+                ✅ Confirmar mi cuenta
+              </a>
+            </div>
+
+            <div class="features">
+              <div class="feature">
+                <div class="feature-icon">🛡️</div>
+                <div class="feature-text">Navegación<br>Segura</div>
+              </div>
+              <div class="feature">
+                <div class="feature-icon">🌍</div>
+                <div class="feature-text">Acceso<br>Global</div>
+              </div>
+              <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-text">Alta<br>Velocidad</div>
+              </div>
+              <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-text">Privacidad<br>Total</div>
+              </div>
+            </div>
+
+            <div class="link-backup">
+              <strong>¿El botón no funciona?</strong><br>
+              Copia y pega este enlace en tu navegador:<br>
+              <a href="${confirmationUrl}">${confirmationUrl}</a>
+            </div>
+
+            <div class="warning">
+              ⚠️ <strong>Importante:</strong> Este enlace expira en 24 horas. Si no solicitaste esta cuenta, puedes ignorar este mensaje.
+            </div>
+          </div>
+          <div class="footer">
+            <p>© 2025 JJSecure VPN - Todos los derechos reservados</p>
+            <p>Este es un correo automático, por favor no responder.</p>
+            <p>¿Tienes preguntas? Escríbenos a: jjsecurevpn@gmail.com</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.enviarEmail({
+      to: email,
+      subject: "🔐 Confirma tu cuenta - JJSecure VPN",
+      html,
+    });
+  }
+
+  /**
+   * Envía email de restablecimiento de contraseña personalizado
+   */
+  async enviarResetPassword(
+    email: string,
+    resetUrl: string
+  ): Promise<boolean> {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f4f4f4; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0; }
+          .header h1 { margin: 0; font-size: 28px; }
+          .content { background: white; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+          .icon { font-size: 60px; margin-bottom: 15px; }
+          .message { font-size: 16px; color: #555; margin-bottom: 30px; }
+          .button-container { text-align: center; margin: 35px 0; }
+          .button { 
+            display: inline-block; 
+            padding: 16px 40px; 
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
+            color: white !important; 
+            text-decoration: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 16px;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+          }
+          .link-backup { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin-top: 25px; 
+            font-size: 13px; 
+            word-break: break-all;
+            color: #666;
+          }
+          .link-backup a { color: #f59e0b; }
+          .warning { background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; border-radius: 0 8px 8px 0; margin-top: 25px; font-size: 13px; color: #991b1b; }
+          .footer { text-align: center; margin-top: 30px; color: #999; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="icon">🔑</div>
+            <h1>Restablecer Contraseña</h1>
+          </div>
+          <div class="content">
+            <p class="message">
+              Hola,<br><br>
+              Recibimos una solicitud para restablecer la contraseña de tu cuenta en <strong>JJSecure VPN</strong>.
+            </p>
+            
+            <div class="button-container">
+              <a href="${resetUrl}" class="button">
+                🔐 Restablecer contraseña
+              </a>
+            </div>
+
+            <div class="link-backup">
+              <strong>¿El botón no funciona?</strong><br>
+              Copia y pega este enlace en tu navegador:<br>
+              <a href="${resetUrl}">${resetUrl}</a>
+            </div>
+
+            <div class="warning">
+              🚨 <strong>¿No solicitaste esto?</strong> Ignora este correo. Tu contraseña seguirá siendo la misma.
+              Este enlace expira en 1 hora.
+            </div>
+          </div>
+          <div class="footer">
+            <p>© 2025 JJSecure VPN - Todos los derechos reservados</p>
+            <p>¿Tienes preguntas? Escríbenos a: jjsecurevpn@gmail.com</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return this.enviarEmail({
+      to: email,
+      subject: "🔑 Restablecer contraseña - JJSecure VPN",
       html,
     });
   }

@@ -1,10 +1,9 @@
 import React from "react";
 import { ArrowRight, MessageCircle, Shield, Signal, Sparkles, Users } from "lucide-react";
+import { motion } from "framer-motion";
 import { useHeroConfigRevendedores } from "../../../hooks/useHeroConfigRevendedores";
 import { useRevendedoresCount } from "../../../hooks/useRevendedoresCount";
-import { Title } from "../../../components/Title";
-import { Subtitle } from "../../../components/Subtitle";
-import { Button } from "../../../components/Button";
+import { HeroTitle, LeadText, SmallText } from "../../../components/Typography";
 
 export default function HeroReventa() {
   // Configuración del hero
@@ -26,76 +25,95 @@ export default function HeroReventa() {
   };
 
   const stats = [
-    { value: "99.9%", label: "Uptime", icon: <Signal className="w-4 h-4" /> },
-    { value: "24/7", label: "Soporte", icon: <MessageCircle className="w-4 h-4" /> },
-    { value: totalRevendedores > 0 ? `${totalRevendedores}+` : "...", label: "Revendedores", icon: <Users className="w-4 h-4" /> },
-    { value: "Premium", label: "Calidad", icon: <Shield className="w-4 h-4" /> },
+    { value: "99.9%", label: "Uptime", icon: Signal },
+    { value: "24/7", label: "Soporte", icon: MessageCircle },
+    { value: totalRevendedores > 0 ? `${totalRevendedores}+` : "...", label: "Revendedores", icon: Users },
+    { value: "Premium", label: "Calidad", icon: Shield },
   ];
 
   return (
-    <section className="relative bg-gradient-to-b from-purple-200/50 via-purple-50/30 to-white py-8 md:py-12 xl:py-16">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 xl:px-16">
-        <div className="w-full space-y-4 md:space-y-6 xl:space-y-8 text-center">
-            {heroConfig?.promocion?.habilitada && (
-              <div className="flex justify-center">
-                <div className="inline-flex items-center gap-3 rounded-full border border-emerald-300 bg-emerald-50 px-4 sm:px-5 lg:px-6 xl:px-7 py-2 text-emerald-700">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-xs font-semibold uppercase tracking-[0.3em] sm:text-sm">
-                    {heroConfig.promocion.texto}
-                  </span>
-                </div>
+    <section className="relative w-full overflow-hidden bg-gradient-to-b from-purple-200/50 via-purple-50/30 to-white pt-16 sm:pt-20 lg:pt-24 pb-8 sm:pb-12 lg:pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        {/* Badge animado */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6 bg-white/80 backdrop-blur-sm border border-purple-200/60 shadow-sm"
+        >
+          <Sparkles className="h-3.5 w-3.5 text-purple-700" />
+          <SmallText className="text-gray-700">Programa de Revendedores</SmallText>
+        </motion.div>
+
+        {/* Title */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <HeroTitle className="mb-4 sm:mb-6">
+            {heroConfig?.titulo || "Sé Revendedor VPN"}
+          </HeroTitle>
+        </motion.div>
+
+        {/* Subtitle */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="max-w-2xl mx-auto mb-8"
+        >
+          <LeadText className="text-base sm:text-lg lg:text-xl">
+            {heroConfig?.descripcion || "Gana dinero vendiendo acceso VPN premium a tus clientes"}
+          </LeadText>
+        </motion.div>
+
+        {/* Stats Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-3xl mx-auto mb-8"
+        >
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
+              className="flex flex-col items-center justify-center rounded-2xl bg-white/70 backdrop-blur-sm border border-gray-100 px-4 py-4 shadow-sm"
+            >
+              <div className="mb-2 text-purple-600">
+                {React.createElement(stat.icon, { className: "w-4 h-4 sm:w-5 sm:h-5" })}
               </div>
-            )}
+              <p className="text-lg sm:text-xl font-bold text-gray-900">{stat.value}</p>
+              <SmallText className="text-[10px] sm:text-xs font-medium uppercase tracking-wider">{stat.label}</SmallText>
+            </motion.div>
+          ))}
+        </motion.div>
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-indigo-700 sm:text-xs">
-              <Sparkles className="h-3 w-3 sm:w-4 sm:h-4" />
-              Programa de Revendedores
-            </div>
-
-            <div className="space-y-4">
-              <Title as="h1">
-                {heroConfig?.titulo || "Sé Revendedor VPN"}
-              </Title>
-              <Subtitle className="max-w-2xl mx-auto">
-                {heroConfig?.descripcion || "Gana dinero vendiendo acceso VPN premium a tus clientes"}
-              </Subtitle>
-            </div>
-
-            <div className="grid gap-2 sm:gap-3 lg:gap-4 xl:gap-5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))" }}>
-              {stats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="flex flex-col items-center justify-center rounded-2xl px-4 py-3 shadow-[2px_4px_8px_-3px_rgba(0,0,0,0.08),-2px_4px_8px_-3px_rgba(0,0,0,0.08)]"
-                >
-                  <div className="mb-1 text-emerald-600">{React.cloneElement(stat.icon, { className: "w-3 h-3 sm:w-4 sm:h-4" })}</div>
-                  <p className="text-sm font-semibold text-gray-900 sm:text-base md:text-lg">{stat.value}</p>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gray-600 sm:text-xs">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-2 justify-center flex-wrap">
-              <Button
-                onClick={handleComenzarAhora}
-                variant="primary"
-                size="md"
-                fullWidthMobile
-                className="group"
-              >
-                Comenzar ahora
-                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-              </Button>
-              <Button
-                onClick={handleContactarSoporte}
-                variant="secondary"
-                size="md"
-                fullWidthMobile
-              >
-                <MessageCircle className="h-4 w-4" />
-                Contactar soporte
-              </Button>
-          </div>
-        </div>
+        {/* CTA Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+          className="flex flex-col sm:flex-row items-center gap-3 justify-center"
+        >
+          <button
+            onClick={handleComenzarAhora}
+            className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-purple-800 text-white font-semibold text-sm hover:from-purple-700 hover:to-purple-900 transition-all shadow-lg shadow-purple-500/25"
+          >
+            Comenzar ahora
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+          </button>
+          <button
+            onClick={handleContactarSoporte}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white border-2 border-gray-200 text-gray-700 font-semibold text-sm hover:border-purple-300 hover:text-purple-600 transition-all"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Contactar soporte
+          </button>
+        </motion.div>
       </div>
     </section>
   );

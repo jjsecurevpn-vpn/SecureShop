@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Sparkles, Shield } from "lucide-react";
+import { motion } from "framer-motion";
 import DemoModal from "../../components/DemoModal";
+import { CardTitle, BodyText, SmallText } from "../../components/Typography";
 import { Plan } from "../../types";
 import { apiService } from "../../services/api.service";
 import type { ValidacionCupon } from "../../services/api.service";
@@ -28,6 +30,7 @@ export type { PlanesPageProps } from "./types";
 // eslint-disable-next-line no-empty-pattern
 export default function PlanesPage({ }: PlanesPageProps) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [planesRenovacion, setPlanesRenovacion] = useState<Plan[]>([]);
   const [modoSeleccion, setModoSeleccion] = useState<ModoSeleccion>("compra");
@@ -47,8 +50,64 @@ export default function PlanesPage({ }: PlanesPageProps) {
   const [procesandoRenovacion, setProcesandoRenovacion] = useState(false);
   const [cuponRenovacion, setCuponRenovacion] = useState<ValidacionCupon["cupon"] | null>(null);
   const [descuentoRenovacion, setDescuentoRenovacion] = useState(0);
+  const [cuentaDesdeUrl, setCuentaDesdeUrl] = useState<string | null>(null);
 
   useServerStats(10000);
+
+  // Función para buscar cuenta (declarada antes del useEffect)
+  const buscarCuentaDesdeUrl = useCallback(async (username: string) => {
+    setBusquedaCuenta(username);
+    setBuscandoCuenta(true);
+    setErrorRenovacion("");
+
+    try {
+      const response = await fetch("/api/renovacion/buscar?tipo=cliente", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ busqueda: username }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Error al buscar la cuenta");
+      }
+
+      if (!data?.encontrado) {
+        setErrorRenovacion("No se encontró ninguna cuenta con ese username");
+        return;
+      }
+
+      const cuenta: CuentaRenovacion = {
+        tipo: data.tipo,
+        datos: data.datos,
+      };
+
+      setCuentaRenovacion(cuenta);
+      setNombreRenovacion(data.datos?.cliente_nombre || "");
+      setEmailRenovacion(data.datos?.cliente_email || "");
+      setDiasRenovacion(7);
+      setDispositivosRenovacion(null);
+      setPasoRenovacion("configurar");
+    } catch (error: any) {
+      setErrorRenovacion(error?.message || "Error al buscar la cuenta");
+    } finally {
+      setBuscandoCuenta(false);
+    }
+  }, []);
+
+  // Manejar parámetro 'cuenta' de la URL para renovación directa
+  useEffect(() => {
+    const cuentaParam = searchParams.get("cuenta");
+    if (cuentaParam && cuentaParam !== cuentaDesdeUrl) {
+      setCuentaDesdeUrl(cuentaParam);
+      setModoSeleccion("renovacion");
+      // Limpiar el parámetro de la URL
+      setSearchParams({}, { replace: true });
+      // Buscar la cuenta automáticamente
+      buscarCuentaDesdeUrl(cuentaParam);
+    }
+  }, [searchParams, cuentaDesdeUrl, setSearchParams, buscarCuentaDesdeUrl]);
 
   useEffect(() => {
     const cargarPlanes = async () => {
@@ -284,26 +343,38 @@ export default function PlanesPage({ }: PlanesPageProps) {
         />
 
         {/* Plans Section */}
-        <section className="relative py-8 md:py-12 xl:py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4 md:px-8 xl:px-16">
+        <section className="relative py-12 sm:py-16 lg:py-20 bg-white">
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-50/50 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-50/50 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="w-full">
             {modoSeleccion === "compra" && (
-              <div className="space-y-12">
-                <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-                  <div className="space-y-8">
+              <div className="space-y-16">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]"
+                >
+                  <div className="space-y-6">
                     {/* Selector de días */}
-                    <div className="rounded-2xl p-5 md:p-6 xl:p-8 bg-gradient-to-br from-gray-50 to-white border border-gray-100">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.1 }}
+                      className="rounded-2xl p-5 sm:p-6 lg:p-8 bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+                    >
                       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                         <div>
-                          <p className="text-xs md:text-sm font-semibold uppercase tracking-[0.2em] text-purple-600 mb-1">
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 mb-3">
                             Paso 1
-                          </p>
-                          <h3 className="text-lg md:text-xl xl:text-2xl font-serif font-medium text-gray-900">
+                          </span>
+                          <CardTitle as="h3" className="text-xl sm:text-2xl">
                             Duración del plan
-                          </h3>
-                          <p className="text-sm md:text-base text-gray-500 mt-1">
-                            Define cuántos días necesitas conexión segura.
-                          </p>
+                          </CardTitle>
+                          <BodyText className="text-sm mt-1">Define cuántos días necesitas conexión segura.</BodyText>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -321,21 +392,24 @@ export default function PlanesPage({ }: PlanesPageProps) {
                           </button>
                         ))}
                       </div>
-                    </div>
+                    </motion.div>
 
                     {/* Selector de dispositivos */}
-                    <div className="rounded-2xl p-5 md:p-6 xl:p-8 bg-gradient-to-br from-gray-50 to-white border border-gray-100">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.2 }}
+                      className="rounded-2xl p-5 sm:p-6 lg:p-8 bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+                    >
                       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                         <div>
-                          <p className="text-xs md:text-sm font-semibold uppercase tracking-[0.2em] text-purple-600 mb-1">
+                          <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 mb-3">
                             Paso 2
-                          </p>
-                          <h3 className="text-lg md:text-xl xl:text-2xl font-serif font-medium text-gray-900">
+                          </span>
+                          <CardTitle as="h3" className="text-xl sm:text-2xl">
                             Dispositivos simultáneos
-                          </h3>
-                          <p className="text-sm md:text-base text-gray-500 mt-1">
-                            Cambia la cantidad cuando quieras añadir más conexiones.
-                          </p>
+                          </CardTitle>
+                          <BodyText className="text-sm mt-1">Cambia la cantidad cuando quieras añadir más conexiones.</BodyText>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -353,56 +427,61 @@ export default function PlanesPage({ }: PlanesPageProps) {
                           </button>
                         ))}
                       </div>
-                      <p className="mt-4 text-sm text-gray-500">
+                      <BodyText className="mt-4 text-sm">
                         ¿Necesitas más conexiones? Podemos armar planes especiales para equipos o revendedores.
-                      </p>
-                    </div>
+                      </BodyText>
+                    </motion.div>
                   </div>
 
                   {/* Resumen del plan - Sidebar */}
-                  <aside className="rounded-2xl p-5 md:p-6 xl:p-8 bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 border border-purple-100 md:sticky md:top-24 md:h-fit shadow-lg">
-                    <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] bg-purple-600 text-white mb-6">
+                  <motion.aside
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    className="rounded-2xl p-5 sm:p-6 lg:p-8 bg-gradient-to-br from-purple-50 via-purple-50/70 to-white border border-purple-100 lg:sticky lg:top-24 lg:self-start shadow-lg"
+                  >
+                    <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.15em] bg-gradient-to-r from-purple-600 to-purple-700 text-white mb-6">
                       <Sparkles className="h-3.5 w-3.5" />
                       <span>Tu selección</span>
                     </div>
 
                     <div className="space-y-2 mb-6">
-                      <h3 className="text-xl md:text-2xl xl:text-3xl font-serif font-medium text-gray-900">
+                      <CardTitle as="h3" className="text-2xl sm:text-3xl">
                         {planSeleccionado ? `${planSeleccionado.dias} días` : "Elige tu combinación"}
-                      </h3>
-                      <p className="text-sm md:text-base text-gray-600">
+                      </CardTitle>
+                      <BodyText className="text-sm sm:text-base">
                         {planSeleccionado
                           ? `Protección para ${planSeleccionado.connection_limit} ${
                               planSeleccionado.connection_limit === 1 ? "dispositivo" : "dispositivos"
                             } con velocidad ilimitada.`
                           : "Primero selecciona duración y dispositivos para ver el detalle completo."}
-                      </p>
+                      </BodyText>
                     </div>
 
                     {planSeleccionado ? (
                       <div className="space-y-6">
-                        <div className="rounded-xl p-4 md:p-5 xl:p-6 bg-white/80 backdrop-blur-sm border border-purple-100 flex flex-wrap items-center justify-between gap-4">
+                        <div className="rounded-xl p-4 sm:p-5 lg:p-6 bg-white/80 backdrop-blur-sm border border-purple-100 flex flex-wrap items-center justify-between gap-4">
                           <div>
                             <p className="text-sm text-gray-500">Pago único</p>
-                            <p className="text-3xl md:text-4xl xl:text-5xl font-bold text-gray-900">${planSeleccionado.precio}</p>
+                            <p className="text-3xl sm:text-4xl lg:text-5xl font-bold text-purple-800">${planSeleccionado.precio}</p>
                           </div>
                           <div className="text-right">
                             <p className="text-xs uppercase text-gray-400">Equivale a</p>
-                            <p className="text-lg md:text-xl font-semibold text-purple-600">${precioPorDiaPlan}/día</p>
+                            <p className="text-lg sm:text-xl font-semibold text-purple-600">${precioPorDiaPlan}/día</p>
                           </div>
                         </div>
 
                         <ul className="space-y-3 text-sm text-gray-700">
                           <li className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                            <span className="h-2 w-2 rounded-full bg-purple-500" />
                             Servidores premium en más de 15 países
                           </li>
                           <li className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                            <span className="h-2 w-2 rounded-full bg-purple-500" />
                             Cambio ilimitado de ubicaciones
                           </li>
                           <li className="flex items-center gap-2">
-                            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                            <span className="h-2 w-2 rounded-full bg-purple-500" />
                             Soporte humano 24/7 en español
                           </li>
                         </ul>
@@ -410,47 +489,52 @@ export default function PlanesPage({ }: PlanesPageProps) {
                         <div className="space-y-3">
                           <button
                             onClick={() => planSeleccionado && navigate(`/checkout?planId=${planSeleccionado.id}`)}
-                            className="w-full rounded-xl px-6 py-3.5 text-sm md:text-base font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg shadow-purple-500/25"
+                            className="w-full rounded-xl px-6 py-3.5 text-sm sm:text-base font-bold bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 transition-all shadow-lg shadow-purple-500/25"
                           >
                             Continuar al pago
                           </button>
                           <button
                             onClick={() => setIsDemoOpen(true)}
-                            className="w-full rounded-xl border-2 border-gray-200 px-6 py-3 text-sm md:text-base font-semibold text-gray-700 hover:border-purple-300 hover:text-purple-600 transition-all bg-white"
+                            className="w-full rounded-xl border-2 border-gray-200 px-6 py-3 text-sm sm:text-base font-semibold text-gray-700 hover:border-purple-300 hover:text-purple-600 transition-all bg-white"
                           >
                             Ver demo en vivo
                           </button>
                         </div>
 
-                        <p className="text-xs text-gray-500 text-center">
+                        <SmallText as="p" className="text-xs text-gray-500 text-center">
                           Pago seguro con Mercado Pago, tarjetas internacionales o criptomonedas.
-                        </p>
+                        </SmallText>
                       </div>
                     ) : (
-                      <div className="rounded-xl border-2 border-dashed border-purple-200 p-5 md:p-6 text-sm text-gray-500 bg-white/50">
+                      <div className="rounded-xl border-2 border-dashed border-purple-200 p-5 sm:p-6 text-sm text-gray-500 bg-white/50 text-center">
+                        <Shield className="w-8 h-8 text-purple-300 mx-auto mb-3" />
                         Te mostraremos aquí el resumen con precio y beneficios cuando elijas una combinación.
                       </div>
                     )}
-                  </aside>
-                </div>
+                  </motion.aside>
+                </motion.div>
 
                 {planesDestacados.length > 0 && (
-                  <div className="rounded-3xl p-8 md:p-12 space-y-8 bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 border border-purple-100">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5 }}
+                    className="rounded-3xl p-6 sm:p-8 lg:p-12 space-y-8 bg-gradient-to-br from-gray-50 via-purple-50/30 to-purple-50/30 border border-gray-100"
+                  >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <p className="text-xs md:text-sm font-semibold uppercase tracking-[0.2em] text-purple-600">
-                          ¿No sabes qué elegir?
-                        </p>
-                        <h3 className="text-xl md:text-2xl xl:text-3xl font-serif font-medium text-gray-900 mt-1">
-                          Nuestros planes más populares
-                        </h3>
+                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700 mb-3">
+                          ⭐ Recomendados
+                        </span>
+                        <CardTitle as="h3" className="text-2xl sm:text-3xl">Nuestros planes más populares</CardTitle>
                       </div>
-                      <p className="text-sm md:text-base max-w-md text-gray-600">
+                      <BodyText className="text-sm sm:text-base max-w-md">
                         Estos planes equilibran precio, duración y cantidad de dispositivos. Ideal para comenzar rápido.
-                      </p>
+                      </BodyText>
                     </div>
 
-                    <div className="grid gap-6 md:grid-cols-3">
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                       {planesDestacados.map((planDestacado, index) => {
                         const precioPorDiaDestacado = calcularPrecioDiario(planDestacado);
                         const isMiddle = index === 1; // El del medio es "más popular"
@@ -470,12 +554,12 @@ export default function PlanesPage({ }: PlanesPageProps) {
 
                     {/* Garantía */}
                     <div className="flex justify-center pt-4">
-                      <p className="text-sm flex items-center gap-2 text-gray-600">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-purple-100 text-sm text-gray-600">
                         <span className="text-lg">🛡️</span>
                         Garantía de satisfacción o reembolso
-                      </p>
+                      </div>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
               </div>
             )}

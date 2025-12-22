@@ -52,6 +52,74 @@ export interface PurchaseHistory {
   created_at: string;
 }
 
+// ============================================
+// TIPOS PARA TICKETS DE SOPORTE
+// ============================================
+
+export interface SupportTicket {
+  id: string;
+  user_id: string;
+  asunto: string;
+  descripcion: string | null;
+  status: 'open' | 'pending' | 'closed';
+  priority: 'low' | 'normal' | 'high';
+  last_message_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SupportTicketMessage {
+  id: string;
+  ticket_id: string;
+  user_id: string;
+  content: string;
+  is_internal: boolean;
+  created_at: string;
+}
+
+// ============================================
+// TIPOS PARA EL CHAT EN VIVO
+// ============================================
+
+export interface ChatRoom {
+  id: string;
+  nombre: string;
+  descripcion: string | null;
+  is_public: boolean;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  room_id: string;
+  user_id: string;
+  content: string;
+  is_pinned: boolean;
+  is_deleted: boolean;
+  created_at: string;
+}
+
+export interface ChatMessageWithUser extends ChatMessage {
+  user_nombre: string | null;
+  user_email: string;
+  user_avatar: string | null;
+  is_admin: boolean;
+}
+
+export interface ChatAdmin {
+  id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface ChatPresence {
+  id: string;
+  room_id: string;
+  user_id: string;
+  last_seen: string;
+}
+
 export interface Database {
   public: {
     Tables: {

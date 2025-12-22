@@ -12,11 +12,13 @@ import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutRevendedorPage from "./pages/CheckoutRevendedorPage";
 import CheckoutRenovacionPage from "./pages/CheckoutRenovacionPage";
 import ProfilePage from "./pages/ProfilePage";
+import ChatPage from "./pages/ChatPage";
 import Header from "./components/Header";
 import { PromoHeader } from "./components/PromoHeader";
 import ScrollToTop from "./components/ScrollToTop";
 import Footer from "./components/Footer";
 import PageLoading from "./components/PageLoading";
+import { LiveChat } from "./components/LiveChat";
 import { useState, useEffect } from "react";
 import { LoadingProvider, useLoading } from "./contexts/LoadingContext";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -24,6 +26,9 @@ import AdminToolsPage from "./pages/AdminToolsPage/index";
 import DonacionesPage from "./pages/DonacionesPage";
 import DonationSuccessPage from "./pages/DonationSuccessPage";
 import SponsorsPage from "./pages/SponsorsPage/index";
+import NoticiasPage from "./pages/NoticiasPage";
+import HelpPage from "./pages/HelpPage";
+import { useRegisterActiveSession } from "./hooks/useRegisterActiveSession";
 
 const TRANSITION_DURATION = 600;
 
@@ -32,6 +37,11 @@ const AppContent = () => {
   const location = useLocation();
   const [displayLocation, setDisplayLocation] = useState(location);
   const { isLoading, setIsLoading } = useLoading();
+
+  // Registrar sesión activa del usuario
+  useRegisterActiveSession();
+
+  const promoHeaderTipo = displayLocation.pathname === "/revendedores" ? "revendedores" : "planes";
 
   useEffect(() => {
     if (location.pathname === displayLocation.pathname) {
@@ -49,12 +59,12 @@ const AppContent = () => {
   }, [location, displayLocation, setIsLoading]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-neutral-900">
+    <div className="flex flex-col min-h-screen bg-white">
       <ScrollToTop />
       {isLoading && <PageLoading />}
-      <PromoHeader />
+      {displayLocation.pathname !== "/chat" && <PromoHeader tipo={promoHeaderTipo} />}
       <Header />
-      <div className="flex-1 overflow-y-auto relative">
+      <div className="flex-1 relative">
         <main>
           <Routes location={displayLocation} key={displayLocation.pathname}>
           <Route path="/" element={<HomePage />} />
@@ -64,20 +74,28 @@ const AppContent = () => {
           <Route path="/perfil" element={<ProfilePage />} />
           <Route path="/planes" element={<PlanesPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/revendedores" element={<RevendedoresPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
-          <Route path="/servidores" element={<ServersPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
+          <Route path="/estado" element={<ServersPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/sobre-nosotros" element={<AboutPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/success" element={<SuccessPage />} />
           <Route path="/error" element={<ErrorPage />} />
           <Route path="/donaciones" element={<DonacionesPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/donaciones/success" element={<DonationSuccessPage />} />
           <Route path="/sponsors" element={<SponsorsPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
+          <Route path="/noticias" element={<NoticiasPage />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/ayuda" element={<HelpPage />} />
           <Route path="/terminos" element={<TermsPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/privacidad" element={<PrivacyPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
           <Route path="/155908348" element={<AdminToolsPage isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />} />
         </Routes>
         </main>
       </div>
-      {!isLoading && !location.pathname.startsWith("/checkout") && location.pathname !== "/155908348" && location.pathname !== "/success" && location.pathname !== "/donaciones/success" && <Footer />}
+      {!isLoading && !location.pathname.startsWith("/checkout") && location.pathname !== "/155908348" && location.pathname !== "/success" && location.pathname !== "/donaciones/success" && location.pathname !== "/chat" && <Footer />}
+      
+      {/* Chat en vivo - visible en todas las páginas excepto checkout, admin y la propia página de chat */}
+      {!location.pathname.startsWith("/checkout") && location.pathname !== "/155908348" && location.pathname !== "/chat" && (
+        <LiveChat />
+      )}
     </div>
   );
 };

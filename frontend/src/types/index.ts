@@ -76,6 +76,9 @@ export interface CompraRequest {
   // Nuevos campos para referidos y saldo
   codigoReferido?: string;
   saldoUsado?: number;
+  // Campos para pago automático
+  esAutomatico?: boolean;
+  frecuenciaAutomatica?: 'mensual' | 'trimestral' | 'anual';
 }
 
 export interface CompraRevendedorRequest {
@@ -146,6 +149,116 @@ export interface NoticiaConfig {
     icon?: string;
   };
   _instrucciones?: Record<string, string>;
+}
+
+// ============================================
+// TIPOS PARA SISTEMA DE NOTICIAS (Supabase)
+// ============================================
+
+export interface NoticiaCategoria {
+  id: string;
+  nombre: string;
+  slug: string;
+  descripcion?: string;
+  color: string;
+  icono: string;
+  orden: number;
+  activo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NoticiaImagen {
+  id: string;
+  noticia_id: string;
+  imagen_url: string;
+  imagen_alt?: string;
+  orden: number;
+  created_at: string;
+}
+
+export interface NoticiaStats {
+  id: string;
+  noticia_id: string;
+  vistas: number;
+  clics: number;
+  compartidas: number;
+  updated_at: string;
+}
+
+export interface NoticiaComentario {
+  id: string;
+  noticia_id: string;
+  nombre: string;
+  email?: string;
+  contenido: string;
+  user_id?: string;
+  aprobado?: boolean;
+  created_at: string;
+}
+
+export interface CrearNoticiaComentario {
+  nombre: string;
+  email?: string;
+  contenido: string;
+  user_id?: string;
+}
+
+export interface Noticia {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  contenido_completo?: string;
+  categoria_id: string;
+  imagen_url?: string;
+  imagen_alt?: string;
+  estado: 'borrador' | 'publicada' | 'archivada' | 'pausada';
+  visible_para: 'todos' | 'clientes' | 'admin';
+  fecha_publicacion?: string;
+  fecha_expiracion?: string;
+  mostrar_desde?: string;
+  mostrar_hasta?: string;
+  prioridad: number;
+  destacada: boolean;
+  allow_comentarios: boolean;
+  creado_por?: string;
+  actualizado_por?: string;
+  created_at: string;
+  updated_at: string;
+  // Relaciones
+  categoria?: NoticiaCategoria;
+  imagenes?: NoticiaImagen[];
+  stats?: NoticiaStats;
+  // Campos de vista
+  categoria_nombre?: string;
+  categoria_slug?: string;
+  categoria_color?: string;
+  categoria_icono?: string;
+  total_vistas?: number;
+  total_clics?: number;
+  total_compartidas?: number;
+}
+
+export interface CrearNoticia {
+  titulo: string;
+  descripcion: string;
+  contenido_completo?: string;
+  categoria_id: string;
+  imagen_url?: string;
+  imagen_alt?: string;
+  estado?: 'borrador' | 'publicada' | 'archivada' | 'pausada';
+  visible_para?: 'todos' | 'clientes' | 'admin';
+  fecha_publicacion?: string;
+  fecha_expiracion?: string;
+  mostrar_desde?: string;
+  mostrar_hasta?: string;
+  prioridad?: number;
+  destacada?: boolean;
+  allow_comentarios?: boolean;
+}
+
+export interface ActualizarNoticia extends Partial<CrearNoticia> {
+  id: string;
 }
 
 export interface RenovacionClienteRequest {

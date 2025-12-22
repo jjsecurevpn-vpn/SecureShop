@@ -427,6 +427,8 @@ npm run build
 
 Archivo: `/etc/nginx/sites-available/shop.jhservices.com.ar`
 
+Plantilla versionada en el repo: `infra/nginx/shop.jhservices.com.ar.conf`
+
 ```nginx
 server {
     listen 80;
@@ -444,18 +446,58 @@ server {
     ssl_certificate /etc/letsencrypt/live/shop.jhservices.com.ar/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/shop.jhservices.com.ar/privkey.pem;
 
-    # Proxy API requests to backend
-    location /api {
-        proxy_pass http://localhost:4000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
+   # Backend (PM2) - puerto de producción
+   set $backend http://127.0.0.1:4001;
+
+   # Límite coherente con Express (10mb)
+   client_max_body_size 10m;
+
+   # Health del backend (IMPORTANTE: /health NO está bajo /api)
+   location = /health {
+      proxy_pass $backend;
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_read_timeout 5s;
+      proxy_send_timeout 5s;
+   }
+
+   # SSE (stream) - deshabilitar buffering y usar timeouts largos
+   location /api/realtime/stream {
+      proxy_pass $backend;
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_buffering off;
+      proxy_cache off;
+      add_header X-Accel-Buffering no;
+      proxy_read_timeout 3600s;
+      proxy_send_timeout 3600s;
+   }
+
+   # Proxy API requests to backend
+   location /api {
+      proxy_pass $backend;
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+
+      # Durante un reload, un worker puede responder 503 (draining). Reintentar.
+      proxy_next_upstream error timeout http_502 http_503 http_504;
+      proxy_next_upstream_tries 3;
+      proxy_connect_timeout 5s;
+      proxy_send_timeout 60s;
+      proxy_read_timeout 60s;
+   }
 
     # Serve frontend static files
     location / {

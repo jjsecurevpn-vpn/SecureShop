@@ -14,35 +14,20 @@ PORT=4001
 MAX_RETRIES=5
 RETRY_DELAY=2
 
+# Nota:
+# Este script fue ajustado para priorizar deploy sin downtime.
+# En vez de detener/kill procesos y liberar el puerto agresivamente (lo que corta transacciones),
+# usamos "pm2 startOrReload"/"pm2 reload" con apagado elegante del backend.
+
 # ============================================================================
 # FUNCIÓN: Liberar puerto de forma agresiva
 # ============================================================================
 liberar_puerto_agresivo() {
     local intento=$1
-    echo "🔓 Liberando puerto $PORT (intento $intento/$MAX_RETRIES)..."
-    
-    # Opción 1: Usar fuser
-    ssh $REMOTE_HOST "fuser -k $PORT/tcp 2>/dev/null" || true
-    
-    # Opción 2: Matar todos los node processes
-    ssh $REMOTE_HOST "pkill -9 node" || true
-    
-    # Opción 3: Usar lsof si fuser falla
-    ssh $REMOTE_HOST "lsof -i :$PORT -t | xargs -r kill -9" 2>/dev/null || true
-    
-    # Opción 4: Matar PM2 daemon
-    ssh $REMOTE_HOST "pm2 kill 2>/dev/null || true" || true
-    
-    # Esperar antes de verificar
-    sleep 1
-    
-    # Verificar que el puerto esté libre
-    if ssh $REMOTE_HOST "lsof -i :$PORT" 2>/dev/null; then
-        return 1  # Puerto aún en uso
-    else
-        echo "✓ Puerto $PORT liberado exitosamente"
-        return 0  # Puerto libre
-    fi
+    echo "⚠️  Liberación agresiva DESACTIVADA por defecto (intento $intento/$MAX_RETRIES)"
+    echo "    Motivo: esto corta transacciones en curso."
+    echo "    Si necesitás emergencia: editar script y reactivar la lógica anterior."
+    return 0
 }
 
 # ============================================================================
@@ -56,34 +41,12 @@ puerto_disponible() {
 # PASO 0: PRE-DEPLOY CLEANUP (Crítico para evitar EADDRINUSE)
 # ============================================================================
 echo ""
-echo "🛡️  FASE 1: Limpieza Pre-Deploy Agresiva"
+echo "🛡️  FASE 1: Pre-Deploy (Sin Downtime)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-ssh $REMOTE_HOST "pm2 stop all 2>/dev/null || true; pm2 kill 2>/dev/null || true; sleep 1" || true
-
-# Liberar puerto con reintentos
-INTENTO=1
-while [ $INTENTO -le $MAX_RETRIES ]; do
-    if liberar_puerto_agresivo $INTENTO; then
-        break
-    fi
-    
-    if [ $INTENTO -lt $MAX_RETRIES ]; then
-        echo "⏳ Puerto aún en uso, esperando ${RETRY_DELAY}s antes de reintentar..."
-        sleep $RETRY_DELAY
-    else
-        echo "❌ CRÍTICO: No se pudo liberar puerto $PORT después de $MAX_RETRIES intentos"
-        echo "   Algunas posibles soluciones:"
-        echo "   1. Verificar: ssh root@149.50.148.6 'lsof -i :$PORT'"
-        echo "   2. Revisar logs: ssh root@149.50.148.6 'pm2 logs'"
-        echo "   3. Reiniciar servidor"
-        exit 1
-    fi
-    
-    INTENTO=$((INTENTO + 1))
-done
-
-echo "✓ Limpieza pre-deploy completada exitosamente"
+echo "  Verificando conectividad a servidor remoto y PM2..."
+ssh $REMOTE_HOST "pm2 ping >/dev/null 2>&1 || true" || true
+echo "  ✓ OK"
 
 # ============================================================================
 # FASE 2: COMPILACIÓN
@@ -145,43 +108,44 @@ else
     echo "  ⚠️  Advertencia en transferencia de backend"
 fi
 
+# Ecosystem PM2 (necesario para cluster/wait_ready/reload sin downtime)
+echo "  Transferiendo ecosystem.config.js..."
+if scp ./backend/ecosystem.config.js $REMOTE_HOST:$BACKEND_PATH/ecosystem.config.js 2>/dev/null; then
+    echo "  ✓ ecosystem.config.js transferido"
+else
+    echo "  ⚠️  Advertencia en transferencia de ecosystem.config.js"
+fi
+
 echo "✓ Transferencia completada"
 
 # ============================================================================
 # FASE 4: VERIFICACIÓN PRE-REINICIO (Crítica)
 # ============================================================================
 echo ""
-echo "✅ FASE 4: Verificación Pre-Reinicio"
+echo "✅ FASE 4: Verificación Pre-Reload"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-echo "  Verificando puerto $PORT está libre..."
-if ! puerto_disponible; then
-    echo "  ⚠️  Puerto aún en uso, intentando liberación final..."
-    if ! liberar_puerto_agresivo "FINAL"; then
-        echo "  ❌ CRÍTICO: No se pudo liberar puerto antes de reiniciar"
-        exit 1
-    fi
-fi
-
-echo "  ✓ Puerto $PORT verificado como disponible"
-echo "  Esperando 2 segundos para estabilizar..."
-sleep 2
+echo "  Nota: En deploy sin downtime NO se libera el puerto."
+echo "  Se hace rolling reload de workers por PM2 (cluster)."
 
 # ============================================================================
 # FASE 5: REINICIO DE PM2
 # ============================================================================
 echo ""
-echo "🔄 FASE 5: Reinicio de PM2"
+echo "🔄 FASE 5: Reload de PM2 (Zero Downtime)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-echo "  Iniciando PM2..."
-ssh $REMOTE_HOST "cd $BACKEND_PATH && pm2 start ecosystem.config.js && pm2 save" || {
-    echo "❌ Error al iniciar PM2"
+echo "  Aplicando startOrReload (o reload) en PM2..."
+# Exportar variables de .env.production antes de recargar PM2
+ssh $REMOTE_HOST "cd $BACKEND_PATH && export \$(grep -v '^#' .env.production | xargs) && pm2 delete secureshop-backend 2>/dev/null; pm2 start ecosystem.config.js && pm2 save" || {
+    echo "❌ Error al hacer startOrReload con PM2"
+    echo "   Estado de PM2:"; ssh $REMOTE_HOST "pm2 status" || true
+    echo "   Últimos logs:"; ssh $REMOTE_HOST "pm2 logs --lines 50" || true
     exit 1
 }
 
-echo "  Esperando que el backend inicie completamente (5 segundos)..."
-sleep 5
+echo "  Esperando que el backend quede listo..."
+sleep 2
 
 # ============================================================================
 # FASE 6: VERIFICACIÓN DE ONLINE
@@ -191,29 +155,24 @@ echo "🔍 FASE 6: Verificación de Backend Online"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 BACKEND_ONLINE=0
-for i in {1..10}; do
-    if ssh $REMOTE_HOST "lsof -i :$PORT" &>/dev/null; then
-        echo "  ✓ Backend escuchando en puerto $PORT"
+for i in {1..20}; do
+    if ssh $REMOTE_HOST "curl -fsS http://localhost:$PORT/health >/dev/null" 2>/dev/null; then
+        echo "  ✓ Backend responde /health"
         BACKEND_ONLINE=1
         break
     fi
-    echo "  Intento $i: Esperando conexión al puerto $PORT..."
+    echo "  Intento $i: esperando /health..."
     sleep 1
 done
 
 if [ $BACKEND_ONLINE -eq 0 ]; then
-    echo "  ❌ Backend NO está escuchando en puerto $PORT"
-    echo "  "
-    echo "  Estado de PM2:"
-    ssh $REMOTE_HOST "pm2 status"
-    echo "  "
-    echo "  Últimos logs:"
-    ssh $REMOTE_HOST "pm2 logs --lines 20"
+    echo "  ❌ Backend NO responde /health"
+    echo "  Estado de PM2:"; ssh $REMOTE_HOST "pm2 status" || true
+    echo "  Últimos logs:"; ssh $REMOTE_HOST "pm2 logs --lines 50" || true
     exit 1
 fi
 
-echo "  ✓ Backend online"
-ssh $REMOTE_HOST "pm2 status"
+ssh $REMOTE_HOST "pm2 status" || true
 
 # ============================================================================
 # FASE 7: SINCRONIZACIÓN

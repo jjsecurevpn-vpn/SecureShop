@@ -1,37 +1,58 @@
+const path = require("path");
+
+// Cargar variables de entorno si existe un .env en el servidor.
+// Nota: Este archivo se ejecuta en el host remoto (PM2), no en el build.
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("dotenv").config({ path: path.join(__dirname, ".env") });
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  require("dotenv").config({ path: path.join(__dirname, ".env.production") });
+} catch {
+  // dotenv puede no estar disponible en el host, o no existir el archivo .env.
+}
+
 module.exports = {
   apps: [
     {
       name: "secureshop-backend",
       script: "./dist/index.js",
       cwd: "/home/secureshop/secureshop-vpn/backend",
-      instances: 1,
-      exec_mode: "fork",
-      listen_timeout: 10000,
-      kill_timeout: 5000,
+      instances: "max",
+      exec_mode: "cluster",
+      wait_ready: true,
+      listen_timeout: 30000,
+      kill_timeout: 30000,
       env: {
         NODE_ENV: "production",
-        MP_ACCESS_TOKEN:
-          "APP_USR-8757932973898001-081011-11b3d5038392a44bcbb684a733b5539d-222490274",
-        MP_PUBLIC_KEY: "APP_USR-59bd1954-749b-43c7-9bfc-1c1a5e26a22d",
-        MP_WEBHOOK_URL: "http://149.50.148.6/api/webhook",
-        SERVEX_API_KEY:
-          "sx_9c57423352279d267f4e93f3b14663c510c1c150fd788ceef393ece76a5f521c",
-        SERVEX_BASE_URL: "https://servex.ws/api",
+        // Secrets: deben venir del entorno del servidor (.env / variables exportadas)
+        MP_ACCESS_TOKEN: process.env.MP_ACCESS_TOKEN,
+        MP_PUBLIC_KEY: process.env.MP_PUBLIC_KEY,
+        MP_WEBHOOK_URL: process.env.MP_WEBHOOK_URL,
+        SERVEX_API_KEY: process.env.SERVEX_API_KEY,
+        SUPABASE_URL: process.env.SUPABASE_URL,
+        SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_KEY,
+        SUPABASE_WEBHOOK_SECRET: process.env.SUPABASE_WEBHOOK_SECRET,
+        SUPPORT_NOTIFY_EMAIL: process.env.SUPPORT_NOTIFY_EMAIL,
+        ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+        EMAIL_USER: process.env.EMAIL_USER,
+        EMAIL_PASS: process.env.EMAIL_PASS,
+        SMTP_USER: process.env.SMTP_USER,
+        SMTP_PASS: process.env.SMTP_PASS,
+        EMAIL_FROM: process.env.EMAIL_FROM,
+        EMAIL_DEBUG: process.env.EMAIL_DEBUG,
+
+        // No-secrets / defaults
+        SERVEX_BASE_URL: process.env.SERVEX_BASE_URL || "https://servex.ws/api",
         DATABASE_PATH:
+          process.env.DATABASE_PATH ||
           "/home/secureshop/secureshop-vpn/backend/database/secureshop.db",
-        CORS_ORIGIN: "https://shop.jhservices.com.ar",
-        PORT: "4001",
-        RATE_LIMIT_WINDOW_MS: "900000",
-        RATE_LIMIT_MAX_REQUESTS: "100",
-        SERVEX_TIMEOUT: "30000",
-        // Email Configuration
-        SMTP_HOST: "smtp.gmail.com",
-        SMTP_PORT: "587",
-        EMAIL_USER: "jjsecurevpn@gmail.com",
-        EMAIL_PASS: "nnbupqttsrzators",
-        // Supabase Configuration
-        SUPABASE_URL: "https://yvxtlepjcpogiqgrzlpx.supabase.co",
-        SUPABASE_SERVICE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2eHRsZXBqY3BvZ2lxZ3J6bHB4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTc0ODk1MywiZXhwIjoyMDgxMzI0OTUzfQ.75iW23-u5jfDi4XtIjorzS6Kve7p2uhSySP81dmW7Y8",
+        CORS_ORIGIN: process.env.CORS_ORIGIN || "https://shop.jhservices.com.ar",
+        PORT: process.env.PORT || "4001",
+        RATE_LIMIT_WINDOW_MS: process.env.RATE_LIMIT_WINDOW_MS || "900000",
+        RATE_LIMIT_MAX_REQUESTS: process.env.RATE_LIMIT_MAX_REQUESTS || "100",
+        SERVEX_TIMEOUT: process.env.SERVEX_TIMEOUT || "30000",
+        SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
+        SMTP_PORT: process.env.SMTP_PORT || "587",
       },
       error_file: "~/.pm2/logs/secureshop-backend-error.log",
       out_file: "~/.pm2/logs/secureshop-backend-out.log",

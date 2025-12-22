@@ -222,7 +222,7 @@ export function ReferidosSection() {
             <button
               onClick={() => setSettings(s => s ? { ...s, activo: !s.activo } : s)}
               className={`relative w-14 h-7 rounded-full transition-colors ${
-                settings?.activo ? 'bg-purple-600' : 'bg-gray-300'
+                settings?.activo ? 'bg-purple-600' : 'bg-neutral-600'
               }`}
             >
               <span

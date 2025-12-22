@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle,
   Clock,
@@ -8,6 +9,7 @@ import {
   RefreshCw,
   Shield,
   User,
+  Check,
 } from "lucide-react";
 import { apiService } from "../services/api.service";
 import { mercadoPagoService } from "../services/mercadopago.service";
@@ -226,19 +228,23 @@ const CheckoutRenovacionPage: React.FC = () => {
 
   if (datosInvalidos) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4 text-center px-6">
-        <div className="w-16 h-16 rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center">
-          <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-rose-700" />
-        </div>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-6 text-center px-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-16 h-16 rounded-2xl bg-rose-100 border border-rose-200 flex items-center justify-center"
+        >
+          <AlertCircle className="w-8 h-8 text-rose-600" />
+        </motion.div>
         <div className="space-y-2">
-          <h1 className="text-xl font-semibold text-gray-900">No pudimos cargar tu renovación</h1>
-          <p className="text-sm text-gray-600">
+          <h1 className="text-xl font-serif font-medium text-gray-900">No pudimos cargar tu renovación</h1>
+          <p className="text-sm text-gray-500 max-w-sm">
             Vuelve a la página de planes e inicia nuevamente el proceso de renovación.
           </p>
         </div>
         <button
           onClick={() => navigate("/planes")}
-          className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-colors"
+          className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-colors"
         >
           Volver a planes
         </button>
@@ -247,39 +253,66 @@ const CheckoutRenovacionPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white pt-16 md:pt-14">
+    <div className="min-h-screen bg-white pt-20 md:pt-24">
       <main>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-8 md:py-12">
-          <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Left Column - Formulario */}
             <div className="space-y-8">
               {/* Header */}
-              <div>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-gray-900 mb-2">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-sm font-medium mb-4">
+                  <RefreshCw className="w-4 h-4" />
+                  Renovación
+                </div>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-gray-900 mb-3">
                   Renovar tu cuenta
                 </h1>
-                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
+                <p className="text-base sm:text-lg text-gray-500">
                   Completa tus datos para finalizar la renovación
                 </p>
-              </div>
+              </motion.div>
 
               {/* Form */}
-              <div className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5"
+              >
                 {/* Error */}
-                {error && (
-                  <div className="bg-rose-50 border border-rose-300 rounded-lg p-4 flex items-start gap-3">
-                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-rose-700 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-rose-700">{error}</p>
-                  </div>
-                )}
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center flex-shrink-0">
+                        <AlertCircle className="w-4 h-4 text-rose-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-rose-700">Error</p>
+                        <p className="text-sm text-rose-600">{error}</p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* Nombre */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Nombre completo
                   </label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-gray-400" />
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center group-focus-within:bg-purple-100 transition-colors">
+                      <User className="w-5 h-5 text-purple-500" />
+                    </div>
                     <input
                       type="text"
                       value={nombre}
@@ -287,7 +320,7 @@ const CheckoutRenovacionPage: React.FC = () => {
                         setNombre(event.target.value);
                         setError("");
                       }}
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                      className="w-full pl-16 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 transition-all hover:border-gray-300"
                       placeholder="Juan Pérez"
                     />
                   </div>
@@ -295,9 +328,11 @@ const CheckoutRenovacionPage: React.FC = () => {
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-2">Email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-gray-400" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center group-focus-within:bg-purple-100 transition-colors">
+                      <Mail className="w-5 h-5 text-purple-500" />
+                    </div>
                     <input
                       type="email"
                       value={email}
@@ -305,56 +340,61 @@ const CheckoutRenovacionPage: React.FC = () => {
                         setEmail(event.target.value);
                         setError("");
                       }}
-                      className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                      className="w-full pl-16 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 transition-all hover:border-gray-300"
                       placeholder="tu@email.com"
                     />
                   </div>
-                  <p className="text-gray-600 text-xs mt-2 flex items-center gap-1.5">
-                    <Shield className="w-3.5 h-3.5 text-indigo-600" />
+                  <p className="text-gray-500 text-xs mt-2 flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-purple-500" />
                     Te enviaremos la confirmación de la renovación a este correo
                   </p>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Resumen de detalles */}
-              <div className="space-y-4">
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="space-y-4"
+              >
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-semibold text-gray-600 uppercase tracking-tight">
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
                         Usuario
                       </p>
-                      <p className="text-lg font-semibold text-gray-900 mt-1">{username}</p>
+                      <p className="text-lg font-semibold text-gray-900">{username}</p>
                       {planNombre && (
-                        <p className="text-xs text-gray-600 mt-1">Plan actual: {planNombre}</p>
+                        <p className="text-xs text-gray-500 mt-1">Plan actual: {planNombre}</p>
                       )}
                     </div>
-                    <div className="w-10 h-10 rounded-lg bg-indigo-100 border border-indigo-200 flex items-center justify-center">
-                      <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-600" />
+                    <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                      <RefreshCw className="w-6 h-6 text-purple-600" />
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <p className="text-xs text-gray-600 uppercase tracking-wide flex items-center gap-1">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                    <p className="text-xs text-gray-500 uppercase tracking-wide flex items-center gap-1.5 mb-2">
                       <Clock className="w-3.5 h-3.5" />
                       Días a agregar
                     </p>
-                    <p className="text-lg font-semibold text-gray-900 mt-1">{dias} días</p>
+                    <p className="text-xl font-semibold text-gray-900">{dias} días</p>
                   </div>
 
                   {tipo === "cliente" && (
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <p className="text-xs text-gray-600 uppercase tracking-wide flex items-center gap-1">
+                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide flex items-center gap-1.5 mb-2">
                         <Shield className="w-3.5 h-3.5" />
                         Dispositivos
                       </p>
-                      <p className="text-lg font-semibold text-gray-900 mt-1">
+                      <p className="text-xl font-semibold text-gray-900">
                         {connectionDestino || connectionActual}
                       </p>
                       {hayCambioDispositivos && (
-                        <p className="text-[11px] text-indigo-700 mt-1">
+                        <p className="text-xs text-purple-600 mt-1 font-medium">
                           Upgrade desde {connectionActual}
                         </p>
                       )}
@@ -362,14 +402,14 @@ const CheckoutRenovacionPage: React.FC = () => {
                   )}
 
                   {tipo === "revendedor" && (
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <p className="text-xs text-gray-600 uppercase tracking-wide">
+                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                      <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">
                         Tipo
                       </p>
-                      <p className="text-sm font-semibold text-gray-900 mt-1">{tipoRenovacion}</p>
+                      <p className="text-lg font-semibold text-gray-900 capitalize">{tipoRenovacion}</p>
                       {cantidadSeleccionada && (
-                        <p className="text-[11px] text-gray-600 mt-1">
-                          Cant: {cantidadSeleccionada}
+                        <p className="text-xs text-gray-500 mt-1">
+                          Cantidad: {cantidadSeleccionada}
                         </p>
                       )}
                     </div>
@@ -377,48 +417,59 @@ const CheckoutRenovacionPage: React.FC = () => {
                 </div>
 
                 {hayDescuento && (
-                  <div className="bg-emerald-50 border border-emerald-300 rounded-lg p-3">
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-[11px] text-emerald-700 uppercase tracking-wide">Cupón aplicado</p>
-                        {codigoCupon && (
-                          <p className="text-sm font-semibold text-emerald-900 mt-0.5">{codigoCupon}</p>
-                        )}
+                      <div className="flex items-center gap-2">
+                        <Check className="w-4 h-4 text-emerald-600" />
+                        <div>
+                          <p className="text-xs text-emerald-700 uppercase tracking-wide font-medium">Cupón aplicado</p>
+                          {codigoCupon && (
+                            <p className="text-sm font-semibold text-emerald-800 mt-0.5">{codigoCupon}</p>
+                          )}
+                        </div>
                       </div>
-                      <span className="text-sm font-semibold text-emerald-700">
+                      <span className="text-lg font-bold text-emerald-700">
                         - ${descuentoFinal.toLocaleString("es-AR")}
                       </span>
                     </div>
                   </div>
                 )}
-              </div>
+              </motion.div>
             </div>
 
             {/* Right Column - Resumen (Sticky) */}
-            <div className="md:sticky md:top-32 h-fit space-y-6">
+            <div className="lg:sticky lg:top-28 h-fit space-y-6">
               {/* Plan Card */}
-              <div className="bg-gradient-to-br from-purple-100 via-purple-50 to-white border border-purple-200 rounded-lg p-5 sm:p-6 lg:p-8 xl:p-10 space-y-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="bg-gradient-to-br from-emerald-50 via-white to-purple-50 rounded-2xl border border-emerald-100 p-6 lg:p-8 space-y-6"
+              >
                 {/* Info Header */}
                 <div>
-                  <div className="text-sm text-purple-600 mb-2">Resumen de renovación</div>
-                  <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-gray-900 mb-1">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium mb-3">
+                    <RefreshCw className="w-3 h-3" />
+                    Resumen de renovación
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-serif font-medium text-gray-900 mb-1">
                     Renovación de {dias} días
                   </h2>
                 </div>
 
                 {/* Divider */}
-                <div className="border-t border-purple-200" />
+                <div className="border-t border-emerald-100" />
 
                 {/* Price Breakdown */}
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg">
-                    <span className="text-gray-600">Precio por día</span>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Precio por día</span>
                     {hayDescuento ? (
                       <div className="text-right">
                         <span className="text-gray-900 font-medium">
                           ${precioPorDia.toLocaleString("es-AR")}
                         </span>
-                        <span className="text-[11px] text-gray-500 line-through block">
+                        <span className="text-xs text-gray-400 line-through block">
                           ${precioPorDiaBase.toLocaleString("es-AR")}
                         </span>
                       </div>
@@ -430,83 +481,101 @@ const CheckoutRenovacionPage: React.FC = () => {
                   </div>
 
                   {hayDescuento && (
-                    <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg">
-                      <span className="text-gray-600">Precio original</span>
-                      <span className="text-gray-500 line-through">
-                        ${precioBase.toLocaleString("es-AR")}
-                      </span>
-                    </div>
+                    <>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-500">Precio original</span>
+                        <span className="text-gray-400 line-through">
+                          ${precioBase.toLocaleString("es-AR")}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-center text-sm text-emerald-600">
+                        <span className="flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5" />
+                          Descuento {codigoCupon ? `(${codigoCupon})` : ""}
+                        </span>
+                        <span className="font-medium">- ${descuentoFinal.toLocaleString("es-AR")}</span>
+                      </div>
+                    </>
                   )}
 
-                  {hayDescuento && (
-                    <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-600">
-                      <span>Descuento {codigoCupon ? `(${codigoCupon})` : ""}</span>
-                      <span>- ${descuentoFinal.toLocaleString("es-AR")}</span>
-                    </div>
-                  )}
-
-                  <div className="border-t border-purple-200 pt-3 flex justify-between items-center">
+                  <div className="border-t border-emerald-100 pt-4 flex justify-between items-center">
                     <span className="text-gray-900 font-medium">Total</span>
-                    <span className="text-3xl font-display font-bold text-purple-600">
+                    <span className="text-3xl font-bold text-emerald-600">
                       ${precio.toLocaleString("es-AR")}
                     </span>
                   </div>
                 </div>
 
                 {/* Divider */}
-                <div className="border-t border-purple-200" />
+                <div className="border-t border-emerald-100" />
 
                 {/* Details */}
-                <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600 space-y-2">
-                  <p>Al pagar, procesaremos tu renovación automáticamente.</p>
-                  <p>Recibirás un email con la confirmación.</p>
+                <div className="text-sm text-gray-500 space-y-2">
+                  <p className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-500" />
+                    Al pagar, procesaremos tu renovación automáticamente.
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-emerald-500" />
+                    Recibirás un email con la confirmación.
+                  </p>
                 </div>
-              </div>
+              </motion.div>
 
               {/* MercadoPago Button Section */}
-              <div className="space-y-3">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+                className="space-y-4"
+              >
                 <div id="mp-wallet-container-unique" className="min-h-[56px]" />
 
                 {mpFallbackVisible && (
                   <button
                     onClick={handleFallbackPayment}
                     disabled={processingPayment}
-                    className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white text-sm font-semibold rounded-lg transition-colors shadow-md shadow-indigo-100"
+                    className="w-full py-4 px-6 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 disabled:from-gray-300 disabled:to-gray-400 text-white text-base font-semibold rounded-xl transition-all shadow-lg shadow-emerald-200/50 flex items-center justify-center gap-2"
                   >
                     {processingPayment ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
                         Procesando...
-                      </span>
+                      </>
                     ) : (
                       "Ir a pagar"
                     )}
                   </button>
                 )}
-              </div>
+              </motion.div>
 
               {/* Security Badge */}
-              <div className="flex items-start gap-3 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-700 bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <Shield className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-purple-600 flex-shrink-0 mt-0.5" />
-                <span>Pago 100% seguro con <span className="font-medium">MercadoPago</span></span>
+              <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-xl">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-emerald-600" />
+                </div>
+                <span className="text-sm text-gray-600">
+                  Pago 100% seguro con <span className="font-medium">MercadoPago</span>
+                </span>
               </div>
 
               {/* Back Button */}
               <button
                 onClick={() => navigate(-1)}
-                className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-lg transition-colors"
+                className="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-xl transition-colors"
               >
                 Volver atrás
               </button>
 
               {renovacionId && (
-                <p className="text-[11px] text-gray-600 text-center">
-                  ID de renovación: <span className="text-gray-700">{renovacionId}</span>
+                <p className="text-xs text-gray-400 text-center">
+                  ID de renovación: <span className="text-gray-500 font-mono">{renovacionId}</span>
                 </p>
               )}
 
               {ultimoLinkPago && !mpFallbackVisible && (
-                <p className="text-[11px] text-gray-600 text-center">
+                <p className="text-xs text-gray-400 text-center">
                   Si tienes problemas con el botón, usa la opción "Ir a pagar".
                 </p>
               )}

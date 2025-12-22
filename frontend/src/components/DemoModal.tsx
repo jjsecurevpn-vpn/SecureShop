@@ -185,8 +185,8 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="border-b border-gray-200 p-6 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 border border-indigo-200 flex items-center justify-center">
-              <Gift className="w-5 h-5 text-indigo-600" />
+            <div className="w-10 h-10 rounded-xl bg-purple-100 border border-purple-200 flex items-center justify-center">
+              <Gift className="w-5 h-5 text-purple-700" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-gray-900">
@@ -210,14 +210,14 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
           {/* No autenticado - Mostrar mensaje de login */}
           {!isAuthenticated && (
             <div className="space-y-6">
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <LogIn className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <LogIn className="w-5 h-5 text-purple-700 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-amber-900 font-semibold text-sm">
+                    <p className="text-purple-900 font-semibold text-sm">
                       Inicia sesión para continuar
                     </p>
-                    <p className="text-amber-800 text-xs mt-1">
+                    <p className="text-purple-800 text-xs mt-1">
                       Debes tener una cuenta para solicitar demos gratuitas. 
                       Cada cuenta puede solicitar hasta 2 demos.
                     </p>
@@ -240,7 +240,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
 
               <button
                 onClick={handleGoToLogin}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                className="w-full py-3 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
               >
                 <LogIn className="w-5 h-5" />
                 Iniciar Sesión
@@ -250,7 +250,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
                 ¿No tienes cuenta?{" "}
                 <button
                   onClick={handleGoToRegister}
-                  className="text-indigo-600 hover:underline font-medium"
+                  className="text-purple-700 hover:underline font-medium"
                 >
                   Regístrate gratis
                 </button>
@@ -262,16 +262,16 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
           {isAuthenticated && (
             <>
               {/* Usuario info */}
-              <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-200 flex items-center justify-center">
-                  <User className="w-4 h-4 text-indigo-600" />
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-purple-200 flex items-center justify-center">
+                  <User className="w-4 h-4 text-purple-700" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-indigo-900 text-sm font-medium truncate">
+                  <p className="text-purple-900 text-sm font-medium truncate">
                     {user?.email}
                   </p>
                   {demosInfo && (
-                    <p className="text-indigo-600 text-xs">
+                    <p className="text-purple-700 text-xs">
                       Demos: {demosInfo.demos_usadas}/{demosInfo.demos_maximas} usadas
                     </p>
                   )}
@@ -281,7 +281,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
               {/* Loading demos info */}
               {checkingDemos && (
                 <div className="flex items-center justify-center py-4">
-                  <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
+                  <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
                   <span className="ml-2 text-sm text-gray-500">Verificando disponibilidad...</span>
                 </div>
               )}
@@ -321,7 +321,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
                   {/* Info de la demo */}
                   <div className="bg-gradient-to-br from-slate-900/90 via-gray-900/90 to-slate-800/90 border border-slate-700/50 rounded-lg p-4 space-y-3">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-indigo-400" />
+                      <Clock className="w-4 h-4 text-purple-300" />
                       <p className="text-gray-300 text-sm">
                         <span className="font-semibold text-white">{credentials.horas_validas} horas</span> de acceso completo
                       </p>
@@ -334,15 +334,15 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
                     </div>
                   </div>
 
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                    <p className="text-indigo-900 text-xs leading-relaxed">
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <p className="text-purple-900 text-xs leading-relaxed">
                       📱 Descarga la app <span className="font-semibold">JJSecure VPN</span> desde Play Store o App Store e ingresa las credenciales que enviamos a tu email.
                     </p>
                   </div>
 
                   <button
                     onClick={handleClose}
-                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors shadow-lg hover:shadow-xl"
+                    className="w-full py-3 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-xl transition-colors shadow-lg hover:shadow-xl"
                   >
                     Entendido
                   </button>
@@ -366,11 +366,11 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4">
-                    <p className="text-indigo-900 text-sm font-semibold mb-2">
+                  <div className="bg-gradient-to-br from-purple-50 to-white border border-purple-200 rounded-lg p-4">
+                    <p className="text-purple-900 text-sm font-semibold mb-2">
                       ¿Te gustó el servicio?
                     </p>
-                    <p className="text-indigo-800 text-xs mb-3">
+                    <p className="text-purple-800 text-xs mb-3">
                       Adquiere un plan completo y disfruta de internet ilimitado.
                     </p>
                     <button
@@ -378,7 +378,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
                         handleClose();
                         navigate("/planes");
                       }}
-                      className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition-colors text-sm"
+                      className="w-full py-2 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-lg transition-colors text-sm"
                     >
                       Ver Planes
                     </button>
@@ -442,7 +442,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
                       onChange={(e) => setNombre(e.target.value)}
                       disabled={loading}
                       placeholder="Tu nombre"
-                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors disabled:opacity-50"
+                      className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors disabled:opacity-50"
                     />
                   </div>
 
@@ -457,10 +457,10 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
                       <li>✅ Velocidad sin limitaciones</li>
                     </ul>
                     <p className="text-gray-400 text-xs mt-3 pt-2 border-t border-slate-700/50">
-                      📧 Las credenciales se enviarán a: <span className="text-blue-300">{user?.email}</span>
+                      📧 Las credenciales se enviarán a: <span className="text-purple-200">{user?.email}</span>
                     </p>
                     {demosInfo && (
-                      <p className="text-amber-300 text-xs">
+                      <p className="text-purple-200 text-xs">
                         ⚠️ Demos disponibles: {demosInfo.demos_disponibles} de {demosInfo.demos_maximas}
                       </p>
                     )}
@@ -470,7 +470,7 @@ const DemoModal: React.FC<DemoModalProps> = ({ isOpen, onClose }) => {
                   <button
                     type="submit"
                     disabled={loading || bloqueado}
-                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 disabled:text-gray-500 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                    className="w-full py-3 bg-purple-700 hover:bg-purple-800 disabled:bg-gray-300 disabled:text-gray-500 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
                   >
                     {bloqueado ? (
                       <>

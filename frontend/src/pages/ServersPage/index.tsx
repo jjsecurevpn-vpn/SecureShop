@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { BarChart3, Users } from "lucide-react";
 import { ServerStats } from "./components/ServerStats";
 import { LatestUsers } from "./components/LatestUsers";
@@ -49,8 +50,8 @@ const ServersPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: ServersPageProps
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
                 activeSection === section.id
-                  ? "bg-violet-900/20 text-violet-300"
-                  : "text-neutral-400 hover:bg-neutral-800"
+                  ? "bg-purple-50 text-purple-700 border border-purple-200"
+                  : "text-gray-600 hover:bg-gray-50"
               }`}
             >
               {section.icon}
@@ -62,14 +63,24 @@ const ServersPage = ({ isMobileMenuOpen, setIsMobileMenuOpen }: ServersPageProps
 
       {/* Main Content */}
       <main>
+        {/* Hero Section */}
         <ServersHero />
-        <ServerGlobalSummary />
-        {/* Server Stats */}
+        
+        {/* Global Summary - Stats Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <ServerGlobalSummary />
+        </motion.div>
+
+        {/* Server Stats Section */}
         <div id="section-server-stats">
           <ServerStats />
         </div>
 
-        {/* Latest Users */}
+        {/* Latest Users Section */}
         <div id="section-latest-users">
           <LatestUsers />
         </div>

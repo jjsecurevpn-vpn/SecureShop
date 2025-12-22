@@ -1,10 +1,9 @@
-import { Cupon, NoticiaConfig } from "../../../types";
+import { Cupon } from "../../../types";
 
 interface OverviewSectionProps {
   cupones: Cupon[];
   loadingCupones: boolean;
   isRefreshingCupones: boolean;
-  noticiasConfig: NoticiaConfig | null;
   numberFormatter: Intl.NumberFormat;
   onRefreshCupones: () => void;
 }
@@ -13,7 +12,6 @@ export function OverviewSection({
   cupones,
   loadingCupones,
   isRefreshingCupones,
-  noticiasConfig,
   numberFormatter,
   onRefreshCupones,
 }: OverviewSectionProps) {
@@ -59,9 +57,9 @@ export function OverviewSection({
               Estado avisos
             </div>
             <div className="mt-2 text-3xl font-bold text-white">
-              {noticiasConfig?.aviso.habilitado ? "Activos" : "Inactivos"}
+              Gestionados
             </div>
-            <div className="text-xs text-neutral-500 mt-1">en el sitio</div>
+            <div className="text-xs text-neutral-500 mt-1">en el sistema</div>
           </div>
         </div>
       </div>

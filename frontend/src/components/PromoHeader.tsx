@@ -2,6 +2,45 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { fontFamily } from "../styles/typography";
 
+type PromoTheme = {
+  accent: string;
+  accentDark: string;
+  accentText: string;
+};
+
+const THEME_PLANES: PromoTheme = {
+  // (Actual) verde/neón
+  accent: "#d4ff00",
+  accentDark: "#b8e600",
+  accentText: "#110723",
+};
+
+const THEME_REVENDEDORES: PromoTheme = {
+  // Naranja
+  accent: "#fb923c",
+  accentDark: "#f97316",
+  accentText: "#110723",
+};
+
+const THEME_AMBAS: PromoTheme = {
+  // Índigo (brillante para mantener texto oscuro)
+  accent: "#a5b4fc",
+  accentDark: "#818cf8",
+  accentText: "#110723",
+};
+
+function hexToRgba(hex: string, alpha: number) {
+  const normalized = hex.replace("#", "");
+  const full = normalized.length === 3
+    ? normalized.split("").map((c) => c + c).join("")
+    : normalized;
+
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 interface PromoConfig {
   activa: boolean;
   activada_en: string | null;
@@ -9,13 +48,14 @@ interface PromoConfig {
 }
 
 interface PromoHeaderProps {
+  tipo?: "planes" | "revendedores";
   showButton?: boolean;
   buttonText?: string;
   onButtonClick?: () => void;
 }
 
 // Componente para cada dígito con efecto flip
-function FlipDigit({ digit, prevDigit }: { digit: string; prevDigit: string }) {
+function FlipDigit({ digit, prevDigit, theme }: { digit: string; prevDigit: string; theme: PromoTheme }) {
   const [isFlipping, setIsFlipping] = useState(false);
   const [displayPrev, setDisplayPrev] = useState(prevDigit);
 
@@ -60,8 +100,8 @@ function FlipDigit({ digit, prevDigit }: { digit: string; prevDigit: string }) {
             fontFamily: fontFamily.mono,
             fontSize: 'clamp(10px, 2.5vw, 14px)',
             fontWeight: '700',
-            color: '#d4ff00',
-            textShadow: '0 0 6px rgba(212, 255, 0, 0.3)',
+            color: theme.accent,
+            textShadow: `0 0 6px ${hexToRgba(theme.accent, 0.3)}`,
             transform: 'translateY(-50%)',
           }}
         >
@@ -92,8 +132,8 @@ function FlipDigit({ digit, prevDigit }: { digit: string; prevDigit: string }) {
             fontFamily: fontFamily.mono,
             fontSize: 'clamp(10px, 2.5vw, 14px)',
             fontWeight: '700',
-            color: '#d4ff00',
-            textShadow: '0 0 6px rgba(212, 255, 0, 0.3)',
+            color: theme.accent,
+            textShadow: `0 0 6px ${hexToRgba(theme.accent, 0.3)}`,
             transform: 'translateY(50%)',
           }}
         >
@@ -141,8 +181,8 @@ function FlipDigit({ digit, prevDigit }: { digit: string; prevDigit: string }) {
               fontFamily: fontFamily.mono,
               fontSize: 'clamp(10px, 2.5vw, 14px)',
               fontWeight: '700',
-              color: '#d4ff00',
-              textShadow: '0 0 6px rgba(212, 255, 0, 0.3)',
+              color: theme.accent,
+              textShadow: `0 0 6px ${hexToRgba(theme.accent, 0.3)}`,
               transform: 'translateY(50%)',
             }}
           >
@@ -176,8 +216,8 @@ function FlipDigit({ digit, prevDigit }: { digit: string; prevDigit: string }) {
               fontFamily: fontFamily.mono,
               fontSize: 'clamp(10px, 2.5vw, 14px)',
               fontWeight: '700',
-              color: '#d4ff00',
-              textShadow: '0 0 6px rgba(212, 255, 0, 0.3)',
+              color: theme.accent,
+              textShadow: `0 0 6px ${hexToRgba(theme.accent, 0.3)}`,
               transform: 'translateY(-50%)',
             }}
           >
@@ -205,7 +245,7 @@ function FlipDigit({ digit, prevDigit }: { digit: string; prevDigit: string }) {
 }
 
 // Componente para un grupo de dos dígitos (ej: horas, minutos, segundos)
-function FlipUnit({ value, label }: { value: number; label: string }) {
+function FlipUnit({ value, label, theme }: { value: number; label: string; theme: PromoTheme }) {
   const prevValueRef = useRef(value);
   const digits = String(value).padStart(2, '0').split('');
   const prevDigits = String(prevValueRef.current).padStart(2, '0').split('');
@@ -219,8 +259,8 @@ function FlipUnit({ value, label }: { value: number; label: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
       <div style={{ display: 'flex', gap: '1px' }}>
-        <FlipDigit digit={digits[0]} prevDigit={prevDigits[0]} />
-        <FlipDigit digit={digits[1]} prevDigit={prevDigits[1]} />
+        <FlipDigit digit={digits[0]} prevDigit={prevDigits[0]} theme={theme} />
+        <FlipDigit digit={digits[1]} prevDigit={prevDigits[1]} theme={theme} />
       </div>
       <span
         style={{
@@ -239,7 +279,7 @@ function FlipUnit({ value, label }: { value: number; label: string }) {
 }
 
 // Separador entre unidades
-function TimeSeparator() {
+function TimeSeparator({ theme }: { theme: PromoTheme }) {
   return (
     <div
       style={{
@@ -256,8 +296,8 @@ function TimeSeparator() {
           width: 'clamp(2px, 0.6vw, 3px)',
           height: 'clamp(2px, 0.6vw, 3px)',
           borderRadius: '50%',
-          backgroundColor: '#d4ff00',
-          boxShadow: '0 0 4px rgba(212, 255, 0, 0.5)',
+          backgroundColor: theme.accent,
+          boxShadow: `0 0 4px ${hexToRgba(theme.accent, 0.5)}`,
         }}
       />
       <div
@@ -265,8 +305,8 @@ function TimeSeparator() {
           width: 'clamp(2px, 0.6vw, 3px)',
           height: 'clamp(2px, 0.6vw, 3px)',
           borderRadius: '50%',
-          backgroundColor: '#d4ff00',
-          boxShadow: '0 0 4px rgba(212, 255, 0, 0.5)',
+          backgroundColor: theme.accent,
+          boxShadow: `0 0 4px ${hexToRgba(theme.accent, 0.5)}`,
         }}
       />
     </div>
@@ -274,6 +314,7 @@ function TimeSeparator() {
 }
 
 export function PromoHeader({ 
+  tipo = "planes",
   showButton = true, 
   buttonText = "Obtener la oferta",
   onButtonClick 
@@ -281,9 +322,13 @@ export function PromoHeader({
   const navigate = useNavigate();
   const location = useLocation();
   const isPlanesPage = location.pathname === '/planes';
+  const isRevendedoresPage = location.pathname === '/revendedores';
   const [promo_config, setPromoConfig] = useState<PromoConfig | null>(null);
   const [tiempo_restante_segundos, setTiempoRestante] = useState(0);
   const configRef = useRef<PromoConfig | null>(null);
+  const [promoPlanes, setPromoPlanes] = useState<PromoConfig | null>(null);
+  const [promoRevendedores, setPromoRevendedores] = useState<PromoConfig | null>(null);
+  const [promoMostradaTipo, setPromoMostradaTipo] = useState<"planes" | "revendedores" | null>(null);
 
   // Calcular horas, minutos y segundos
   const segundosTotales = tiempo_restante_segundos || 0;
@@ -310,15 +355,44 @@ export function PromoHeader({
     return Math.floor(tiempoRestanteMs / 1000);
   };
 
+  const endpointPlanes = "/api/config/promo-status";
+  const endpointRevendedores = "/api/config/promo-status-revendedores";
+
   // Cargar promo config desde el endpoint correcto
   useEffect(() => {
     const fetchPromo = async () => {
       try {
-        const res = await fetch("/api/config/promo-status");
-        const data = await res.json();
-        configRef.current = data.promo_config;
-        setPromoConfig(data.promo_config);
-        setTiempoRestante(calcularTiempoRestante(data.promo_config));
+        const [resPlanes, resRev] = await Promise.all([
+          fetch(endpointPlanes).catch(() => null as any),
+          fetch(endpointRevendedores).catch(() => null as any),
+        ]);
+
+        const dataPlanes = resPlanes ? await resPlanes.json().catch(() => null) : null;
+        const dataRev = resRev ? await resRev.json().catch(() => null) : null;
+
+        const planesCfg: PromoConfig | null = dataPlanes?.promo_config ?? null;
+        const revCfg: PromoConfig | null = dataRev?.promo_config ?? null;
+
+        setPromoPlanes(planesCfg);
+        setPromoRevendedores(revCfg);
+
+        const preferida = tipo;
+        const preferidaCfg = preferida === "revendedores" ? revCfg : planesCfg;
+        const alternativaTipo = preferida === "revendedores" ? "planes" : "revendedores";
+        const alternativaCfg = alternativaTipo === "revendedores" ? revCfg : planesCfg;
+
+        const preferidaActiva = Boolean(preferidaCfg?.activa);
+        const alternativaActiva = Boolean(alternativaCfg?.activa);
+
+        const mostradaTipo: "planes" | "revendedores" | null =
+          preferidaActiva ? preferida : (alternativaActiva ? alternativaTipo : null);
+
+        const mostradaCfg = mostradaTipo === "revendedores" ? revCfg : (mostradaTipo === "planes" ? planesCfg : null);
+
+        configRef.current = mostradaCfg;
+        setPromoMostradaTipo(mostradaTipo);
+        setPromoConfig(mostradaCfg);
+        setTiempoRestante(mostradaCfg ? calcularTiempoRestante(mostradaCfg) : 0);
       } catch (err) {
         console.error("Error fetching promo config:", err);
       }
@@ -328,7 +402,7 @@ export function PromoHeader({
     // Fetch cada 30 segundos para sincronizar
     const fetchInterval = setInterval(fetchPromo, 30000);
     return () => clearInterval(fetchInterval);
-  }, []);
+  }, [tipo]);
 
   // Contador local que actualiza cada segundo
   useEffect(() => {
@@ -344,7 +418,7 @@ export function PromoHeader({
     if (onButtonClick) {
       onButtonClick();
     } else {
-      navigate('/planes');
+      navigate(promoMostradaTipo === "revendedores" ? "/revendedores" : "/planes");
     }
   };
 
@@ -352,6 +426,11 @@ export function PromoHeader({
   if (!promo_config?.activa) {
     return null;
   }
+
+  const ambasActivas = Boolean(promoPlanes?.activa) && Boolean(promoRevendedores?.activa);
+  const theme: PromoTheme = ambasActivas
+    ? THEME_AMBAS
+    : (promoMostradaTipo === "revendedores" ? THEME_REVENDEDORES : THEME_PLANES);
 
   // Estilos de animación para el flip
   const flipStyles = `
@@ -386,7 +465,7 @@ export function PromoHeader({
           justifyContent: isPlanesPage ? 'center' : 'space-between',
           gap: 'clamp(8px, 2vw, 16px)',
           width: '100%',
-          borderBottom: '1px solid rgba(212, 255, 0, 0.1)',
+          borderBottom: `1px solid ${hexToRgba(theme.accent, 0.15)}`,
         }}
       >
         {/* Contenedor del timer */}
@@ -413,11 +492,11 @@ export function PromoHeader({
                 width: 'clamp(14px, 2.5vw, 16px)',
                 height: 'clamp(14px, 2.5vw, 16px)',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #d4ff00 0%, #a8cc00 100%)',
+                  background: `linear-gradient(135deg, ${theme.accent} 0%, ${theme.accentDark} 100%)`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 0 8px rgba(212, 255, 0, 0.4)',
+                  boxShadow: `0 0 8px ${hexToRgba(theme.accent, 0.4)}`,
               }}
             >
               <svg
@@ -455,23 +534,23 @@ export function PromoHeader({
               alignItems: 'flex-start',
             }}
           >
-            <FlipUnit value={horas} label="hrs" />
-            <TimeSeparator />
-            <FlipUnit value={minutos} label="min" />
-            <TimeSeparator />
-            <FlipUnit value={segundos} label="seg" />
+            <FlipUnit value={horas} label="hrs" theme={theme} />
+            <TimeSeparator theme={theme} />
+            <FlipUnit value={minutos} label="min" theme={theme} />
+            <TimeSeparator theme={theme} />
+            <FlipUnit value={segundos} label="seg" theme={theme} />
           </div>
         </div>
 
         {/* Botón CTA - oculto en /planes */}
-        {showButton && !isPlanesPage && (
+        {showButton && !(promoMostradaTipo === "planes" && isPlanesPage) && !(promoMostradaTipo === "revendedores" && isRevendedoresPage) && (
           <button
             onClick={handleButtonClick}
             style={{
               flexShrink: 0,
-              background: 'linear-gradient(135deg, #d4ff00 0%, #b8e600 100%)',
+              background: `linear-gradient(135deg, ${theme.accent} 0%, ${theme.accentDark} 100%)`,
               border: 'none',
-              color: '#110723',
+              color: theme.accentText,
               cursor: 'pointer',
               padding: 'clamp(4px, 1vw, 6px) clamp(10px, 2vw, 14px)',
               borderRadius: '12px',
@@ -479,17 +558,17 @@ export function PromoHeader({
               fontWeight: '700',
               transition: 'all 0.2s ease',
               whiteSpace: 'nowrap',
-              boxShadow: '0 1px 8px rgba(212, 255, 0, 0.3)',
+              boxShadow: `0 1px 8px ${hexToRgba(theme.accent, 0.3)}`,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = '0 3px 12px rgba(212, 255, 0, 0.5)';
+              e.currentTarget.style.boxShadow = `0 3px 12px ${hexToRgba(theme.accent, 0.5)}`;
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 1px 8px rgba(212, 255, 0, 0.3)';
+              e.currentTarget.style.boxShadow = `0 1px 8px ${hexToRgba(theme.accent, 0.3)}`;
             }}
           >
             {buttonText || 'Obtener'}

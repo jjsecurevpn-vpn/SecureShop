@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { BarChart3, RefreshCw, Zap } from "lucide-react";
 import HeroReventa from "./components/HeroReventa";
 import { PlanRevendedor } from "../../types";
@@ -28,6 +28,7 @@ export interface RevendedoresPageProps {
 
 export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen }: RevendedoresPageProps) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [planes, setPlanes] = useState<PlanRevendedor[]>([]);
   const [planesRenovacion, setPlanesRenovacion] = useState<PlanRevendedor[]>([]);
@@ -47,6 +48,7 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
   const [procesandoRenovacion, setProcesandoRenovacion] = useState(false);
   const [cuponRenovacion, setCuponRenovacion] = useState<CuponAplicado | null>(null);
   const [descuentoRenovacion, setDescuentoRenovacion] = useState(0);
+  const [cuentaDesdeUrl, setCuentaDesdeUrl] = useState<string | null>(null);
 
   const planesCredit = useMemo(
     () =>
@@ -121,6 +123,71 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
     cantidadSeleccionada > 0 &&
     !!planSeleccionado &&
     precioFinalRenovacion > 0;
+
+  // Función para buscar revendedor desde la URL (declarada antes del useEffect)
+  const buscarRevendedorDesdeUrl = useCallback(async (username: string) => {
+    setBusquedaRenovacion(username);
+    setBuscandoRenovacion(true);
+    setErrorRenovacion("");
+
+    try {
+      const response = await fetch("/api/renovacion/buscar?tipo=revendedor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ busqueda: username }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Error al buscar el revendedor");
+      }
+
+      if (!data?.encontrado || data.tipo !== "revendedor") {
+        setErrorRenovacion("No se encontró ninguna cuenta de revendedor con ese username");
+        return;
+      }
+
+      const info = data as RevendedorEncontrado;
+      setRevendedorRenovacion(info);
+      setTipoRenovacionSeleccionado(info.datos.servex_account_type);
+      setCuponRenovacion(null);
+      setDescuentoRenovacion(0);
+
+      const planesFuente =
+        info.datos.servex_account_type === "credit"
+          ? planesCreditRenovacion
+          : planesValidityRenovacion;
+      if (planesFuente.length > 0) {
+        const planCoincidente = planesFuente.find((plan) => plan.max_users === info.datos.max_users);
+        setCantidadSeleccionada((planCoincidente ?? planesFuente[0]).max_users);
+      } else {
+        setCantidadSeleccionada(info.datos.max_users);
+      }
+
+      setNombreRenovacion(info.datos.cliente_nombre || "");
+      setEmailRenovacion(info.datos.cliente_email || "");
+      setPasoRenovacion("configurar");
+    } catch (error: any) {
+      setErrorRenovacion(error?.message || "Error al buscar el revendedor");
+    } finally {
+      setBuscandoRenovacion(false);
+    }
+  }, [planesCreditRenovacion, planesValidityRenovacion]);
+
+  // Manejar parámetro 'cuenta' de la URL para renovación directa
+  useEffect(() => {
+    const cuentaParam = searchParams.get("cuenta");
+    if (cuentaParam && cuentaParam !== cuentaDesdeUrl && planesRenovacion.length > 0) {
+      setCuentaDesdeUrl(cuentaParam);
+      setModoSeleccion("renovacion");
+      setActiveSection("renovacion");
+      // Limpiar el parámetro de la URL
+      setSearchParams({}, { replace: true });
+      // Buscar el revendedor automáticamente
+      buscarRevendedorDesdeUrl(cuentaParam);
+    }
+  }, [searchParams, cuentaDesdeUrl, setSearchParams, buscarRevendedorDesdeUrl, planesRenovacion.length]);
 
   useEffect(() => {
     const cargarPlanes = async () => {
@@ -338,8 +405,8 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
         id: "creditos",
         title: "Sistema de Créditos",
         subtitle: "1 crédito = 30 días de servicio",
-        accent: "bg-emerald-500/10 border-emerald-500/20",
-        accentText: "text-emerald-400",
+        accent: "bg-purple-500/10 border-purple-500/20",
+        accentText: "text-purple-400",
         icon: <Zap className="w-5 h-5" />,
         recommended: true,
         mainDescription:
@@ -381,8 +448,8 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
         id: "validez",
         title: "Sistema de Validez",
         subtitle: "Suscripción con reutilización automática de cupos",
-        accent: "bg-blue-500/10 border-blue-500/20",
-        accentText: "text-blue-400",
+        accent: "bg-purple-500/10 border-purple-500/20",
+        accentText: "text-purple-400",
         icon: <BarChart3 className="w-5 h-5" />,
         mainDescription:
           "Suscripción mensual renovable con reutilización de cupos. Crea múltiples cuentas dentro del rango de usuarios durante ese mes. Los usuarios están vinculados a tu suscripción: si esta vence, todos los usuarios expiran también. Al contrario de Créditos donde las cuentas son independientes.",
@@ -430,8 +497,8 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
         label: "Renovación",
         subtitle: "Renueva tu plan actual",
         icon: (
-          <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center">
-            <RefreshCw className="w-2.5 h-2.5 text-violet-400" />
+          <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
+            <RefreshCw className="w-2.5 h-2.5 text-purple-300" />
           </div>
         ),
         scrollId: "plan-renovacion",
@@ -475,8 +542,8 @@ export default function RevendedoresPage({ isMobileMenuOpen, setIsMobileMenuOpen
                 : `${extractUsersFromName(plan.nombre)} usuarios`,
             subtitle: plan.account_type === "credit" ? "Sistema de créditos" : "30 días",
             icon: (
-              <div className="w-4 h-4 rounded-full bg-violet-500/20 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-violet-400" />
+              <div className="w-4 h-4 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-purple-300" />
               </div>
             ),
             isPlan: true,

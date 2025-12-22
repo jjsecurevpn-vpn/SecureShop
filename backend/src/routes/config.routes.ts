@@ -378,6 +378,29 @@ router.get("/promo-status", (_req: Request, res: Response) => {
   try {
     const config = configService.leerConfigPlanes();
 
+    // Auto-desactivar si ya expiró (evita quedar clavada en activa si el timer aún no corrió)
+    if (config.promo_config?.activa && config.promo_config?.auto_desactivar) {
+      const activadaEnRaw = config.promo_config.activada_en;
+      const duracionHoras = config.promo_config.duracion_horas || 12;
+      if (activadaEnRaw) {
+        const activadaEn = new Date(activadaEnRaw);
+        const venceEn = new Date(activadaEn.getTime() + duracionHoras * 60 * 60 * 1000);
+        const ahora = new Date();
+        if (ahora >= venceEn) {
+          const nowIso = ahora.toISOString();
+          config.promo_config.activa = false;
+          config.promo_config.activada_en = null;
+          (config.promo_config as any).desactivada_en = nowIso;
+          config.ultima_actualizacion = nowIso;
+          if (config.hero?.promocion) {
+            config.hero.promocion.habilitada = false;
+          }
+          configService.guardarConfigPlanes(config);
+          configService.limpiarCache();
+        }
+      }
+    }
+
     return res.status(200).json({
       promo_config: config.promo_config || {
         activa: false,
@@ -415,6 +438,29 @@ router.get("/test", (_req: Request, res: Response) => {
 router.get("/promo-status-revendedores", (_req: Request, res: Response) => {
   try {
     const config = configService.leerConfigRevendedores();
+
+    // Auto-desactivar si ya expiró (evita quedar clavada en activa si el timer aún no corrió)
+    if (config.promo_config?.activa && config.promo_config?.auto_desactivar) {
+      const activadaEnRaw = config.promo_config.activada_en;
+      const duracionHoras = config.promo_config.duracion_horas || 12;
+      if (activadaEnRaw) {
+        const activadaEn = new Date(activadaEnRaw);
+        const venceEn = new Date(activadaEn.getTime() + duracionHoras * 60 * 60 * 1000);
+        const ahora = new Date();
+        if (ahora >= venceEn) {
+          const nowIso = ahora.toISOString();
+          config.promo_config.activa = false;
+          config.promo_config.activada_en = null;
+          (config.promo_config as any).desactivada_en = nowIso;
+          config.ultima_actualizacion = nowIso;
+          if (config.hero?.promocion) {
+            config.hero.promocion.habilitada = false;
+          }
+          configService.guardarConfigRevendedores(config);
+          configService.limpiarCache();
+        }
+      }
+    }
 
     return res.status(200).json({
       promo_config: config.promo_config || {

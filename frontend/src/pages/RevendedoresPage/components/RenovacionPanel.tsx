@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import CuponInput from "../../../components/CuponInput";
 import { Button } from "../../../components/Button";
+import { LeadText, SectionTitle, SmallText } from "../../../components/Typography";
 import { ValidacionCupon } from "../../../services/api.service";
 import { PlanRevendedor } from "../../../types";
 import { DIAS_POR_CREDITOS } from "../constants";
@@ -93,18 +94,20 @@ export function RenovacionPanel({
     <div className="space-y-4 md:space-y-6 xl:space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-normal text-gray-900 mb-2 sm:mb-3">Renovar revendedor</h2>
-        <p className="text-xs sm:text-sm md:text-base text-gray-600">
+        <SectionTitle className="mb-2 sm:mb-3">Renovar revendedor</SectionTitle>
+        <LeadText className="text-xs sm:text-sm md:text-base">
           {pasoRenovacion === "buscar"
             ? "Busca tu cuenta existente para renovarla"
             : "Completa la información y elige tu plan"}
-        </p>
+        </LeadText>
       </div>
 
-      {/* Main Container - Centered */}
-      <div className="mx-auto w-full max-w-2xl">
-        {/* Left Column: Form */}
-        <div className="space-y-4 md:space-y-5 xl:space-y-6">
+      {/* Main Container */}
+      <div className={`mx-auto w-full ${pasoRenovacion === "configurar" && revendedor ? "max-w-6xl" : "max-w-2xl"}`}>
+        {/* Two Column Layout for Desktop when configuring */}
+        <div className={`${pasoRenovacion === "configurar" && revendedor ? "lg:flex lg:gap-8 lg:items-start" : ""}`}>
+          {/* Left Column: Form */}
+          <div className={`space-y-4 md:space-y-5 xl:space-y-6 ${pasoRenovacion === "configurar" && revendedor ? "lg:flex-1 lg:min-w-0" : ""}`}>
           {/* Error State */}
           {error && (
             <div className="bg-rose-50 border border-rose-300 rounded-2xl p-3 sm:p-4 lg:p-5 xl:p-6 flex items-start gap-3">
@@ -115,7 +118,7 @@ export function RenovacionPanel({
 
           {/* Step 1: Search */}
           {pasoRenovacion === "buscar" && (
-            <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-4 sm:p-5 lg:p-6">
+            <div className="rounded-2xl bg-gradient-to-br from-purple-50/80 via-purple-50/80 to-white p-4 sm:p-5 lg:p-6 border border-purple-100">
               <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4 sm:mb-5">
                 Buscar tu cuenta
               </h3>
@@ -137,13 +140,13 @@ export function RenovacionPanel({
                         }
                       }}
                       placeholder="Tu nombre de usuario"
-                      className="w-full pl-11 pr-4 py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-white border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-lg text-gray-900 placeholder-gray-400 transition-colors outline-none"
+                      className="w-full pl-11 pr-4 py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-white border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 rounded-lg text-gray-900 placeholder-gray-400 transition-colors outline-none"
                       disabled={buscando}
                     />
                   </div>
-                  <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 mt-1 sm:mt-2 lg:mt-3 xl:mt-4">
+                  <SmallText as="p" className="text-[10px] sm:text-xs lg:text-sm xl:text-base mt-1 sm:mt-2 lg:mt-3 xl:mt-4">
                     Ingresa el nombre de usuario de tu cuenta de revendedor.
-                  </p>
+                  </SmallText>
                 </div>
 
                 <Button
@@ -171,25 +174,25 @@ export function RenovacionPanel({
           {pasoRenovacion === "configurar" && revendedor && (
             <>
               {/* Account Info Card */}
-              <div className="bg-indigo-50 border-2 border-indigo-300 rounded-2xl p-4 sm:p-5 lg:p-6 xl:p-7">
+              <div className="bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-4 sm:p-5 lg:p-6 xl:p-7">
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-600 flex-shrink-0 mt-0.5" />
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-emerald-600 flex-shrink-0 mt-0.5" />
                   <div className="space-y-1 text-xs sm:text-sm">
                     <p className="font-semibold text-gray-900">✓ Cuenta encontrada</p>
                     <p className="text-gray-600">
                       {revendedor.datos.servex_username} • {tipoActual === "credit" ? "Créditos" : "Validez"}
                     </p>
                     {fechaExpiracion && (
-                      <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 mt-2">
+                      <SmallText as="p" className="text-[10px] sm:text-xs lg:text-sm xl:text-base mt-2">
                         Vence el {fechaExpiracion.toLocaleDateString("es-AR")}
-                      </p>
+                      </SmallText>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Renewal Type Selection */}
-              <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
+              <div className="rounded-2xl bg-gradient-to-br from-purple-50/80 via-purple-50/80 to-white p-5 sm:p-6 lg:p-8 xl:p-10 border border-purple-100">
                 <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
                   Sistema de renovación
                 </h3>
@@ -201,13 +204,13 @@ export function RenovacionPanel({
                       tipoActual !== "validity"
                         ? "border-gray-200/40 bg-gray-50/40 cursor-not-allowed opacity-50"
                         : tipoSeleccionado === "validity"
-                        ? "border-indigo-500 bg-indigo-50"
+                        ? "border-purple-500 bg-purple-50"
                         : "border-gray-200 bg-white hover:bg-gray-50"
                     }`}
                   >
                     <Calendar
                       className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 mb-2 ${
-                        tipoSeleccionado === "validity" ? "text-indigo-600" : "text-gray-500 group-hover:text-indigo-600"
+                        tipoSeleccionado === "validity" ? "text-purple-700" : "text-gray-500 group-hover:text-purple-700"
                       }`}
                     />
                     <p className="text-xs sm:text-sm font-semibold text-gray-900">Validez</p>
@@ -220,13 +223,13 @@ export function RenovacionPanel({
                       tipoActual !== "credit"
                         ? "border-gray-200/40 bg-gray-50/40 cursor-not-allowed opacity-50"
                         : tipoSeleccionado === "credit"
-                        ? "border-indigo-500 bg-indigo-50"
+                        ? "border-purple-500 bg-purple-50"
                         : "border-gray-200 bg-white hover:bg-gray-50"
                     }`}
                   >
                     <CreditCard
                       className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 mb-2 ${
-                        tipoSeleccionado === "credit" ? "text-indigo-600" : "text-gray-500 group-hover:text-indigo-600"
+                        tipoSeleccionado === "credit" ? "text-purple-700" : "text-gray-500 group-hover:text-purple-700"
                       }`}
                     />
                     <p className="text-xs sm:text-sm font-semibold text-gray-900">Créditos</p>
@@ -236,7 +239,7 @@ export function RenovacionPanel({
               </div>
 
               {/* Plans Selection */}
-              <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
+              <div className="rounded-2xl bg-gradient-to-br from-purple-50/80 via-purple-50/80 to-white p-5 sm:p-6 lg:p-8 xl:p-10 border border-purple-100">
                 <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
                   {tipoSeleccionado === "credit"
                     ? "Selecciona cantidad de créditos"
@@ -255,7 +258,7 @@ export function RenovacionPanel({
                           onClick={() => onCantidadChange(plan.max_users)}
                           className={`p-3 sm:p-4 lg:p-5 xl:p-6 rounded-lg border-2 transition-all text-left ${
                             esSeleccionado
-                              ? "border-indigo-500 bg-indigo-50"
+                              ? "border-purple-500 bg-purple-50"
                               : "border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300"
                           }`}
                         >
@@ -285,7 +288,7 @@ export function RenovacionPanel({
               </div>
 
               {/* Contact Information */}
-              <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
+              <div className="rounded-2xl bg-gradient-to-br from-purple-50/80 via-purple-50/80 to-white p-5 sm:p-6 lg:p-8 xl:p-10 border border-purple-100">
                 <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
                   Información de contacto
                 </h3>
@@ -297,7 +300,7 @@ export function RenovacionPanel({
                       value={nombre}
                       onChange={(event) => onNombreChange(event.target.value)}
                       placeholder="Nombre del responsable"
-                      className="w-full pl-11 pr-4 py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-white border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-lg text-gray-900 placeholder-gray-400 transition-colors outline-none"
+                      className="w-full pl-11 pr-4 py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-white border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 rounded-lg text-gray-900 placeholder-gray-400 transition-colors outline-none"
                     />
                   </div>
                   <div className="relative">
@@ -307,14 +310,14 @@ export function RenovacionPanel({
                       value={email}
                       onChange={(event) => onEmailChange(event.target.value)}
                       placeholder="tu@email.com"
-                      className="w-full pl-11 pr-4 py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-white border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 rounded-lg text-gray-900 placeholder-gray-400 transition-colors outline-none"
+                      className="w-full pl-11 pr-4 py-2.5 sm:py-3 lg:py-4 xl:py-5 bg-white border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 rounded-lg text-gray-900 placeholder-gray-400 transition-colors outline-none"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Coupon Code */}
-              <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
+              <div className="rounded-2xl bg-gradient-to-br from-purple-50/80 via-purple-50/80 to-white p-5 sm:p-6 lg:p-8 xl:p-10 border border-purple-100">
                 <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 lg:mb-5 xl:mb-6">
                   Código de descuento
                 </h3>
@@ -329,8 +332,8 @@ export function RenovacionPanel({
                 />
               </div>
 
-              {/* Action Buttons - Mobile */}
-              <div className="lg:hidden flex flex-col gap-2 sm:gap-3 lg:gap-4 xl:gap-5">
+              {/* Action Buttons - Mobile Only */}
+              <div className="lg:hidden flex flex-col gap-2 sm:gap-3">
                 <Button
                   variant="secondary"
                   size="md"
@@ -364,18 +367,18 @@ export function RenovacionPanel({
           )}
         </div>
 
-        {/* Renewal Summary - Below Form */}
+        {/* Right Column: Renewal Summary - Sticky on Desktop */}
         {pasoRenovacion === "configurar" && revendedor && (
-          <>
+          <div className="hidden lg:block lg:w-96 lg:flex-shrink-0 lg:sticky lg:top-24 lg:self-start mt-6 lg:mt-0">
             {/* Renewal Summary */}
-            <div className="rounded-2xl bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-5 sm:p-6 lg:p-8 xl:p-10">
-                <h3 className="text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider mb-5 sm:mb-6 lg:mb-7 xl:mb-8">
+            <div className="rounded-2xl bg-gradient-to-br from-purple-50/80 via-purple-50/80 to-white p-5 sm:p-6 lg:p-8 border border-purple-100">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider mb-5 sm:mb-6">
                   Resumen de renovación
                 </h3>
 
-                <div className="space-y-5 sm:space-y-6 lg:space-y-7 xl:space-y-8">
+                <div className="space-y-5 sm:space-y-6">
                   {/* Plan Details */}
-                  <div className="space-y-2 sm:space-y-3 lg:space-y-4 xl:space-y-5">
+                  <div className="space-y-2 sm:space-y-3">
                     <div className="flex justify-between">
                       <span className="text-xs sm:text-sm text-gray-600">
                         {tipoSeleccionado === "credit" ? "Créditos" : "Usuarios"}
@@ -399,7 +402,7 @@ export function RenovacionPanel({
                   <div className="h-px bg-gray-200" />
 
                   {/* Pricing */}
-                  <div className="space-y-2 sm:space-y-3 lg:space-y-4 xl:space-y-5">
+                  <div className="space-y-2 sm:space-y-3">
                     <div className="flex justify-between">
                       <span className="text-xs sm:text-sm text-gray-600">Subtotal</span>
                       <span className="text-gray-900">${precioRenovacion.toLocaleString("es-AR")}</span>
@@ -419,27 +422,20 @@ export function RenovacionPanel({
                     <div className="h-px bg-gray-200" />
 
                     <div className="flex justify-between items-center">
-                      <span className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-700 font-medium">Monto final</span>
-                      <span className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-indigo-600">
+                      <span className="text-sm sm:text-base text-gray-700 font-medium">Monto final</span>
+                      <span className="text-2xl sm:text-3xl font-bold text-purple-700">
                         ${precioFinal.toLocaleString("es-AR")}
                       </span>
                     </div>
                   </div>
 
-                  <div className="pt-3 sm:pt-4 lg:pt-5 xl:pt-6 flex flex-col gap-1 sm:gap-2 lg:gap-3 xl:gap-4">
-                    <Button
-                      variant="secondary"
-                      size="md"
-                      onClick={onVolverBuscar}
-                    >
-                      Buscar otro
-                    </Button>
+                  <div className="pt-3 sm:pt-4 flex flex-col gap-2">
                     <Button
                       variant="primary"
                       size="md"
                       onClick={onProcesar}
                       disabled={!puedeProcesar || procesando || precioFinal <= 0}
-                      className="flex items-center justify-center gap-2"
+                      className="w-full flex items-center justify-center gap-2"
                     >
                       {procesando ? (
                         <>
@@ -453,18 +449,100 @@ export function RenovacionPanel({
                         </>
                       )}
                     </Button>
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      onClick={onVolverBuscar}
+                      className="w-full"
+                    >
+                      Buscar otro
+                    </Button>
                   </div>
                 </div>
 
                 {/* Security Info */}
-                <div className="mt-5 sm:mt-6 lg:mt-7 xl:mt-8 pt-5 sm:pt-6 lg:pt-7 xl:pt-8 border-t border-gray-200">
-                  <p className="text-[10px] sm:text-xs lg:text-sm xl:text-base text-gray-600 leading-relaxed">
+                <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-gray-200">
+                  <p className="text-[10px] sm:text-xs text-gray-600 leading-relaxed">
                     🔒 <span className="text-gray-700 font-medium">Seguro y privado.</span> Procesado con MercadoPago encriptado.
                   </p>
                 </div>
               </div>
-            </>
-          )}
+          </div>
+        )}
+
+        {/* Mobile Summary - Below Form */}
+        {pasoRenovacion === "configurar" && revendedor && (
+          <div className="lg:hidden mt-4 md:mt-5">
+            {/* Renewal Summary */}
+            <div className="rounded-2xl bg-gradient-to-br from-purple-50/80 via-purple-50/80 to-white p-5 sm:p-6 border border-purple-100">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-900 uppercase tracking-wider mb-5 sm:mb-6">
+                  Resumen de renovación
+                </h3>
+
+                <div className="space-y-5 sm:space-y-6">
+                  {/* Plan Details */}
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-xs sm:text-sm text-gray-600">
+                        {tipoSeleccionado === "credit" ? "Créditos" : "Usuarios"}
+                      </span>
+                      <span className="font-semibold text-gray-900">{cantidadSeleccionada}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-xs sm:text-sm text-gray-600">Duración</span>
+                      <span className="font-semibold text-gray-900">{diasRenovacion} días</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-xs sm:text-sm text-gray-600">Precio por unidad</span>
+                      <span className="font-semibold text-gray-900">
+                        ${Math.round(precioRenovacion / Math.max(cantidadSeleccionada || 1, 1))}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-gray-200" />
+
+                  {/* Pricing */}
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-xs sm:text-sm text-gray-600">Subtotal</span>
+                      <span className="text-gray-900">${precioRenovacion.toLocaleString("es-AR")}</span>
+                    </div>
+
+                    {hayDescuento && (
+                      <div className="flex justify-between">
+                        <span className="text-xs sm:text-sm text-emerald-600">
+                          Descuento {cuponActual?.codigo ? `(${cuponActual.codigo})` : ""}
+                        </span>
+                        <span className="text-emerald-600 font-medium">
+                          -${descuentoAplicado.toLocaleString("es-AR")}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="h-px bg-gray-200" />
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm sm:text-base text-gray-700 font-medium">Monto final</span>
+                      <span className="text-2xl sm:text-3xl font-bold text-purple-700">
+                        ${precioFinal.toLocaleString("es-AR")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Security Info */}
+                <div className="mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-gray-200">
+                  <p className="text-[10px] sm:text-xs text-gray-600 leading-relaxed">
+                    🔒 <span className="text-gray-700 font-medium">Seguro y privado.</span> Procesado con MercadoPago encriptado.
+                  </p>
+                </div>
+              </div>
+          </div>
+        )}
+        </div>
       </div>
     </div>
   );

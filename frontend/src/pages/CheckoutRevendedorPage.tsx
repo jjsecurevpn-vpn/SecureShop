@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { PlanRevendedor, CompraRevendedorRequest } from "../types";
-import { Clock, Check, AlertCircle } from "lucide-react";
+import { Clock, Check, AlertCircle, ShoppingBag, Users, Shield, User, Mail } from "lucide-react";
 import CuponInput from "../components/CuponInput";
 import { apiService, ValidacionCupon } from "../services/api.service";
 import { mercadoPagoService } from "../services/mercadopago.service";
 
 /**
- * CheckoutRevendedorPage - Página de checkout elegante y minimalista para revendedores
- * Estilo similar a Stripe/Vercel pero con colores JJSecure (violet/neutral)
+ * CheckoutRevendedorPage - Página de checkout elegante para revendedores
  */
 const CheckoutRevendedorPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -155,8 +155,13 @@ const CheckoutRevendedorPage: React.FC = () => {
 
   if (!plan) {
     return (
-      <div className="min-h-screen bg-white pt-16 md:pt-14 flex items-center justify-center">
-        <div className="text-gray-600">Cargando plan...</div>
+      <div className="min-h-screen bg-white pt-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <ShoppingBag className="w-6 h-6 text-purple-600" />
+          </div>
+          <p className="text-gray-500">Cargando plan...</p>
+        </div>
       </div>
     );
   }
@@ -164,187 +169,239 @@ const CheckoutRevendedorPage: React.FC = () => {
   const precioFinal = plan.precio - descuentoAplicado;
 
   return (
-    <div className="min-h-screen bg-white pt-16 md:pt-14">
+    <div className="min-h-screen bg-white pt-20 md:pt-24">
       <main>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-8 md:py-12">
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
-          {/* Left Column - Formulario */}
-          <div className="space-y-8">
-            {/* Header */}
-            <div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-gray-900 mb-2">
-                Información Personal
-              </h1>
-              <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
-                Completa tus datos para finalizar la compra
-              </p>
-            </div>
-
-            {/* Form */}
-            <div className="space-y-6">
-              {/* Nombre */}
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Nombre completo
-                </label>
-                <input
-                  ref={nombreInputRef}
-                  type="text"
-                  defaultValue=""
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors hover:border-gray-300"
-                  placeholder="Juan Pérez"
-                />
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Email
-                </label>
-                <input
-                  ref={emailInputRef}
-                  type="email"
-                  defaultValue=""
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors hover:border-gray-300"
-                  placeholder="tu@email.com"
-                />
-              </div>
-
-              {/* Cupón */}
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-3">
-                  Código de descuento (opcional)
-                </label>
-                <CuponInput
-                  planId={plan.id}
-                  precioPlan={plan.precio}
-                  onCuponValidado={handleCuponValidado}
-                  onCuponRemovido={handleCuponRemovido}
-                  cuponActual={cuponData}
-                  descuentoActual={descuentoAplicado}
-                />
-              </div>
-
-              {/* Error */}
-              {error && (
-                <div className="bg-rose-50 border border-rose-300 rounded-lg p-4 flex items-start gap-3">
-                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-rose-700 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-rose-700">{error}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right Column - Resumen (Sticky) */}
-          <div className="md:sticky md:top-32 h-fit space-y-6">
-            {/* Plan Card */}
-            <div className="bg-gradient-to-br from-purple-100 via-purple-50 to-white border border-purple-200 rounded-lg p-5 sm:p-6 lg:p-8 xl:p-10 space-y-6">
-              {/* Plan Info */}
-              <div>
-                <div className="text-sm text-purple-600 mb-2">Plan seleccionado</div>
-                <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-gray-900 mb-1">
-                  {plan.nombre}
-                </h2>
-                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600">
-                  {plan.account_type === "credit"
-                    ? `${plan.max_users} créditos`
-                    : `${plan.max_users} usuarios`}
-                </p>
-              </div>
-
-              {/* Divider */}
-              <div className="border-t border-purple-200" />
-
-              {/* Price Breakdown */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span className="text-gray-900">
-                    ${plan.precio.toLocaleString("es-AR")}
-                  </span>
-                </div>
-
-                {descuentoAplicado > 0 && (
-                  <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-600">
-                    <span>Descuento ({cuponData?.codigo})</span>
-                    <span>-${descuentoAplicado.toLocaleString("es-AR")}</span>
-                  </div>
-                )}
-
-                <div className="border-t border-purple-200 pt-3 flex justify-between items-center">
-                  <span className="text-gray-900 font-medium">Total</span>
-                  <span className="text-3xl font-display font-bold text-purple-600">
-                    ${precioFinal.toLocaleString("es-AR")}
-                  </span>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="border-t border-purple-200" />
-
-              {/* Plan Details */}
-              <div className="space-y-3 text-sm">
-                <div className="flex items-start gap-3">
-                  <Check className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-purple-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      {plan.account_type === "credit"
-                        ? `${plan.max_users} créditos`
-                        : `${plan.max_users} usuarios`}
-                    </div>
-                    <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">
-                      {plan.account_type === "credit"
-                        ? "Créditos de acceso"
-                        : "30 días de validez"}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-purple-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      Acceso inmediato
-                    </div>
-                    <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-600">
-                      Recibirás tus credenciales en el email
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* MercadoPago Button Section */}
-            <div className="space-y-3">
-              {/* MercadoPago Wallet Container - El botón se renderiza aquí automáticamente */}
-              <div id="wallet_container_revendedor" className="min-h-[56px]" />
-            </div>
-
-            {/* Security Badge */}
-            <div className="flex items-start gap-3 text-xs sm:text-sm lg:text-base xl:text-lg text-gray-700 bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <svg
-                className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-purple-600 flex-shrink-0 mt-0.5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+            {/* Left Column - Formulario */}
+            <div className="space-y-8">
+              {/* Header */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
               >
-                <path
-                  fillRule="evenodd"
-                  d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Pago 100% seguro con <span className="font-medium">MercadoPago</span></span>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-100 text-purple-700 text-sm font-medium mb-4">
+                  <Users className="w-4 h-4" />
+                  Plan Revendedor
+                </div>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-gray-900 mb-3">
+                  Información Personal
+                </h1>
+                <p className="text-base sm:text-lg text-gray-500">
+                  Completa tus datos para finalizar la compra
+                </p>
+              </motion.div>
+
+              {/* Form */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5"
+              >
+                {/* Nombre */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nombre completo
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center group-focus-within:bg-purple-100 transition-colors">
+                      <User className="w-5 h-5 text-purple-500" />
+                    </div>
+                    <input
+                      ref={nombreInputRef}
+                      type="text"
+                      defaultValue=""
+                      className="w-full pl-16 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 transition-all hover:border-gray-300"
+                      placeholder="Juan Pérez"
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center group-focus-within:bg-purple-100 transition-colors">
+                      <Mail className="w-5 h-5 text-purple-500" />
+                    </div>
+                    <input
+                      ref={emailInputRef}
+                      type="email"
+                      defaultValue=""
+                      className="w-full pl-16 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 transition-all hover:border-gray-300"
+                      placeholder="tu@email.com"
+                    />
+                  </div>
+                  <p className="text-gray-500 text-xs mt-2 flex items-center gap-1.5">
+                    <Shield className="w-3.5 h-3.5 text-purple-500" />
+                    Recibirás tus credenciales de revendedor en este email
+                  </p>
+                </div>
+
+                {/* Cupón */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Código de descuento (opcional)
+                  </label>
+                  <CuponInput
+                    planId={plan.id}
+                    precioPlan={plan.precio}
+                    onCuponValidado={handleCuponValidado}
+                    onCuponRemovido={handleCuponRemovido}
+                    cuponActual={cuponData}
+                    descuentoActual={descuentoAplicado}
+                  />
+                </div>
+
+                {/* Error */}
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center flex-shrink-0">
+                        <AlertCircle className="w-4 h-4 text-rose-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-rose-700">Error</p>
+                        <p className="text-sm text-rose-600">{error}</p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             </div>
 
-            {/* Back Button */}
-            <button
-              onClick={() => navigate("/revendedores")}
-              className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-lg transition-colors"
-            >
-              Volver a planes
-            </button>
+            {/* Right Column - Resumen (Sticky) */}
+            <div className="lg:sticky lg:top-28 h-fit space-y-6">
+              {/* Plan Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="bg-gradient-to-br from-purple-50 via-white to-indigo-50 rounded-2xl border border-purple-100 p-6 lg:p-8 space-y-6"
+              >
+                {/* Plan Info */}
+                <div>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-medium mb-3">
+                    <Check className="w-3 h-3" />
+                    Plan seleccionado
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-serif font-medium text-gray-900 mb-1">
+                    {plan.nombre}
+                  </h2>
+                  <p className="text-gray-500 flex items-center gap-1.5">
+                    <Users className="w-4 h-4" />
+                    {plan.account_type === "credit"
+                      ? `${plan.max_users} créditos`
+                      : `${plan.max_users} usuarios`}
+                  </p>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-purple-100" />
+
+                {/* Price Breakdown */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Subtotal</span>
+                    <span className="text-gray-900 font-medium">
+                      ${plan.precio.toLocaleString("es-AR")}
+                    </span>
+                  </div>
+
+                  {descuentoAplicado > 0 && (
+                    <div className="flex justify-between items-center text-sm text-emerald-600">
+                      <span className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5" />
+                        Descuento ({cuponData?.codigo})
+                      </span>
+                      <span className="font-medium">-${descuentoAplicado.toLocaleString("es-AR")}</span>
+                    </div>
+                  )}
+
+                  <div className="border-t border-purple-100 pt-4 flex justify-between items-center">
+                    <span className="text-gray-900 font-medium">Total</span>
+                    <span className="text-3xl font-bold text-purple-600">
+                      ${precioFinal.toLocaleString("es-AR")}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-purple-100" />
+
+                {/* Plan Details */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900 text-sm">
+                        {plan.account_type === "credit"
+                          ? `${plan.max_users} créditos`
+                          : `${plan.max_users} usuarios`}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {plan.account_type === "credit"
+                          ? "Créditos de acceso"
+                          : "30 días de validez"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900 text-sm">
+                        Acceso inmediato
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Recibirás tus credenciales en el email
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* MercadoPago Button Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                <div id="wallet_container_revendedor" className="min-h-[56px]" />
+              </motion.div>
+
+              {/* Security Badge */}
+              <div className="flex items-center gap-3 p-4 bg-purple-50 border border-purple-100 rounded-xl">
+                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-purple-600" />
+                </div>
+                <span className="text-sm text-gray-600">
+                  Pago 100% seguro con <span className="font-medium">MercadoPago</span>
+                </span>
+              </div>
+
+              {/* Back Button */}
+              <button
+                onClick={() => navigate("/revendedores")}
+                className="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-xl transition-colors"
+              >
+                Volver a planes
+              </button>
+            </div>
           </div>
-        </div>
         </div>
       </main>
     </div>

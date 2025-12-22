@@ -1,4 +1,5 @@
-import { Crown, Cpu, Gauge, Users } from "lucide-react";
+import { motion } from "framer-motion";
+import { Crown, Cpu, Gauge, Server, Users, Wifi } from "lucide-react";
 import { useMemo } from "react";
 import { useServerStats } from "../../../hooks/useServerStats";
 
@@ -7,7 +8,7 @@ const numberFormatter = new Intl.NumberFormat("es-AR", {
   maximumFractionDigits: 1,
 });
 
-const percentageFormatter = (value: number) => `${value.toFixed(1)}%`;
+const percentageFormatter = (value: number) => `${value.toFixed(0)}%`;
 
 const FREE_SERVER_IDS = new Set([557]);
 const FREE_TIER_PATTERN = /free|gratuito|gratis|demo|test|beta|trial/i;
@@ -88,68 +89,108 @@ export function ServerGlobalSummary() {
     return null;
   }
 
-  const cards = [
+  const stats = [
     {
-      label: "Usuarios Premium",
+      label: "Servidores activos",
+      value: onlineServers || 0,
+      suffix: `/${servers.length}`,
+      icon: Server,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50",
+      borderColor: "border-emerald-100",
+    },
+    {
+      label: "Usuarios premium",
       value: numberFormatter.format(summary.premiumUsers || totalUsers || 0),
       icon: Crown,
-      accent: "text-amber-300",
+      color: "text-amber-600",
+      bgColor: "bg-amber-50",
+      borderColor: "border-amber-100",
     },
     {
-      label: "Usuarios Gratuitos",
+      label: "Usuarios gratuitos",
       value: numberFormatter.format(summary.freeUsers),
       icon: Users,
-      accent: "text-sky-300",
+      color: "text-sky-600",
+      bgColor: "bg-sky-50",
+      borderColor: "border-sky-100",
     },
     {
-      label: "CPU Global",
+      label: "CPU promedio",
       value: percentageFormatter(summary.globalCpu),
       icon: Cpu,
-      accent: "text-emerald-300",
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-100",
     },
     {
-      label: "RAM Global",
+      label: "RAM promedio",
       value: percentageFormatter(summary.globalRam),
       icon: Gauge,
-      accent: "text-violet-300",
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-50",
+      borderColor: "border-indigo-100",
+    },
+    {
+      label: "Conexiones totales",
+      value: numberFormatter.format(summary.premiumUsers + summary.freeUsers),
+      icon: Wifi,
+      color: "text-teal-600",
+      bgColor: "bg-teal-50",
+      borderColor: "border-teal-100",
     },
   ];
 
   return (
-    <section className="py-12 sm:py-16 lg:py-20 xl:py-24 bg-white">
+    <section className="py-8 sm:py-12 lg:py-16 bg-white">
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12">
         <div className="max-w-7xl mx-auto">
-          <div className="rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50/80 via-purple-50/80 to-blue-50/80 p-6 sm:p-8 lg:p-10 xl:p-12">
-            <div className="flex flex-col gap-6 sm:gap-8 lg:gap-10 xl:gap-12 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-semibold tracking-[0.3em] text-gray-600 uppercase">
-                  Resumen Global
-                </p>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-serif font-normal text-gray-900 mt-2">
-                  Visión instantánea de la red
-                </h2>
-                <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-600 mt-2">
-                  {onlineServers || 0} servidores online • {numberFormatter.format(totalUsers || summary.premiumUsers + summary.freeUsers)} usuarios monitorizados en tiempo real
-                </p>
-              </div>
+          {/* Header */}
+          <motion.div 
+            className="text-center mb-8 sm:mb-10"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <p className="text-xs font-semibold tracking-[0.2em] text-purple-600 uppercase mb-2">
+              Panel de control
+            </p>
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-medium text-gray-900">
+              Resumen global
+            </h2>
+          </motion.div>
 
-              <div className="grid gap-4 sm:gap-6 lg:gap-8 xl:gap-10 sm:grid-cols-2">
-                {cards.map(({ label, value, icon: Icon }) => (
-                  <div
-                    key={label}
-                    className="rounded-2xl border border-indigo-200 bg-white px-4 sm:px-6 lg:px-8 xl:px-10 py-4 sm:py-6 lg:py-8 xl:py-10 shadow-sm shadow-gray-100"
-                  >
-                    <div className="flex items-center gap-2 text-gray-600 text-xs sm:text-sm lg:text-base xl:text-lg uppercase tracking-wide">
-                      <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 xl:w-6 xl:h-6 text-indigo-600`} />
-                      {label}
-                    </div>
-                    <p className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-semibold text-gray-900 mt-3">
-                      {value}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+                className={`relative overflow-hidden rounded-2xl border ${stat.borderColor} ${stat.bgColor} p-4 sm:p-5 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5`}
+              >
+                {/* Icon */}
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${stat.bgColor} border ${stat.borderColor} flex items-center justify-center mb-3`}>
+                  <stat.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${stat.color}`} />
+                </div>
+                
+                {/* Value */}
+                <div className="flex items-baseline gap-1">
+                  <span className={`text-xl sm:text-2xl lg:text-3xl font-bold ${stat.color}`}>
+                    {stat.value}
+                  </span>
+                  {stat.suffix && (
+                    <span className="text-sm text-gray-400 font-medium">{stat.suffix}</span>
+                  )}
+                </div>
+                
+                {/* Label */}
+                <p className="text-xs sm:text-sm text-gray-500 mt-1 font-medium">
+                  {stat.label}
+                </p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>

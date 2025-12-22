@@ -135,7 +135,7 @@ export function RenovacionPanel({
                 className={`w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm md:text-base font-semibold transition-all ${
                   buscando || !busqueda.trim()
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-lg shadow-purple-500/25'
+                    : 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-lg shadow-purple-500/25'
                 }`}
               >
                 {buscando ? (
@@ -297,7 +297,7 @@ export function RenovacionPanel({
             </div>
 
             {/* Summary Card - Sticky Sidebar */}
-            <aside className="rounded-2xl p-5 md:p-6 xl:p-8 bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 border border-purple-100 shadow-lg md:sticky md:top-24 md:h-fit">
+            <aside className="rounded-2xl p-5 md:p-6 xl:p-8 bg-gradient-to-br from-purple-50 via-purple-50/70 to-white border border-purple-100 shadow-lg lg:sticky lg:top-24 lg:self-start">
               <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] bg-purple-600 text-white mb-6">
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>Resumen de renovación</span>
@@ -369,7 +369,7 @@ export function RenovacionPanel({
                     className={`w-full rounded-xl px-6 py-3.5 text-sm md:text-base font-bold transition-all flex items-center justify-center gap-2 ${
                       procesando || !puedeProcesar
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 shadow-lg shadow-purple-500/25'
+                        : 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-lg shadow-purple-500/25'
                     }`}
                   >
                     {procesando ? (

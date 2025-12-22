@@ -2,7 +2,6 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { apiService } from "../../services/api.service";
 import {
   Cupon,
-  NoticiaConfig,
   Sponsor,
   CrearSponsorPayload,
   ActualizarSponsorPayload,
@@ -12,7 +11,7 @@ import {
   CuponesForm,
   CuponesList,
   DeleteCuponModal,
-  NoticiasSection,
+  NoticiasManagementSection,
   DescuentosGlobalesSection,
   SponsorsSection,
   PlanesSection,
@@ -94,12 +93,8 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
   const [isDeletingCupon, setIsDeletingCupon] = useState(false);
   const [isRefreshingCupones, setIsRefreshingCupones] = useState(false);
 
-  // Estado de noticias
-  const [noticiasConfig, setNoticiasConfig] = useState<NoticiaConfig | null>(null);
-  const [noticiasLoading, setNoticiasLoading] = useState(true);
+  // Estado de noticias (manejado por NoticiasManagementSection)
   const [noticiasSuccess, setNoticiasSuccess] = useState<string | null>(null);
-  const [noticiasError, setNoticiasError] = useState<string | null>(null);
-  const [isSavingNoticias, setIsSavingNoticias] = useState(false);
 
   // Estado de promociones - Planes normales
   const [promoConfigPlanes, setPromoConfigPlanes] = useState<PromoConfig | null>(null);
@@ -135,19 +130,7 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
     }
   };
 
-  // Cargar noticias
-  const loadNoticias = async () => {
-    try {
-      setNoticiasLoading(true);
-      const data = await apiService.obtenerNoticiasConfig();
-      setNoticiasConfig(data);
-    } catch (error) {
-      console.error("Error al cargar noticias:", error);
-      setNoticiasError("Error al cargar configuración de avisos");
-    } finally {
-      setNoticiasLoading(false);
-    }
-  };
+  // Nota: carga de noticias ahora se maneja en NoticiasManagementSection
 
   // Cargar configuraciones de promo
   const loadPromoConfigs = async () => {
@@ -240,7 +223,6 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
   // Efectos de carga inicial
   useEffect(() => {
     loadCupones();
-    loadNoticias();
     loadPromoConfigs();
     loadSponsors();
   }, []);
@@ -280,13 +262,6 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
       return () => clearTimeout(timer);
     }
   }, [noticiasSuccess]);
-
-  useEffect(() => {
-    if (noticiasError) {
-      const timer = setTimeout(() => setNoticiasError(null), FEEDBACK_TIMEOUT);
-      return () => clearTimeout(timer);
-    }
-  }, [noticiasError]);
 
   useEffect(() => {
     if (promoSuccess) {
@@ -391,41 +366,42 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
   };
 
   // Handlers para noticias
-  const handleGuardarNoticias = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!noticiasConfig) return;
-
-    try {
-      setIsSavingNoticias(true);
-      await apiService.guardarNoticiasConfig(noticiasConfig);
-      setNoticiasSuccess("Configuración de avisos guardada");
-    } catch (error) {
-      console.error("Error al guardar noticias:", error);
-      setNoticiasError("Error al guardar configuración");
-    } finally {
-      setIsSavingNoticias(false);
-    }
-  };
-
-  const handleNoticiasToggle = (key: string) => {
-    setNoticiasConfig((prev) => {
-      if (!prev) return prev;
-      if (key === "aviso.habilitado") {
-        return {
-          ...prev,
-          aviso: { ...prev.aviso, habilitado: !prev.aviso?.habilitado },
-        };
-      }
-      return prev;
-    });
-  };
-
-  const handleNoticiasAvisoFieldChange = (field: string, value: any) => {
-    setNoticiasConfig((prev) => {
-      if (!prev) return prev;
-      return { ...prev, aviso: { ...prev.aviso, [field]: value } };
-    });
-  };
+  // Handlers para noticias (legacy - no se usan con nuevo sistema)
+  // const handleGuardarNoticias = async (e: FormEvent) => {
+  //   e.preventDefault();
+  //   if (!noticiasConfig) return;
+  //
+  //   try {
+  //     setIsSavingNoticias(true);
+  //     await apiService.guardarNoticiasConfig(noticiasConfig);
+  //     setNoticiasSuccess("Configuración de avisos guardada");
+  //   } catch (error) {
+  //     console.error("Error al guardar noticias:", error);
+  //     setNoticiasError("Error al guardar configuración");
+  //   } finally {
+  //     setIsSavingNoticias(false);
+  //   }
+  // };
+  //
+  // const handleNoticiasToggle = (key: string) => {
+  //   setNoticiasConfig((prev) => {
+  //     if (!prev) return prev;
+  //     if (key === "aviso.habilitado") {
+  //       return {
+  //         ...prev,
+  //         aviso: { ...prev.aviso, habilitado: !prev.aviso?.habilitado },
+  //       };
+  //     }
+  //     return prev;
+  //   });
+  // };
+  //
+  // const handleNoticiasAvisoFieldChange = (field: string, value: any) => {
+  //   setNoticiasConfig((prev) => {
+  //     if (!prev) return prev;
+  //     return { ...prev, aviso: { ...prev.aviso, [field]: value } };
+  //   });
+  // };
 
   // Handlers para promo
   const handleActivatePromo = async (tipo: "planes" | "revendedores") => {
@@ -552,7 +528,6 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
             cupones={cupones}
             loadingCupones={loadingCupones}
             isRefreshingCupones={isRefreshingCupones}
-            noticiasConfig={noticiasConfig}
             numberFormatter={numberFormatter}
             onRefreshCupones={handleRefreshCupones}
           />
@@ -615,25 +590,22 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
 
       case "noticias":
         return (
-          <div className="border border-neutral-800 rounded-2xl bg-neutral-900/50 p-6">
-            {noticiasLoading ? (
-              <div className="text-center py-8 text-neutral-400">Cargando configuración...</div>
-            ) : noticiasConfig ? (
-              <NoticiasSection
-                config={noticiasConfig}
-                onToggle={handleNoticiasToggle}
-                onAvisoFieldChange={handleNoticiasAvisoFieldChange}
-                onSubmit={handleGuardarNoticias}
-                isLoading={isSavingNoticias}
-                success={noticiasSuccess}
-                error={noticiasError}
-              />
-            ) : (
-              <div className="text-center py-8 text-neutral-400">
-                No se pudo cargar la configuración
+          <>
+            <NoticiasManagementSection
+              onSuccess={(msg) => {
+                setNoticiasSuccess(msg);
+                setTimeout(() => setNoticiasSuccess(null), FEEDBACK_TIMEOUT);
+              }}
+              onError={(_err) => {
+                // El error se muestra en el componente
+              }}
+            />
+            {noticiasSuccess && (
+              <div className="mt-4 p-4 bg-green-900/30 border border-green-500/50 rounded text-green-400 text-sm">
+                ✓ {noticiasSuccess}
               </div>
             )}
-          </div>
+          </>
         );
 
       case "descuentos":
@@ -682,7 +654,7 @@ export default function AdminToolsPage({ }: AdminToolsPageProps) {
   };
 
   return (
-    <div className="min-h-screen text-white">
+    <div className="min-h-screen bg-neutral-950 text-white">
       <main>
         <div className="w-full max-w-7xl mx-auto px-4 py-8">
           {/* Header */}

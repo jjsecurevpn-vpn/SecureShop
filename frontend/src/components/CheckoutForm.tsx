@@ -1,5 +1,6 @@
 import { forwardRef, useImperativeHandle, useRef, useEffect } from "react";
 import { Mail, User, Shield, Check } from "lucide-react";
+import { motion } from "framer-motion";
 import CuponInput from "./CuponInput";
 import { ValidacionCupon } from "../services/api.service";
 
@@ -17,7 +18,7 @@ interface CheckoutFormProps {
   loading?: boolean;
   onCuponChange?: (descuento: number) => void;
   onEmailChange?: (email: string) => void;
-  userEmail?: string; // Email del usuario logueado
+  userEmail?: string;
 }
 
 /**
@@ -40,7 +41,6 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
     useEffect(() => {
       if (userEmail && emailInputRef.current) {
         emailInputRef.current.value = userEmail;
-        // Notificar al padre para que cargue el saldo
         onEmailChange?.(userEmail);
       }
     }, [userEmail]);
@@ -58,11 +58,10 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
 
         let valid = true;
 
-        // Validar nombre
         if (!nombre.trim()) {
           if (errorNombreRef.current) {
             errorNombreRef.current.textContent = "Ingresa tu nombre";
-            errorNombreRef.current.style.display = "block";
+            errorNombreRef.current.style.display = "flex";
           }
           valid = false;
         } else {
@@ -71,13 +70,12 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
           }
         }
 
-        // Validar email
         if (!email.trim() || !emailRegex.test(email)) {
           if (errorEmailRef.current) {
             errorEmailRef.current.textContent = email.trim()
               ? "Email inválido"
               : "Ingresa tu email";
-            errorEmailRef.current.style.display = "block";
+            errorEmailRef.current.style.display = "flex";
           }
           valid = false;
         } else {
@@ -109,75 +107,95 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
     };
 
     return (
-      <form className="space-y-3">
+      <form className="space-y-5">
         {/* Nombre - NO CONTROLADO */}
-        <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Nombre completo
           </label>
-          <div className="relative">
-            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <div className="relative group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center group-focus-within:bg-purple-100 transition-colors">
+              <User className="w-5 h-5 text-purple-500" />
+            </div>
             <input
               ref={nombreInputRef}
               type="text"
               disabled={loading}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full pl-16 pr-4 py-4 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 transition-all hover:border-gray-300"
               placeholder="Juan Pérez"
             />
           </div>
           <p
             ref={errorNombreRef}
-            className="text-rose-700 text-xs mt-1.5 gap-1"
+            className="text-rose-600 text-xs mt-2 items-center gap-1.5 hidden"
             style={{ display: "none" }}
           >
-            <span className="w-1 h-1 rounded-full bg-rose-700 inline-block" />
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+            <span>Ingresa tu nombre</span>
           </p>
-        </div>
+        </motion.div>
 
         {/* Email - NO CONTROLADO */}
-        <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <label className="block text-sm font-medium text-gray-700 mb-2">
             Email
           </label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <div className="relative group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center group-focus-within:bg-purple-100 transition-colors">
+              <Mail className="w-5 h-5 text-purple-500" />
+            </div>
             <input
               ref={emailInputRef}
               type="email"
               disabled={loading}
               readOnly={!!userEmail}
-              className={`w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${
-                userEmail ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+              className={`w-full pl-16 pr-12 py-4 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-400 transition-all ${
+                userEmail ? 'bg-gray-50 cursor-not-allowed' : 'bg-white hover:border-gray-300'
               }`}
               placeholder="tu@email.com"
               onChange={(e) => !userEmail && onEmailChange?.(e.target.value)}
               onBlur={(e) => !userEmail && onEmailChange?.(e.target.value)}
             />
             {userEmail && (
-              <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                <Check className="w-4 h-4 text-emerald-600" />
+              </div>
             )}
           </div>
           {userEmail && (
-            <p className="text-green-600 text-xs mt-1.5 flex items-center gap-1">
-              <span className="w-1 h-1 rounded-full bg-green-600 inline-block" />
+            <p className="text-emerald-600 text-xs mt-2 flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5" />
               Email de tu cuenta verificado
             </p>
           )}
           <p
             ref={errorEmailRef}
-            className="text-rose-700 text-xs mt-1.5 gap-1"
+            className="text-rose-600 text-xs mt-2 items-center gap-1.5"
             style={{ display: "none" }}
           >
-            <span className="w-1 h-1 rounded-full bg-rose-700 inline-block" />
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+            <span>Ingresa tu email</span>
           </p>
-          <p className="text-gray-600 text-xs mt-2 flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5 text-indigo-600" />
+          <p className="text-gray-500 text-xs mt-2 flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-purple-500" />
             Recibirás tus credenciales VPN en este email
           </p>
-        </div>
+        </motion.div>
 
         {/* Cupón */}
-        <div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
           <CuponInput
             planId={planId}
             precioPlan={planPrecio}
@@ -187,7 +205,7 @@ const CheckoutForm = forwardRef<CheckoutFormRef, CheckoutFormProps>(
             descuentoActual={descuentoRef.current}
             clienteEmail={emailInputRef.current?.value}
           />
-        </div>
+        </motion.div>
       </form>
     );
   }

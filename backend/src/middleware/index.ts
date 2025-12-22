@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { config } from '../config';
+import { supabaseService } from '../services/supabase.service';
 
 /**
  * Middleware de CORS
@@ -11,6 +12,65 @@ export const corsMiddleware = cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 });
+
+/**
+ * Middleware de autenticación con JWT de Supabase
+ */
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+  try {
+    const authHeader = req.headers.authorization;
+    console.log('[AuthMiddleware] Verificando token. Header:', authHeader ? 'Presente' : 'Faltante');
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('[AuthMiddleware] Token faltante o formato incorrecto');
+      return res.status(401).json({
+        success: false,
+        error: 'No autorizado - Token faltante',
+      });
+    }
+
+    const token = authHeader.substring(7); // Remover "Bearer "
+    console.log('[AuthMiddleware] Token obtenido, longitud:', token.length);
+    
+    // Validar el token con Supabase
+    const client = supabaseService.getClient();
+    if (!client) {
+      console.error('[AuthMiddleware] Cliente Supabase no disponible');
+      return res.status(500).json({
+        success: false,
+        error: 'Servicio de autenticación no disponible',
+      });
+    }
+
+    const { data, error } = await client.auth.getUser(token);
+    
+    if (error) {
+      console.log('[AuthMiddleware] Error validando token:', error.message);
+    }
+    
+    if (!data?.user) {
+      console.log('[AuthMiddleware] Usuario no encontrado en token');
+      return res.status(401).json({
+        success: false,
+        error: 'No autorizado - Token inválido',
+      });
+    }
+
+    // Agregar el usuario al request
+    (req as any).user = data.user;
+    (req as any).userId = data.user.id;
+    (req as any).supabaseClient = client;
+    
+    console.log('[AuthMiddleware] ✅ Usuario autenticado:', data.user.id);
+    next();
+  } catch (err: any) {
+    console.error('[AuthMiddleware] Error:', err.message);
+    return res.status(401).json({
+      success: false,
+      error: 'No autorizado',
+    });
+  }
+};
 
 /**
  * Middleware de logging

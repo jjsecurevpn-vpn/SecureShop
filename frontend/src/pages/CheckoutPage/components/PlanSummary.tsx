@@ -1,4 +1,5 @@
-import { Check, Wallet } from "lucide-react";
+import { Check, Wallet, Clock, Shield, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 import { Plan } from "../../../types";
 import { CHECKOUT_SECTIONS } from "../constants";
 import { calcularPrecioFinal, calcularPrecioPorDia } from "../utils";
@@ -15,105 +16,119 @@ export const PlanSummary = ({ plan, descuentoVisual, saldoUsado = 0 }: PlanSumma
   const precioPorDia = calcularPrecioPorDia(precioFinal, plan.dias);
 
   return (
-    <div style={{
-      background: `linear-gradient(135deg, rgb(25, 18, 50) 0%, rgb(15, 10, 35) 100%)`,
-      borderRadius: '0.5rem',
-      padding: 'clamp(20px, 5vw, 40px)',
-      color: 'white'
-    }} className="space-y-6 text-white rounded-lg">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-gradient-to-br from-purple-50 via-white to-indigo-50 rounded-2xl border border-purple-100 p-6 lg:p-8 space-y-6"
+    >
       {/* Plan Info */}
       <div>
-        <div className="text-sm text-gray-400 mb-2">{CHECKOUT_SECTIONS.PLAN_SELECTED}</div>
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-serif font-normal text-white mb-1">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-medium mb-3">
+          <Check className="w-3 h-3" />
+          {CHECKOUT_SECTIONS.PLAN_SELECTED}
+        </span>
+        <h2 className="text-2xl sm:text-3xl font-serif font-medium text-gray-900 mb-1">
           {plan.nombre}
         </h2>
-        <p className="text-sm sm:text-base lg:text-lg xl:text-xl text-gray-400">
+        <p className="text-gray-500 flex items-center gap-1.5">
+          <Clock className="w-4 h-4" />
           {plan.dias} días de acceso
         </p>
       </div>
 
       {/* Divider */}
-      <div className="border-t border-white/20" />
+      <div className="border-t border-purple-100" />
 
       {/* Price Breakdown */}
       <div className="space-y-3">
-        <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg">
-          <span className="text-gray-400">{CHECKOUT_SECTIONS.SUBTOTAL}</span>
-          <span className="text-white">
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-gray-500">{CHECKOUT_SECTIONS.SUBTOTAL}</span>
+          <span className="text-gray-900 font-medium">
             ${plan.precio.toLocaleString("es-AR")}
           </span>
         </div>
 
         {descuentoVisual > 0 && (
-          <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg text-emerald-400">
-            <span>{CHECKOUT_SECTIONS.DISCOUNT}</span>
-            <span>-${descuentoVisual.toLocaleString("es-AR")}</span>
+          <div className="flex justify-between items-center text-sm text-emerald-600">
+            <span className="flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5" />
+              {CHECKOUT_SECTIONS.DISCOUNT}
+            </span>
+            <span className="font-medium">-${descuentoVisual.toLocaleString("es-AR")}</span>
           </div>
         )}
 
         {saldoUsado > 0 && (
-          <div className="flex justify-between items-center text-xs sm:text-sm lg:text-base xl:text-lg text-green-400">
-            <span className="flex items-center gap-1">
-              <Wallet className="w-3 h-3" />
+          <div className="flex justify-between items-center text-sm text-emerald-600">
+            <span className="flex items-center gap-1.5">
+              <Wallet className="w-3.5 h-3.5" />
               Saldo aplicado
             </span>
-            <span>-${saldoUsado.toLocaleString("es-AR")}</span>
+            <span className="font-medium">-${saldoUsado.toLocaleString("es-AR")}</span>
           </div>
         )}
 
-        <div className="border-t border-white/20 pt-3 flex justify-between items-center">
-          <span className="text-white font-medium">{CHECKOUT_SECTIONS.TOTAL}</span>
-          <span className="text-3xl font-display font-bold text-indigo-400">
-            ${precioFinal.toLocaleString("es-AR")}
-          </span>
+        <div className="border-t border-purple-100 pt-4 flex justify-between items-center">
+          <span className="text-gray-900 font-medium">{CHECKOUT_SECTIONS.TOTAL}</span>
+          <div className="text-right">
+            <span className="text-3xl font-bold text-purple-600">
+              ${precioFinal.toLocaleString("es-AR")}
+            </span>
+            <p className="text-xs text-gray-400 mt-1">
+              ${precioPorDia}{CHECKOUT_SECTIONS.PER_DAY}
+            </p>
+          </div>
         </div>
-
-        <p className="text-xs text-gray-400 text-right pt-2">
-          ${precioPorDia}{CHECKOUT_SECTIONS.PER_DAY}
-        </p>
       </div>
 
       {/* Divider */}
-      <div className="border-t border-white/20" />
+      <div className="border-t border-purple-100" />
 
       {/* Plan Details */}
-      <div className="space-y-3 text-sm">
-        <div className="flex items-start gap-3">
-          <Check className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-400 flex-shrink-0 mt-0.5" />
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+            <Shield className="w-5 h-5 text-purple-600" />
+          </div>
           <div>
-            <div className="font-medium text-white">
+            <div className="font-medium text-gray-900 text-sm">
               {plan.connection_limit} dispositivo{plan.connection_limit !== 1 ? "s" : ""}
             </div>
-            <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400">
+            <div className="text-xs text-gray-500">
               {CHECKOUT_SECTIONS.CONNECTIONS}
             </div>
           </div>
         </div>
 
-        <div className="flex items-start gap-3">
-          <Check className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-400 flex-shrink-0 mt-0.5" />
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+            <Zap className="w-5 h-5 text-emerald-600" />
+          </div>
           <div>
-            <div className="font-medium text-white">
+            <div className="font-medium text-gray-900 text-sm">
               {CHECKOUT_SECTIONS.UNLIMITED_SPEED}
             </div>
-            <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400">
+            <div className="text-xs text-gray-500">
               {CHECKOUT_SECTIONS.NO_RESTRICTIONS}
             </div>
           </div>
         </div>
 
-        <div className="flex items-start gap-3">
-          <Check className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7 text-indigo-400 flex-shrink-0 mt-0.5" />
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center">
+            <Check className="w-5 h-5 text-sky-600" />
+          </div>
           <div>
-            <div className="font-medium text-white">
+            <div className="font-medium text-gray-900 text-sm">
               {CHECKOUT_SECTIONS.SUPPORT_24_7}
             </div>
-            <div className="text-xs sm:text-sm lg:text-base xl:text-lg text-gray-400">
+            <div className="text-xs text-gray-500">
               {CHECKOUT_SECTIONS.ANYTIME_ASSISTANCE}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
